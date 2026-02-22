@@ -53,33 +53,73 @@ const getMpesaToken = async () => {
 const sanitizeInput = (input) => validator.escape(String(input).trim());
 
 // ======= EMAIL RECEIPT =======
+
+
 export const sendPaymentEmail = async (emails, name, amount, transactionId, orderId) => {
   try {
     // 1️⃣ Generate PDF as a Buffer using a Promise
     const pdfBuffer = await new Promise((resolve, reject) => {
-      const doc = new PDFDocument();
+      const doc = new PDFDocument({ margin: 50 });
       const buffers = [];
       doc.on('data', buffers.push.bind(buffers));
       doc.on('end', () => resolve(Buffer.concat(buffers)));
       doc.on('error', reject);
 
-      // PDF content
-      doc.fontSize(20).text('E-Commerce Payment Receipt', { align: 'center' });
-      doc.moveDown().fontSize(14).text(`Hello ${name},`);
-      doc.text(`Order ID: ${orderId}`);
-      doc.text(`Amount: KES ${amount}`);
+      // PDF content (fancy)
+      doc.fontSize(24).fillColor('#0B3D91').text('💎 E-Commerce Receipt 💎', { align: 'center' });
+      doc.moveDown();
+      doc.fontSize(16).fillColor('#333').text(`Hello ${name},`);
+      doc.moveDown();
+      doc.fontSize(14).text(`Order ID: ${orderId}`);
+      doc.text(`Amount Paid: KES ${amount}`);
       doc.text(`Transaction ID: ${transactionId}`);
       doc.text(`Date: ${new Date().toLocaleString()}`);
-      doc.text('Thank you for shopping with us!');
+      doc.moveDown();
+      doc.fillColor('#0B3D91').fontSize(16).text('Thank you for shopping with us!', { align: 'center' });
       doc.end();
     });
 
-    // 2️⃣ Send email to user and owner
+    // 2️⃣ Create fancy HTML email
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width:600px; margin:auto; padding:20px; border:1px solid #eee; border-radius:10px; background-color:#f9f9f9;">
+        <h2 style="color:#0B3D91; text-align:center;">💎 E-Commerce Payment Receipt 💎</h2>
+        <p>Hello <strong>${name}</strong>,</p>
+        <p>We have successfully received your payment for your order. Here are the details:</p>
+        <table style="width:100%; border-collapse:collapse; margin-top:15px;">
+          <tr>
+            <td style="padding:8px; border:1px solid #ddd;">Order ID</td>
+            <td style="padding:8px; border:1px solid #ddd;">${orderId}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px; border:1px solid #ddd;">Amount Paid</td>
+            <td style="padding:8px; border:1px solid #ddd;">KES ${amount}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px; border:1px solid #ddd;">Transaction ID</td>
+            <td style="padding:8px; border:1px solid #ddd;">${transactionId}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px; border:1px solid #ddd;">Date</td>
+            <td style="padding:8px; border:1px solid #ddd;">${new Date().toLocaleString()}</td>
+          </tr>
+        </table>
+        <p style="margin-top:20px;">You can view your order details by clicking the button below:</p>
+        <div style="text-align:center; margin-top:20px;">
+          <a href="https://yourwebsite.com/orders/${orderId}" 
+             style="background-color:#0B3D91; color:#fff; padding:12px 25px; border-radius:5px; text-decoration:none; font-weight:bold;">
+            View My Order
+          </a>
+        </div>
+        <p style="margin-top:30px;">Thank you for shopping with us! 💎</p>
+      </div>
+    `;
+
+    // 3️⃣ Send email with HTML + PDF
     await transporter.sendMail({
       from: process.env.SENDER_EMAIL,
-      to: Array.isArray(emails) ? emails.join(',') : emails, // handle array or string
-      subject: 'Order Payment Confirmation',
-      text: `Hello ${name},\nYour payment of KES ${amount} for order ${orderId} has been received. Transaction ID: ${transactionId}`,
+      to: Array.isArray(emails) ? emails.join(',') : emails,
+      subject: '✨ Your Payment Receipt & Order Confirmation ✨',
+      html: htmlContent,
       attachments: [
         {
           filename: `Receipt-${transactionId}.pdf`,
