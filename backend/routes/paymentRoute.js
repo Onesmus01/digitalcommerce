@@ -53,30 +53,42 @@ const getMpesaToken = async () => {
 const sanitizeInput = (input) => validator.escape(String(input).trim());
 
 // ======= EMAIL RECEIPT =======
-const sendPaymentEmail = async (email, name, amount, transactionId, orderId) => {
+export const sendPaymentEmail = async (emails, name, amount, transactionId, orderId) => {
   try {
-    const doc = new PDFDocument();
-    let buffers = [];
-    doc.on('data', buffers.push.bind(buffers));
-    doc.on('end', async () => {
-      const pdfData = Buffer.concat(buffers);
-      await transporter.sendMail({
-        from: process.env.SENDER_EMAIL,
-        to: email,
-        subject: 'Order Payment Confirmation',
-        text: `Hello ${name},\nYour payment of KES ${amount} for order ${orderId} has been received. Transaction ID: ${transactionId}`,
-        attachments: [{ filename: `Receipt-${transactionId}.pdf`, content: pdfData }]
-      });
+    // 1️⃣ Generate PDF as a Buffer using a Promise
+    const pdfBuffer = await new Promise((resolve, reject) => {
+      const doc = new PDFDocument();
+      const buffers = [];
+      doc.on('data', buffers.push.bind(buffers));
+      doc.on('end', () => resolve(Buffer.concat(buffers)));
+      doc.on('error', reject);
+
+      // PDF content
+      doc.fontSize(20).text('E-Commerce Payment Receipt', { align: 'center' });
+      doc.moveDown().fontSize(14).text(`Hello ${name},`);
+      doc.text(`Order ID: ${orderId}`);
+      doc.text(`Amount: KES ${amount}`);
+      doc.text(`Transaction ID: ${transactionId}`);
+      doc.text(`Date: ${new Date().toLocaleString()}`);
+      doc.text('Thank you for shopping with us!');
+      doc.end();
     });
 
-    doc.fontSize(20).text('E-Commerce Payment Receipt', { align: 'center' });
-    doc.moveDown().fontSize(14).text(`Hello ${name},`);
-    doc.text(`Order ID: ${orderId}`);
-    doc.text(`Amount: KES ${amount}`);
-    doc.text(`Transaction ID: ${transactionId}`);
-    doc.text(`Date: ${new Date().toLocaleString()}`);
-    doc.text('Thank you for shopping with us!');
-    doc.end();
+    // 2️⃣ Send email to user and owner
+    await transporter.sendMail({
+      from: process.env.SENDER_EMAIL,
+      to: Array.isArray(emails) ? emails.join(',') : emails, // handle array or string
+      subject: 'Order Payment Confirmation',
+      text: `Hello ${name},\nYour payment of KES ${amount} for order ${orderId} has been received. Transaction ID: ${transactionId}`,
+      attachments: [
+        {
+          filename: `Receipt-${transactionId}.pdf`,
+          content: pdfBuffer,
+        },
+      ],
+    });
+
+    console.log('[EMAIL SENT] Payment email sent to:', emails);
   } catch (err) {
     console.error('[EMAIL ERROR]', err);
   }
@@ -229,18 +241,12 @@ paymentRouter.post('/mpesa/cancel/:transactionId', authToken, async (req, res) =
 
 // ======= M-PESA CALLBACK =======
 paymentRouter.post('/mpesa/webhook', express.json(), async (req, res) => {
-  // Always log the raw request first
   console.log('================ MPESA WEBHOOK HIT ================');
   console.log('[MPESA WEBHOOK] Received request');
   console.log('Headers:', req.headers);
   console.log('Body:', JSON.stringify(req.body, null, 2));
 
-  // Optional: check secret if set
-  // if (WEBHOOK_SECRET && req.headers['x-webhook-secret'] !== WEBHOOK_SECRET) {
-  //   console.log('[MPESA WEBHOOK] Unauthorized webhook attempt');
-  //   return res.status(403).json({ message: 'Unauthorized webhook' });
-  // }
-
+  // Extract stkCallback from payload
   const stkCallback = req.body?.Body?.stkCallback;
   if (!stkCallback) {
     console.log('[MPESA WEBHOOK] Invalid payload, missing stkCallback');
@@ -256,7 +262,7 @@ paymentRouter.post('/mpesa/webhook', express.json(), async (req, res) => {
     case 0:
       status = 'success';
       break;
-    case 1032: // customer cancelled
+    case 1032:
       status = 'cancelled';
       break;
     default:
@@ -265,11 +271,11 @@ paymentRouter.post('/mpesa/webhook', express.json(), async (req, res) => {
   console.log('[MPESA WEBHOOK] Determined status:', status);
 
   try {
-    // Log the webhook for audit
+    // Log the webhook for auditing
     const log = await MpesaLog.create({ transaction_id: CheckoutRequestID, status, payload: req.body });
     console.log('[MPESA WEBHOOK] Logged webhook:', log._id);
 
-    // Find payment
+    // Find payment record
     const payment = await Payment.findOne({ transaction: CheckoutRequestID });
     if (!payment) {
       console.log('[MPESA WEBHOOK] Payment not found for transaction:', CheckoutRequestID);
@@ -291,6 +297,7 @@ paymentRouter.post('/mpesa/webhook', express.json(), async (req, res) => {
     const order = await Order.findById(payment.order);
     if (order) {
       console.log('[MPESA WEBHOOK] Found associated order:', order._id);
+
       if (status === 'success') {
         order.paymentStatus = 'paid';
         order.orderStatus = 'processing';
@@ -301,6 +308,7 @@ paymentRouter.post('/mpesa/webhook', express.json(), async (req, res) => {
         order.paymentStatus = 'failed';
         order.orderStatus = 'pending';
       }
+
       await order.save();
       console.log('[MPESA WEBHOOK] Order updated:', {
         paymentStatus: order.paymentStatus,
@@ -308,23 +316,29 @@ paymentRouter.post('/mpesa/webhook', express.json(), async (req, res) => {
       });
     }
 
-    // Send email for successful payments
+    // Send email notifications on success
     if (status === 'success') {
       const user = await User.findById(payment.user);
       if (user && order) {
-        await sendPaymentEmail(user.email, user.name, payment.amount, CheckoutRequestID, order._id);
-        console.log('[MPESA WEBHOOK] Payment email sent to user:', user.email);
+        const recipients = [user.email, process.env.OWNER_EMAIL]; // notify both user & owner
+        await sendPaymentEmail(
+          recipients,
+          user.name,
+          payment.amount,
+          CheckoutRequestID,
+          order._id
+        );
+        console.log('[MPESA WEBHOOK] Payment email sent to user & owner:', recipients);
       }
     }
 
     console.log('[MPESA WEBHOOK] Finished processing');
-    res.status(200).json({ message: 'Webhook processed', status });
+    return res.status(200).json({ message: 'Webhook processed', status });
   } catch (err) {
     console.error('[MPESA WEBHOOK ERROR]', err);
-    res.status(500).json({ message: 'Webhook processing failed' });
+    return res.status(500).json({ message: 'Webhook processing failed' });
   }
 });
-
 
 // ======= PAYMENT STATUS =======
 paymentRouter.get('/mpesa/status/:transactionId', authToken, async (req, res) => {
