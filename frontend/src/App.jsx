@@ -23,6 +23,7 @@ import SearchProduct from '@/components/SearchProduct.jsx'
 import Orders from '@/pages/Orders.jsx'
 import CheckoutPage from '@/pages/CheckoutPage.jsx'
 import Payment from '@/pages/Payment.jsx'
+import ThankYouPage from '@/pages/ThankyouPage.jsx'
 
 let backendUrl = import.meta.env.VITE_BACKEND_URL
 const App = () => {
@@ -109,6 +110,7 @@ const App = () => {
           {user && <Route path={'/orders'} element={<Orders />} />}
           {user && <Route path={'/checkout'} element={<CheckoutPage />} />}
           {user && <Route path={'/payment'} element={<Payment />} />}
+          {user && <Route path={'/thank-you'} element={<ThankYouPage />} />}
 
 
 
