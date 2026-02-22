@@ -236,10 +236,10 @@ paymentRouter.post('/mpesa/webhook', express.json(), async (req, res) => {
   console.log('Body:', JSON.stringify(req.body, null, 2));
 
   // Optional: check secret if set
-  if (WEBHOOK_SECRET && req.headers['x-webhook-secret'] !== WEBHOOK_SECRET) {
-    console.log('[MPESA WEBHOOK] Unauthorized webhook attempt');
-    return res.status(403).json({ message: 'Unauthorized webhook' });
-  }
+  // if (WEBHOOK_SECRET && req.headers['x-webhook-secret'] !== WEBHOOK_SECRET) {
+  //   console.log('[MPESA WEBHOOK] Unauthorized webhook attempt');
+  //   return res.status(403).json({ message: 'Unauthorized webhook' });
+  // }
 
   const stkCallback = req.body?.Body?.stkCallback;
   if (!stkCallback) {
