@@ -55,9 +55,12 @@ const sanitizeInput = (input) => validator.escape(String(input).trim());
 // ======= EMAIL RECEIPT =======
 
 
-export const sendPaymentEmail = async (emails, name, amount, transactionId, orderId) => {
+
+
+
+export const sendPaymentEmail = async (emails, name, amount, transactionId, orderId, status = 'success') => {
   try {
-    // 1️⃣ Generate PDF as a Buffer using a Promise
+    // 1️⃣ Generate PDF as Buffer
     const pdfBuffer = await new Promise((resolve, reject) => {
       const doc = new PDFDocument({ margin: 50 });
       const buffers = [];
@@ -65,60 +68,87 @@ export const sendPaymentEmail = async (emails, name, amount, transactionId, orde
       doc.on('end', () => resolve(Buffer.concat(buffers)));
       doc.on('error', reject);
 
-      // PDF content (fancy)
-      doc.fontSize(24).fillColor('#0B3D91').text('💎 E-Commerce Receipt 💎', { align: 'center' });
-      doc.moveDown();
-      doc.fontSize(16).fillColor('#333').text(`Hello ${name},`);
+      // PDF Header with dynamic color
+      const statusColor = status === 'success' ? '#28a745' : status === 'cancelled' ? '#ffc107' : '#dc3545';
+      doc.rect(0, 0, 595, 120).fill(statusColor);
+      doc.fillColor('#fff').fontSize(24).text('💎 E-Commerce Receipt 💎', 50, 40, { align: 'center' });
+
+      // Order Details
+      doc.moveDown(4).fillColor('#333').fontSize(16).text(`Hello ${name},`);
       doc.moveDown();
       doc.fontSize(14).text(`Order ID: ${orderId}`);
       doc.text(`Amount Paid: KES ${amount}`);
       doc.text(`Transaction ID: ${transactionId}`);
+      doc.text(`Payment Status: ${status.toUpperCase()}`);
       doc.text(`Date: ${new Date().toLocaleString()}`);
       doc.moveDown();
       doc.fillColor('#0B3D91').fontSize(16).text('Thank you for shopping with us!', { align: 'center' });
+
       doc.end();
     });
 
-    // 2️⃣ Create fancy HTML email
+    // 2️⃣ Compose HTML Email (boss-level style)
+    const statusColor = status === 'success' ? '#28a745' : status === 'cancelled' ? '#ffc107' : '#dc3545';
     const htmlContent = `
-      <div style="font-family: Arial, sans-serif; max-width:600px; margin:auto; padding:20px; border:1px solid #eee; border-radius:10px; background-color:#f9f9f9;">
-        <h2 style="color:#0B3D91; text-align:center;">💎 E-Commerce Payment Receipt 💎</h2>
-        <p>Hello <strong>${name}</strong>,</p>
-        <p>We have successfully received your payment for your order. Here are the details:</p>
-        <table style="width:100%; border-collapse:collapse; margin-top:15px;">
-          <tr>
-            <td style="padding:8px; border:1px solid #ddd;">Order ID</td>
-            <td style="padding:8px; border:1px solid #ddd;">${orderId}</td>
-          </tr>
-          <tr>
-            <td style="padding:8px; border:1px solid #ddd;">Amount Paid</td>
-            <td style="padding:8px; border:1px solid #ddd;">KES ${amount}</td>
-          </tr>
-          <tr>
-            <td style="padding:8px; border:1px solid #ddd;">Transaction ID</td>
-            <td style="padding:8px; border:1px solid #ddd;">${transactionId}</td>
-          </tr>
-          <tr>
-            <td style="padding:8px; border:1px solid #ddd;">Date</td>
-            <td style="padding:8px; border:1px solid #ddd;">${new Date().toLocaleString()}</td>
-          </tr>
-        </table>
-        <p style="margin-top:20px;">You can view your order details by clicking the button below:</p>
-        <div style="text-align:center; margin-top:20px;">
-          <a href="https://yourwebsite.com/orders/${orderId}" 
-             style="background-color:#0B3D91; color:#fff; padding:12px 25px; border-radius:5px; text-decoration:none; font-weight:bold;">
-            View My Order
-          </a>
+      <div style="font-family: Arial, sans-serif; max-width:600px; margin:auto; border-radius:10px; overflow:hidden; box-shadow:0 0 15px rgba(0,0,0,0.1);">
+        <!-- Banner -->
+        <div style="background: ${statusColor}; padding:30px; text-align:center; color:#fff;">
+          <h1 style="margin:0; font-size:28px;">💎 E-Commerce Payment Receipt 💎</h1>
+          <img src="https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif" width="80" alt="Thank You GIF"/>
         </div>
-        <p style="margin-top:30px;">Thank you for shopping with us! 💎</p>
+
+        <!-- Greeting -->
+        <div style="background:#f9f9f9; padding:20px;">
+          <p>Hello <strong>${name}</strong>,</p>
+          <p>We have successfully received your payment for your order. Here are the details:</p>
+
+          <!-- Order Table -->
+          <table style="width:100%; border-collapse:collapse; margin-top:15px; font-size:14px;">
+            <tr style="background:#e9ecef;">
+              <td style="padding:10px; font-weight:bold;">Order ID</td>
+              <td style="padding:10px;">${orderId}</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; font-weight:bold;">Amount Paid</td>
+              <td style="padding:10px;">KES ${amount}</td>
+            </tr>
+            <tr style="background:#e9ecef;">
+              <td style="padding:10px; font-weight:bold;">Transaction ID</td>
+              <td style="padding:10px;">${transactionId}</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; font-weight:bold;">Payment Status</td>
+              <td style="padding:10px; color:${statusColor}; font-weight:bold;">${status.toUpperCase()}</td>
+            </tr>
+            <tr style="background:#e9ecef;">
+              <td style="padding:10px; font-weight:bold;">Date</td>
+              <td style="padding:10px;">${new Date().toLocaleString()}</td>
+            </tr>
+          </table>
+
+          <!-- CTA Buttons -->
+          <div style="margin-top:25px; text-align:center;">
+            <a href="https://yourwebsite.com/orders/${orderId}" style="display:inline-block; margin:5px; background:#0B3D91; color:#fff; padding:12px 25px; border-radius:5px; text-decoration:none; font-weight:bold;">View My Order</a>
+            <a href="https://yourwebsite.com/support" style="display:inline-block; margin:5px; background:#28a745; color:#fff; padding:12px 25px; border-radius:5px; text-decoration:none; font-weight:bold;">Contact Support</a>
+          </div>
+
+          <!-- Footer -->
+          <div style="margin-top:30px; font-size:12px; color:#777; text-align:center;">
+            <p>Follow us on:</p>
+            <a href="https://facebook.com" style="margin:0 5px; color:#0B3D91;">Facebook</a> |
+            <a href="https://twitter.com" style="margin:0 5px; color:#0B3D91;">Twitter</a> |
+            <a href="https://instagram.com" style="margin:0 5px; color:#0B3D91;">Instagram</a>
+            <p style="margin-top:10px;">&copy; ${new Date().getFullYear()} E-Commerce Inc. All rights reserved.</p>
+          </div>
+        </div>
       </div>
     `;
 
-    // 3️⃣ Send email with HTML + PDF
+    // 3️⃣ Send Email
     await transporter.sendMail({
       from: process.env.SENDER_EMAIL,
       to: Array.isArray(emails) ? emails.join(',') : emails,
-      subject: '✨ Your Payment Receipt & Order Confirmation ✨',
+      subject: '✨ Boss-Level Payment Receipt & Order Confirmation ✨',
       html: htmlContent,
       attachments: [
         {
@@ -128,7 +158,7 @@ export const sendPaymentEmail = async (emails, name, amount, transactionId, orde
       ],
     });
 
-    console.log('[EMAIL SENT] Payment email sent to:', emails);
+    console.log('[EMAIL SENT] Boss-level email sent to:', emails);
   } catch (err) {
     console.error('[EMAIL ERROR]', err);
   }
