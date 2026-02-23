@@ -24,7 +24,8 @@ import Orders from '@/pages/Orders.jsx'
 import CheckoutPage from '@/pages/CheckoutPage.jsx'
 import Payment from '@/pages/Payment.jsx'
 import ThankYouPage from '@/pages/ThankyouPage.jsx'
-
+import MyOrdersPage from '@/pages/MyOrdersPage.jsx'
+import AdminDashboard from '@/pages/AdminDashboard.jsx'
 let backendUrl = import.meta.env.VITE_BACKEND_URL
 const App = () => {
   const user = useSelector(state=>state?.user?.user)
@@ -111,6 +112,7 @@ const App = () => {
           {user && <Route path={'/checkout'} element={<CheckoutPage />} />}
           {user && <Route path={'/payment'} element={<Payment />} />}
           {user && <Route path={'/thank-you'} element={<ThankYouPage />} />}
+          {user && <Route path={'/my-orders'} element={<MyOrdersPage />} />}
 
 
 
@@ -120,6 +122,9 @@ const App = () => {
           <Route path={'all-users'} element={<AllUsers />} />
           <Route path={'all-products'} element={<AllProducts />}/>
           <Route path={'product'} element={<Products />}/>
+          <Route path={'admin-dashboard'} element={<AdminDashboard />}/>
+
+          
 
 
           </Route>}

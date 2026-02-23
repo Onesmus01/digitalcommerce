@@ -48,7 +48,9 @@ export const getMyOrders = async (req, res) => {
       success: true,
       orders,
     });
+    console.log("Fetched orders for user:", req.userId, orders);
   } catch (error) {
+    console.error("Error fetching orders for user:", req.userId, error);  
     res.status(500).json({
       success: false,
       message: error.message,
@@ -82,4 +84,19 @@ export const getOrderById = async (req, res) => {
       message: error.message,
     });
   }
+};
+
+export const cancelOrder = async (req, res) => {
+  const order = await Order.findById(req.params.id);
+
+  if (!order) return res.status(404).json({ message: "Order not found" });
+
+  if (order.orderStatus !== "processing") {
+    return res.status(400).json({ message: "Cannot cancel this order" });
+  }
+
+  order.orderStatus = "cancelled";
+  await order.save();
+
+  res.json({ message: "Order cancelled" });
 };

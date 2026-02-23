@@ -55,9 +55,6 @@ const sanitizeInput = (input) => validator.escape(String(input).trim());
 // ======= EMAIL RECEIPT =======
 
 
-
-
-
 export const sendPaymentEmail = async (emails, name, amount, transactionId, orderId, status = 'success') => {
   try {
     // 1️⃣ Generate PDF as Buffer

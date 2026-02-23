@@ -35,7 +35,7 @@ const orderSchema = new mongoose.Schema(
 
     shippingAddress: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Address",
+      ref: "PersonalDetails",
       required: true,
     },
 
