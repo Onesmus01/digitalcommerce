@@ -3,45 +3,63 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import addTocart from '../models/cartProductModel.js'
 import addToCart from '../models/cartProductModel.js'
-export const signIn = async(req,res)=> {
-    try {
-        const {email,password} = req.body
-        if (!email) return res.status(400).json({ success: false, message: "Please provide email" });
-        if (!password) return res.status(400).json({ success: false, message: "Please provide password" });
+export const signIn = async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-        const user = await User.findOne({email})
-        if(!user){
-            res.status(400).json({success: false,message: "User does not exist please register"})
-        }
+    if (!email)
+      return res.status(400).json({ success: false, message: "Please provide email" });
 
-        const passwordExist = await bcrypt.compare(password,user.password)
-        if(!passwordExist){
-            return res.status(400).json({success:false,message: "Invalid credentials"})
-        }
+    if (!password)
+      return res.status(400).json({ success: false, message: "Please provide password" });
 
+    const user = await User.findOne({ email });
 
-            const tokenData = {
-                _id: user._id,
-                email: user.email
-            }
-            const tokenOptions = {
-                httpOnly: true,
-                secure: true,
-                sameSite: 'strict',
-                maxAge: 2 * 24 * 60 * 60 * 1000
-            }
-           const token = jwt.sign(tokenData,process.env.JWT_SECRET,{expiresIn: '2d'})
-           res.cookie('token',token,tokenOptions)
-           res.status(201).json({success: true,message: 'login successful'})
-    
-
-    } catch (error) {
-         res.status(500).json({success: false, message: error.message})
-
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "User does not exist please register",
+      });
     }
 
-}
+    const passwordExist = await bcrypt.compare(password, user.password);
 
+    if (!passwordExist) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid credentials",
+      });
+    }
+
+    const tokenData = {
+      _id: user._id,
+      email: user.email,
+      role: user.role,
+    };
+
+    const token = jwt.sign(tokenData, process.env.JWT_SECRET, {
+      expiresIn: "2d",
+    });
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,      // dev only
+      sameSite: "lax",    // 🔥 important
+      maxAge: 2 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Login successful",
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 export const signUp = async (req,res) => {
     try {
         const {name,email,password} = req.body
