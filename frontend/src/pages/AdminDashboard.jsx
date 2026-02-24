@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useContext } from "react";
 import { Bar, Line } from "react-chartjs-2";
 import {
   FaUsers,
@@ -35,6 +35,7 @@ ChartJS.register(
   Tooltip,
   Legend
 );
+import { Context} from "../context/ProductContext.jsx";
 
 // ===================== Reusable Stats Card =====================
 const StatsCard = ({ label, value, icon, gradient, badge }) => (
@@ -90,13 +91,14 @@ const CustomerCard = ({ customer }) => (
     </div>
   </div>
 );
-
 export default function AdminDashboard() {
   const [ordersPage, setOrdersPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+
+  const {backendUrl,toast,user} = useContext(Context)
 
   const ORDERS_PER_PAGE = 3;
   const salesGoal = 60000;
@@ -111,14 +113,60 @@ export default function AdminDashboard() {
     revenue: 45230,
   });
 
-  const [recentOrders, setRecentOrders] = useState([
-    { id: 1, customer: "John Doe", product: "Gaming Mouse", amount: 120, status: "Shipped" },
-    { id: 2, customer: "Jane Smith", product: "Keyboard", amount: 80, status: "Processing" },
-    { id: 3, customer: "Bob Marley", product: "Monitor", amount: 250, status: "Delivered" },
-    { id: 4, customer: "Alice Cooper", product: "Laptop", amount: 1200, status: "Delivered" },
-    { id: 5, customer: "Mike Tyson", product: "Headset", amount: 90, status: "Shipped" },
-    { id: 6, customer: "Sarah Connor", product: "Webcam", amount: 150, status: "Processing" },
-  ]);
+  const [recentOrders, setRecentOrders] = useState([]);
+
+  const fetchRecentOrders = async () => {
+  try {
+    setLoading(true);
+
+    const response = await fetch(
+      `${backendUrl}/order/recent-orders`,
+      {
+        method: "GET",
+        credentials: "include",
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to fetch recent orders");
+    }
+
+    setRecentOrders(data.orders || []);
+  } catch (error) {
+    console.log(error);
+    toast.error(error.message || "Error while fetching recent orders");
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+  fetchRecentOrders();
+}, []);
+
+const [orders, setOrders] = useState([]);
+const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${backendUrl}/order/all-orders`, { credentials: "include" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to fetch orders");
+      setOrders(data.orders || []);
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || "Error fetching orders");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+
 
   const topProducts = [
     { name: "Gaming Mouse", sales: 120, image: "https://via.placeholder.com/50" },
@@ -155,28 +203,56 @@ export default function AdminDashboard() {
   const goalPercent = Math.min(100, ((stats.revenue / salesGoal) * 100).toFixed(0));
   const predictNextMonthSales = () => Math.round(stats.revenue * 1.12);
 
-  const exportCSV = () => {
+ const exportCSV = () => {
     const rows = [
-      ["Customer", "Product", "Amount", "Status"],
-      ...recentOrders.map((o) => [o.customer, o.product, o.amount, o.status]),
+      [
+        "Customer Name","Customer Email","Phone","User Role","Product Name",
+        "Product Price","Quantity","Total Amount","Order Status",
+        "Payment Method","Payment Status","Shipping Country","Shipping City",
+        "Shipping Street","Shipping PostalCode",
+      ],
+      ...orders.map(o =>
+        o.items.map(item => [
+          o.user?.name || "Unknown",
+          o.user?.email || "Unknown",
+          o.shippingAddress?.phone || "N/A",
+          o.user?.role || "GENERAL",
+          item.name || "Unknown Product",
+          item.price || 0,
+          item.quantity || 0,
+          o.totalAmount || 0,
+          o.orderStatus || "Pending",
+          o.paymentMethod || "N/A",
+          o.paymentStatus || "pending",
+          o.shippingAddress?.address?.country || "N/A",
+          o.shippingAddress?.address?.city || "N/A",
+          o.shippingAddress?.address?.street || "N/A",
+          o.shippingAddress?.address?.postalCode || "N/A",
+        ])
+      ).flat(),
     ];
-    const csvContent =
-      "data:text/csv;charset=utf-8," +
-      rows.map((e) => e.join(",")).join("\n");
-
+    const csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
     const link = document.createElement("a");
     link.href = encodeURI(csvContent);
-    link.download = "orders-report.csv";
+    link.download = "all-orders.csv";
     document.body.appendChild(link);
     link.click();
   };
 
-  const filteredOrders = recentOrders.filter(
-    (o) =>
-      o.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      o.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      o.status.toLowerCase().includes(searchTerm.toLowerCase())
+
+  const searchTermLower = searchTerm.toLowerCase();
+
+const filteredOrders = recentOrders.filter((o) => {
+  const customerName = o.user?.name?.toLowerCase() || "";
+  const productName = o.items?.[0]?.product?.name?.toLowerCase() || "";
+  const status = o.status?.toLowerCase() || "";
+
+  return (
+    customerName.includes(searchTermLower) ||
+    productName.includes(searchTermLower) ||
+    status.includes(searchTermLower)
   );
+});
 
   const paginatedOrders = filteredOrders.slice(
     (ordersPage - 1) * ORDERS_PER_PAGE,
@@ -324,35 +400,45 @@ export default function AdminDashboard() {
 
   {/* Orders List */}
   <div className="space-y-3 max-h-64 overflow-y-auto">
-    {filteredOrders.slice(0, 5).map((order) => (
+  {recentOrders.map((order) => {
+    const customerName = order.user?.name || "Unknown User";
+    const productNames =
+      order.items && order.items.length > 0
+        ? order.items.map((i) => i.name).join(", ")
+        : "No products in order";
+    const amount = order.totalAmount || 0;
+    const status = order.orderStatus || "Pending";
+
+    return (
       <div
-        key={order.id}
+        key={order._id}
         className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:shadow transition"
       >
         <div>
-          <p className="font-semibold text-gray-700">{order.customer}</p>
-          <p className="text-sm text-gray-500">{order.product}</p>
+          <p className="font-semibold text-gray-700">{customerName}</p>
+          <p className="text-sm text-gray-500">{productNames}</p>
         </div>
 
         <div className="text-right">
-          <p className="font-bold">${order.amount}</p>
+          <p className="font-bold">${amount}</p>
           <span
             className={`text-xs px-2 py-1 rounded-full ${
-              order.status === "Delivered"
+              status === "delivered"
                 ? "bg-green-100 text-green-700"
-                : order.status === "Processing"
+                : status === "processing"
                 ? "bg-yellow-100 text-yellow-700"
-                : order.status === "Cancelled"
+                : status === "cancelled"
                 ? "bg-red-100 text-red-700"
                 : "bg-blue-100 text-blue-700"
             }`}
           >
-            {order.status}
+            {status}
           </span>
         </div>
       </div>
-    ))}
-  </div>
+    );
+  })}
+</div>
 
   {/* Divider */}
   <hr className="my-5" />
