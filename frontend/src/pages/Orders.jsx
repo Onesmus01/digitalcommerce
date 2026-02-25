@@ -7,30 +7,70 @@ import { FaDownload, FaShoppingCart, FaUsers, FaDollarSign, FaSearch } from "rea
 
 export default function AdminDashboardOrders() {
   const { backendUrl } = useContext(Context);
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+const [orders, setOrders] = useState([]);
+const [users, setUsers] = useState([]);
+const [loading, setLoading] = useState(true);
+const [search, setSearch] = useState("");
+const [statusFilter, setStatusFilter] = useState("");
 
-  const fetchOrders = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`${backendUrl}/order/all-orders`, { credentials: "include" });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to fetch orders");
-      setOrders(data.orders || []);
-    } catch (err) {
-      console.error(err);
-      toast.error(err.message || "Error fetching orders");
-    } finally {
-      setLoading(false);
-    }
-  };
+// 1️⃣ Fetch orders
+const fetchOrders = async () => {
+  try {
+    setLoading(true);
+    const res = await fetch(`${backendUrl}/order/all-orders`, { credentials: "include" });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed to fetch orders");
+    setOrders(data.orders || []);
+  } catch (err) {
+    console.error(err);
+    toast.error(err.message || "Error fetching orders");
+  } finally {
+    setLoading(false);
+  }
+};
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
+// 2️⃣ Fetch users
+const fetchUsers = async () => {
+  try {
+    const res = await fetch(`${backendUrl}/user/total-users`, { credentials: "include" });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed to fetch users");
+    setUsers(data.data || []);
+    console.log("Total users:", data.data.users);
+  } catch (err) {
+    console.error(err);
+    toast.error(err.message || "Error fetching users");
+  }
+};
 
+// 3️⃣ Fetch everything on mount
+useEffect(() => {
+  fetchOrders();
+  fetchUsers();
+}, [backendUrl]);
+
+// 4️⃣ Filtered orders (search & status)
+const filteredOrders = useMemo(() => {
+  return orders.filter(o =>
+    (!statusFilter || o.orderStatus === statusFilter) &&
+    (!search ||
+      o.user?.name?.toLowerCase().includes(search.toLowerCase()) ||
+      o.user?.email?.toLowerCase().includes(search.toLowerCase()) ||
+      o.items.some(item => item.name?.toLowerCase().includes(search.toLowerCase()))
+    )
+  );
+}, [orders, search, statusFilter]);
+
+// 5️⃣ Compute stats
+const stats = useMemo(() => {
+  const totalOrders = orders.length;
+  const totalRevenue = orders
+    .filter(o => o.paymentStatus === "success") // only successful payments
+    .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+  const totalUsers = users.length; // total registered users
+
+  return { totalOrders, totalRevenue, totalUsers };
+}, [orders, users]);
   const exportCSV = () => {
     const rows = [
       [
@@ -67,13 +107,7 @@ export default function AdminDashboardOrders() {
     link.click();
   };
 
-  const stats = useMemo(() => {
-    const totalOrders = orders.length;
-    const totalRevenue = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
-    const totalUsers = new Set(orders.map(o => o.user?._id)).size;
-    return { totalOrders, totalRevenue, totalUsers };
-  }, [orders]);
-
+  
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
       const res = await fetch(`${backendUrl}/order/update-status/${orderId}`, {
@@ -92,17 +126,7 @@ export default function AdminDashboardOrders() {
     }
   };
 
-  const filteredOrders = useMemo(() => {
-    return orders.filter(o =>
-      (!statusFilter || o.orderStatus === statusFilter) &&
-      (!search ||
-        o.user?.name?.toLowerCase().includes(search.toLowerCase()) ||
-        o.user?.email?.toLowerCase().includes(search.toLowerCase()) ||
-        o.items.some(item => item.name?.toLowerCase().includes(search.toLowerCase()))
-      )
-    );
-  }, [orders, search, statusFilter]);
-
+  
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
       <p className="text-gray-500 text-lg animate-pulse">Loading orders...</p>
@@ -158,20 +182,20 @@ export default function AdminDashboardOrders() {
 
       {/* ===== Stats Cards ===== */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {[
-          { title: "Total Orders", value: stats.totalOrders, icon: <FaShoppingCart className="text-blue-500 text-xl" /> },
-          { title: "Total Users", value: stats.totalUsers, icon: <FaUsers className="text-purple-500 text-xl" /> },
-          { title: "Total Revenue", value: `$${stats.totalRevenue.toLocaleString()}`, icon: <FaDollarSign className="text-green-500 text-xl" /> },
-        ].map((card, idx) => (
-          <div key={idx} className="bg-white rounded-xl shadow-md p-5 flex flex-col gap-2 hover:shadow-xl transition transform hover:scale-105">
-            <div className="flex items-center justify-between">
-              <p className="text-gray-500 font-medium">{card.title}</p>
-              {card.icon}
-            </div>
-            <p className="text-2xl font-bold text-gray-800">{card.value}</p>
-          </div>
-        ))}
+  {[
+    { title: "Total Orders", value: stats.totalOrders, icon: <FaShoppingCart className="text-blue-500 text-xl" /> },
+    { title: "Total Users", value: stats.totalUsers, icon: <FaUsers className="text-purple-500 text-xl" /> },
+    { title: "Total Revenue", value: `$${stats.totalRevenue.toLocaleString()}`, icon: <FaDollarSign className="text-green-500 text-xl" /> },
+  ].map((card, idx) => (
+    <div key={idx} className="bg-white rounded-xl shadow-md p-5 flex flex-col gap-2 hover:shadow-xl transition transform hover:scale-105">
+      <div className="flex items-center justify-between">
+        <p className="text-gray-500 font-medium">{card.title}</p>
+        {card.icon}
       </div>
+      <p className="text-2xl font-bold text-gray-800">{card.value}</p>
+    </div>
+  ))}
+</div>
 
       {/* ===== Orders Card-Style for Mobile with Glow & Hover Effects ===== */}
       <div className="flex flex-col gap-4">

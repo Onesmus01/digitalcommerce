@@ -1,5 +1,5 @@
 import express from 'express'
-import {getCategoryWiseProduct, uploadProduct,getAllProducts, updateProduct, deleteProduct, getProductCategory, getProductDetails, searchProduct,filterProduct } from '../controller/productController.js'
+import {getCategoryWiseProduct, uploadProduct,getAllProducts, updateProduct, deleteProduct, getProductCategory, getProductDetails, searchProduct,filterProduct, getTopProducts, getTotalProducts } from '../controller/productController.js'
 // import {userOrders} from '../controller/ordersController.js'
 import  authToken  from '../middleware/authToken.js'
 
@@ -14,5 +14,7 @@ productRouter.post('/category-product',getCategoryWiseProduct)
 productRouter.get('/get-product-details/:productId',getProductDetails)
 productRouter.get('/search',searchProduct )
 productRouter.post('/filter-category',filterProduct)
+productRouter.get('/top-products',getTopProducts)
+productRouter.get('/total-products',getTotalProducts)
 // productRouter.get('/orders',authToken,userOrders)
 export default productRouter

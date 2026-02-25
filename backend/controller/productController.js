@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 import Product from '../models/productModel.js';
 import isAdmin from '../helpers/permission.js';
+import Payment from '../models/paymentModel.js';
+import Order from '../models/OrderModel.js';
 export const uploadProduct = async (req,res)=> {
     try {
         let {
@@ -378,5 +380,92 @@ export const filterProduct = async (req, res) => {
   }
 };
 
+// controllers/productController.js
+
+export const getTopProducts = async (req, res) => {
+  try {
+    // Aggregate successful payments and their products
+    const topProductsAgg = await Payment.aggregate([
+      { $match: { status: "success" } }, // only successful payments
+      {
+        $lookup: {
+          from: "orders",
+          localField: "order",
+          foreignField: "_id",
+          as: "orderDetails",
+        },
+      },
+      { $unwind: "$orderDetails" }, // flatten the order array
+      { $unwind: "$orderDetails.items" }, // flatten each product in order
+      {
+        $group: {
+          _id: "$orderDetails.items.product", // group by product ID
+          successCount: { $sum: 1 },          // count successful payments
+        },
+      },
+      { $sort: { successCount: -1 } },       // top-selling first
+      { $limit: 5 },                         // top 5
+    ]);
+
+    // Fetch product details
+    const topProducts = await Product.find({
+      _id: { $in: topProductsAgg.map(p => p._id) },
+    });
+
+    // Merge successCount with product info
+    const result = topProducts.map(product => {
+      const match = topProductsAgg.find(p => p._id.toString() === product._id.toString());
+      return {
+        ...product.toObject(),
+        successCount: match ? match.successCount : 0,
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Top products by successful payments fetched successfully",
+      data: result,
+    });
+  } catch (error) {
+    console.error("Get top products error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
 
+export const getTotalProducts = async (req, res) => {
+  try {
+    // Total number of products
+    const totalProducts = await Product.countDocuments();
+
+    // Optional: sum of 'selling' (total sold quantity)
+    const totalSalesAgg = await Product.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalSales: { $sum: "$selling" }, // sum of all 'selling' fields
+        },
+      },
+    ]);
+
+    const totalSales = totalSalesAgg[0]?.totalSales || 0;
+
+    return res.status(200).json({
+      success: true,
+      message: "Total products and total sales fetched successfully",
+      data: {
+        totalProducts,
+        totalSales,
+      },
+    });
+  } catch (error) {
+    console.error("Get total products error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

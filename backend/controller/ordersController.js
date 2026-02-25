@@ -246,3 +246,29 @@ export const markNotificationsAsRead = async (req, res) => {
   }
 };
 
+export const getTotalOrders = async (req, res) => {
+  try {
+    // Count all orders
+    const totalOrders = await Order.countDocuments();
+
+    // Optional: count only completed orders
+    const completedOrders = await Order.countDocuments({
+      status: "delivered", // change if your status field is different
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Total orders fetched successfully",
+      data: {
+        totalOrders,
+        completedOrders,
+      },
+    });
+  } catch (error) {
+    console.error("Get total orders error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

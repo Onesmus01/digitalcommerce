@@ -151,6 +151,25 @@ export const updateUser = async(req,res)=> {
     
 }
 
+export const getTotalUsers = async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+
+    return res.status(200).json({
+      success: true,
+      message: "Total users fetched successfully",
+      data: {
+        totalUsers,
+      },
+    });
+  } catch (error) {
+    console.error("Get total users error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 export const addTocartController = async (req, res) => {
   try {
     const { productId } = req.body;

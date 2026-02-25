@@ -1,5 +1,5 @@
 import express from 'express'
-import {signIn,signUp,logout, getAllUsers, updateUser,addTocartController, countAddToCartProduct, addToCartView, updateAddToCart, deleteCartProduct } from '../controller/userController.js'
+import {signIn,signUp,logout, getAllUsers, updateUser,addTocartController, countAddToCartProduct, addToCartView, updateAddToCart, deleteCartProduct, getTotalUsers } from '../controller/userController.js'
 import {userDetails} from '../controller/userDetails.js'
 import authToken from '../middleware/authToken.js'
 const userRouter = express.Router()
@@ -17,4 +17,5 @@ userRouter.get('/count-cart-products',authToken,countAddToCartProduct)
 userRouter.get('/view-cart-product',authToken,addToCartView)
 userRouter.post('/update-cart-product',authToken,updateAddToCart)
 userRouter.post('/delete-cart-product',authToken,deleteCartProduct)
+userRouter.get('/total-users',authToken,getTotalUsers)
 export default userRouter

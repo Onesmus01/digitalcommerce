@@ -10,6 +10,7 @@ import Order from '../models/orderModel.js';
 import Payment from '../models/paymentModel.js';
 import MpesaLog from '../models/mpesaLog.js';
 import transporter from '../config/nodemailer.js';
+import { getTotalRevenue } from '../controller/paymentController.js';
 
 dotenv.config();
 const paymentRouter = express.Router();
@@ -472,5 +473,7 @@ paymentRouter.post('/payment/manual', authToken, async (req, res) => {
     res.status(500).json({ success: false, message: 'Error processing manual payment' });
   }
 });
+
+paymentRouter.get('/total-revenue',authToken,getTotalRevenue)
 
 export default paymentRouter;
