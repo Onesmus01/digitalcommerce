@@ -4,6 +4,8 @@ import { FaAngleLeft, FaAngleRight, FaHeart, FaStar, FaShoppingCart } from 'reac
 import { Link } from 'react-router-dom'
 import addToCart from '../helpers/addToCart'
 import Context from '@/context/index.js'
+import fetchCategoryWiseProduct from '@/helpers/fetchCategoryWiseProducts.js'
+
 
 const CategoryWiseProductDisplay = ({ category, heading }) => {
   const [data, setData] = useState([])
@@ -25,6 +27,7 @@ const CategoryWiseProductDisplay = ({ category, heading }) => {
     try {
       const categoryProduct = await fetchCategoryWiseProduct(category)
       setData(categoryProduct?.data || [])
+      console.log(categoryProduct)
     } catch (error) {
       console.error("Error fetching products:", error)
     } finally {
