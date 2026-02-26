@@ -14,6 +14,9 @@ import {
   FaChevronRight,
   FaSignOutAlt,
   FaCog,
+  FaPlus,
+  FaDownload,
+  FaSearch,
 } from "react-icons/fa";
 import { Context } from "@/context/ProductContext.jsx";
 import { io } from "socket.io-client";
@@ -35,6 +38,7 @@ export default function AdminPanel() {
   const [shake, setShake] = useState(false);
   const [onlineAdmins, setOnlineAdmins] = useState(0);
   const [hoveredItem, setHoveredItem] = useState(null);
+  const [selectedTimeRange, setSelectedTimeRange] = useState("7d");
 
   /* ================= FETCH AUTH USER ================= */
   const fetchUser = useCallback(async () => {
@@ -152,6 +156,18 @@ export default function AdminPanel() {
     }
   };
 
+  // Get page title based on current route
+  const getPageTitle = () => {
+    const path = location.pathname;
+    if (path === "/admin-panel") return "Dashboard Overview";
+    if (path.includes("users")) return "User Management";
+    if (path.includes("products")) return "Products Management";
+    if (path.includes("orders")) return "Orders Management";
+    if (path.includes("revenue")) return "Revenue Analytics";
+    if (path.includes("reports")) return "Reports & Insights";
+    return "Dashboard";
+  };
+
   if (loading)
     return (
       <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
@@ -167,19 +183,19 @@ export default function AdminPanel() {
     );
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 text-slate-800">
-      {/* SIDEBAR */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 text-slate-800">
+      {/* SIDEBAR - Fixed Position */}
       <motion.aside
         initial={false}
         animate={{ width: sidebarOpen ? 280 : 80 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="relative bg-white/80 backdrop-blur-xl border-r border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] flex flex-col overflow-hidden"
+        className="fixed left-0 top-0 h-screen z-50 bg-white/80 backdrop-blur-xl border-r border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] flex flex-col overflow-hidden"
       >
         {/* Glass overlay effect */}
         <div className="absolute inset-0 bg-gradient-to-b from-indigo-50/30 via-transparent to-purple-50/20 pointer-events-none" />
         
         {/* LOGO SECTION */}
-        <div className="relative z-10 flex items-center justify-center py-6 border-b border-slate-100/80">
+        <div className="relative z-10 flex items-center justify-center py-6 border-b border-slate-100/80 shrink-0">
           <motion.div
             initial={false}
             animate={{ scale: sidebarOpen ? 1 : 0.85 }}
@@ -214,7 +230,7 @@ export default function AdminPanel() {
         </div>
 
         {/* USER INFO CARD */}
-        <div className="relative z-10 px-4 py-4">
+        <div className="relative z-10 px-4 py-4 shrink-0">
           <motion.div
             initial={false}
             animate={{ 
@@ -258,8 +274,8 @@ export default function AdminPanel() {
           </motion.div>
         </div>
 
-        {/* NAVIGATION */}
-        <nav className="relative z-10 flex-1 px-3 py-2 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+        {/* NAVIGATION - Scrollable */}
+        <nav className="relative z-10 flex-1 px-3 py-2 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent min-h-0">
           <div className="mb-4">
             <AnimatePresence>
               {sidebarOpen && (
@@ -370,8 +386,8 @@ export default function AdminPanel() {
           })}
         </nav>
 
-        {/* BOTTOM ACTIONS */}
-        <div className="relative z-10 p-3 border-t border-slate-100/80 space-y-1">
+        {/* BOTTOM ACTIONS - Fixed at bottom */}
+        <div className="relative z-10 p-3 border-t border-slate-100/80 space-y-1 shrink-0 bg-white/80 backdrop-blur-xl">
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -418,7 +434,7 @@ export default function AdminPanel() {
         </div>
 
         {/* TOGGLE BUTTON */}
-        <div className="relative z-10 p-3 border-t border-slate-100/80">
+        <div className="relative z-10 p-3 border-t border-slate-100/80 shrink-0 bg-white/80 backdrop-blur-xl">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -435,33 +451,52 @@ export default function AdminPanel() {
         </div>
       </motion.aside>
 
-      {/* MAIN CONTENT */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* HEADER */}
-        <header className="sticky top-0 z-40 bg-white/70 backdrop-blur-xl border-b border-white/50 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
-          <div className="flex items-center justify-between px-6 py-4">
-            {/* Breadcrumb / Title */}
-            <div className="flex items-center gap-4">
-              <motion.h1 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent"
-              >
-                Dashboard
-              </motion.h1>
-              <div className="hidden sm:flex items-center gap-2 text-sm text-slate-400">
-                <span>/</span>
-                <span className="text-slate-600">Overview</span>
-              </div>
+      {/* MAIN CONTENT - Offset by sidebar width */}
+      <div 
+        className="flex flex-col min-h-screen transition-all duration-300"
+        style={{ marginLeft: sidebarOpen ? 280 : 80 }}
+      >
+        {/* HEADER - Fixed Sticky Header Matching Dashboard Style */}
+        <motion.header
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-white/50 shadow-[0_4px_20px_rgba(0,0,0,0.04)] px-6 py-4"
+        >
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+                {getPageTitle()}
+              </h1>
+              <p className="text-slate-500 mt-1 text-sm">
+                {location.pathname === "/admin-panel" 
+                  ? "Welcome back! Here's what's happening with your store."
+                  : "Manage and monitor your business operations efficiently."}
+              </p>
             </div>
 
-            {/* Right Actions */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              {/* Time Range Selector - Only show on Dashboard */}
+              {location.pathname === "/admin-panel" && (
+                <div className="flex items-center bg-white rounded-xl shadow-sm border border-slate-200 p-1">
+                  {["24h", "7d", "30d", "90d"].map((range) => (
+                    <button
+                      key={range}
+                      onClick={() => setSelectedTimeRange(range)}
+                      className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
+                        selectedTimeRange === range
+                          ? "bg-indigo-500 text-white shadow-md"
+                          : "text-slate-600 hover:bg-slate-100"
+                      }`}
+                    >
+                      {range}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {/* Search */}
               <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-slate-100/80 rounded-full">
-                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+                <FaSearch className="text-slate-400 text-sm" />
                 <input 
                   type="text" 
                   placeholder="Search..." 
@@ -560,15 +595,15 @@ export default function AdminPanel() {
                 whileTap={{ scale: 0.95 }}
                 className="flex items-center gap-2 p-1.5 rounded-full hover:bg-slate-100 transition-colors"
               >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
                   {user?.name?.[0]?.toUpperCase() || "A"}
                 </div>
               </motion.button>
             </div>
           </div>
-        </header>
+        </motion.header>
 
-        {/* PAGE CONTENT */}
+        {/* PAGE CONTENT - Scrollable */}
         <main className="flex-1 p-6 overflow-y-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

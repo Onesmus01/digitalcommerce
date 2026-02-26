@@ -529,619 +529,624 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6">
-      {/* HEADER */}
-      <motion.div
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+      {/* STICKY HEADER */}
+      <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8"
+        className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-white/50 shadow-[0_4px_20px_rgba(0,0,0,0.04)] px-6 py-4"
       >
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-            Dashboard Overview
-          </h1>
-          <p className="text-slate-500 mt-1">Welcome back! Here's what's happening with your store.</p>
-        </div>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          {/* <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+              Dashboard Overview
+            </h1>
+            <p className="text-slate-500 mt-1">Welcome back! Here's what's happening with your store.</p>
+          </div> */}
 
-        <div className="flex items-center gap-3">
-          {/* Time Range Selector */}
-          <div className="flex items-center bg-white rounded-xl shadow-sm border border-slate-200 p-1">
-            {["24h", "7d", "30d", "90d"].map((range) => (
-              <button
-                key={range}
-                onClick={() => setSelectedTimeRange(range)}
-                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
-                  selectedTimeRange === range
-                    ? "bg-indigo-500 text-white shadow-md"
-                    : "text-slate-600 hover:bg-slate-100"
-                }`}
-              >
-                {range}
-              </button>
-            ))}
-          </div>
-
-          {/* Action Buttons */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl shadow-lg shadow-indigo-500/25 font-medium"
-          >
-            <FaPlus className="text-sm" />
-            <span>Add Order</span>
-          </motion.button>
-
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={exportCSV}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white text-slate-700 border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow font-medium"
-          >
-            <FaDownload className="text-sm" />
-            <span>Export</span>
-          </motion.button>
-        </div>
-      </motion.div>
-
-      {/* STATS CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatsCard
-          label="Total Users"
-          value={formatNumber(stats.users)}
-          icon={FaUsers}
-          gradient="from-blue-400 to-blue-600"
-          trend="+12.5%"
-          trendUp={true}
-          delay={0}
-        />
-        <StatsCard
-          label="Total Orders"
-          value={formatNumber(stats.orders)}
-          icon={FaShoppingCart}
-          gradient="from-emerald-400 to-emerald-600"
-          trend="+8.2%"
-          trendUp={true}
-          delay={0.1}
-        />
-        <StatsCard
-          label="Products"
-          value={formatNumber(stats.products)}
-          icon={FaBox}
-          gradient="from-amber-400 to-orange-500"
-          trend="+3.1%"
-          trendUp={true}
-          delay={0.2}
-        />
-        <StatsCard
-          label="Revenue"
-          value={`$${formatNumber(stats.revenue)}`}
-          icon={FaDollarSign}
-          gradient="from-rose-400 to-rose-600"
-          trend={`+${revenueTrend}%`}
-          trendUp={true}
-          delay={0.3}
-        />
-      </div>
-
-      {/* PROGRESS BAR & AI PREDICTION */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div className="lg:col-span-2">
-          <ProgressBar current={stats.revenue} goal={salesGoal} label="Monthly Sales Goal" />
-        </div>
-        
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.4 }}
-          className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-6 text-white relative overflow-hidden"
-        >
-          <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-3">
-              <FaBrain className="text-lg" />
-              <span className="text-sm font-medium opacity-90">AI Prediction</span>
-            </div>
-            <p className="text-sm opacity-80 mb-2">Predicted revenue next month</p>
-            <h3 className="text-3xl font-bold">${formatNumber(predictNextMonthSales())}</h3>
-            <div className="flex items-center gap-2 mt-3 text-sm">
-              <span className="px-2 py-1 bg-white/20 rounded-lg">+12% growth</span>
-              <span className="opacity-70">based on trends</span>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* MAIN CHARTS SECTION */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Sales Analytics */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="lg:col-span-2 bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-800">Sales Analytics</h3>
-              <p className="text-sm text-slate-400">Revenue vs Orders comparison</p>
-            </div>
-            <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-              <FaEllipsisV className="text-slate-400" />
-            </button>
-          </div>
-          <div className="h-72">
-            <Bar data={salesData} options={salesOptions} />
-          </div>
-        </motion.div>
-
-        {/* Revenue Growth Line Chart */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-800">Revenue Growth</h3>
-              <p className="text-sm text-slate-400">Weekly performance</p>
-            </div>
-            <div className="flex items-center gap-1 text-emerald-500 text-sm font-medium">
-              <FaArrowUp className="text-xs" />
-              <span>+24%</span>
-            </div>
-          </div>
-          <div className="h-56">
-            <Line
-              data={lineData}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                  x: { grid: { display: false }, ticks: { font: { size: 10 } } },
-                  y: { grid: { color: "rgba(100, 116, 139, 0.1)" }, ticks: { font: { size: 10 } } },
-                },
-              }}
-            />
-          </div>
-        </motion.div>
-      </div>
-
-      {/* ORDERS & TOP PRODUCTS */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Recent Orders */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-          className="lg:col-span-2 bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl overflow-hidden"
-        >
-          <div className="p-6 border-b border-slate-100">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-semibold text-slate-800">Recent Orders</h3>
-                <p className="text-sm text-slate-400">Latest customer transactions</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="relative">
-                  <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
-                  <input
-                    type="text"
-                    placeholder="Search orders..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-9 pr-4 py-2 bg-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-48"
-                  />
-                </div>
+          <div className="flex items-center gap-3">
+            {/* Time Range Selector */}
+            <div className="flex items-center bg-white rounded-xl shadow-sm border border-slate-200 p-1">
+              {["24h", "7d", "30d", "90d"].map((range) => (
                 <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className={`p-2 rounded-xl transition-colors ${showFilters ? "bg-indigo-500 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                  key={range}
+                  onClick={() => setSelectedTimeRange(range)}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
+                    selectedTimeRange === range
+                      ? "bg-indigo-500 text-white shadow-md"
+                      : "text-slate-600 hover:bg-slate-100"
+                  }`}
                 >
-                  <FaFilter className="text-sm" />
+                  {range}
+                </button>
+              ))}
+            </div>
+
+            {/* Action Buttons */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl shadow-lg shadow-indigo-500/25 font-medium"
+            >
+              <FaPlus className="text-sm" />
+              <span>Add Order</span>
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={exportCSV}
+              className="flex items-center gap-2 px-4 py-2.5 bg-white text-slate-700 border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow font-medium"
+            >
+              <FaDownload className="text-sm" />
+              <span>Export</span>
+            </motion.button>
+          </div>
+        </div>
+      </motion.header>
+
+      {/* MAIN CONTENT - Scrollable area below header */}
+      <main className="p-6 overflow-y-auto">
+        {/* STATS CARDS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <StatsCard
+            label="Total Users"
+            value={formatNumber(stats.users)}
+            icon={FaUsers}
+            gradient="from-blue-400 to-blue-600"
+            trend="+12.5%"
+            trendUp={true}
+            delay={0}
+          />
+          <StatsCard
+            label="Total Orders"
+            value={formatNumber(stats.orders)}
+            icon={FaShoppingCart}
+            gradient="from-emerald-400 to-emerald-600"
+            trend="+8.2%"
+            trendUp={true}
+            delay={0.1}
+          />
+          <StatsCard
+            label="Products"
+            value={formatNumber(stats.products)}
+            icon={FaBox}
+            gradient="from-amber-400 to-orange-500"
+            trend="+3.1%"
+            trendUp={true}
+            delay={0.2}
+          />
+          <StatsCard
+            label="Revenue"
+            value={`$${formatNumber(stats.revenue)}`}
+            icon={FaDollarSign}
+            gradient="from-rose-400 to-rose-600"
+            trend={`+${revenueTrend}%`}
+            trendUp={true}
+            delay={0.3}
+          />
+        </div>
+
+        {/* PROGRESS BAR & AI PREDICTION */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="lg:col-span-2">
+            <ProgressBar current={stats.revenue} goal={salesGoal} label="Monthly Sales Goal" />
+          </div>
+          
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.4 }}
+            className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-6 text-white relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-3">
+                <FaBrain className="text-lg" />
+                <span className="text-sm font-medium opacity-90">AI Prediction</span>
+              </div>
+              <p className="text-sm opacity-80 mb-2">Predicted revenue next month</p>
+              <h3 className="text-3xl font-bold">${formatNumber(predictNextMonthSales())}</h3>
+              <div className="flex items-center gap-2 mt-3 text-sm">
+                <span className="px-2 py-1 bg-white/20 rounded-lg">+12% growth</span>
+                <span className="opacity-70">based on trends</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* MAIN CHARTS SECTION */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Sales Analytics */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="lg:col-span-2 bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-800">Sales Analytics</h3>
+                <p className="text-sm text-slate-400">Revenue vs Orders comparison</p>
+              </div>
+              <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+                <FaEllipsisV className="text-slate-400" />
+              </button>
+            </div>
+            <div className="h-72">
+              <Bar data={salesData} options={salesOptions} />
+            </div>
+          </motion.div>
+
+          {/* Revenue Growth Line Chart */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-800">Revenue Growth</h3>
+                <p className="text-sm text-slate-400">Weekly performance</p>
+              </div>
+              <div className="flex items-center gap-1 text-emerald-500 text-sm font-medium">
+                <FaArrowUp className="text-xs" />
+                <span>+24%</span>
+              </div>
+            </div>
+            <div className="h-56">
+              <Line
+                data={lineData}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: { legend: { display: false } },
+                  scales: {
+                    x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                    y: { grid: { color: "rgba(100, 116, 139, 0.1)" }, ticks: { font: { size: 10 } } },
+                  },
+                }}
+              />
+            </div>
+          </motion.div>
+        </div>
+
+        {/* ORDERS & TOP PRODUCTS */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Recent Orders */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="lg:col-span-2 bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl overflow-hidden"
+          >
+            <div className="p-6 border-b border-slate-100">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-800">Recent Orders</h3>
+                  <p className="text-sm text-slate-400">Latest customer transactions</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                    <input
+                      type="text"
+                      placeholder="Search orders..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-9 pr-4 py-2 bg-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-48"
+                    />
+                  </div>
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`p-2 rounded-xl transition-colors ${showFilters ? "bg-indigo-500 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                  >
+                    <FaFilter className="text-sm" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-slate-50/50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Customer</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Products</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Amount</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {paginatedOrders.map((order, idx) => {
+                    const customerName = order.user?.name || "Unknown User";
+                    const productNames = order.items && order.items.length > 0
+                      ? order.items.map((i) => i.name).join(", ")
+                      : "No products";
+                    const amount = order.totalAmount || 0;
+                    const status = order.orderStatus || "Pending";
+
+                    return (
+                      <motion.tr
+                        key={order._id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                        className="hover:bg-slate-50 transition-colors"
+                      >
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
+                              {customerName[0]?.toUpperCase()}
+                            </div>
+                            <span className="font-medium text-slate-700">{customerName}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <p className="text-sm text-slate-600 truncate max-w-xs">{productNames}</p>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="font-semibold text-slate-800">${amount}</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <StatusBadge status={status} />
+                        </td>
+                      </motion.tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            <div className="p-4 border-t border-slate-100 flex items-center justify-between">
+              <p className="text-sm text-slate-500">
+                Showing {(ordersPage - 1) * ORDERS_PER_PAGE + 1} to{" "}
+                {Math.min(ordersPage * ORDERS_PER_PAGE, filteredOrders.length)} of{" "}
+                {filteredOrders.length} orders
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setOrdersPage((p) => Math.max(1, p - 1))}
+                  disabled={ordersPage === 1}
+                  className="px-3 py-1.5 text-sm font-medium rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() => setOrdersPage((p) => p + 1)}
+                  disabled={ordersPage * ORDERS_PER_PAGE >= filteredOrders.length}
+                  className="px-3 py-1.5 text-sm font-medium rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next
                 </button>
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-slate-50/50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Customer</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Products</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Amount</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {paginatedOrders.map((order, idx) => {
-                  const customerName = order.user?.name || "Unknown User";
-                  const productNames = order.items && order.items.length > 0
-                    ? order.items.map((i) => i.name).join(", ")
-                    : "No products";
-                  const amount = order.totalAmount || 0;
-                  const status = order.orderStatus || "Pending";
-
-                  return (
-                    <motion.tr
-                      key={order._id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: idx * 0.05 }}
-                      className="hover:bg-slate-50 transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
-                            {customerName[0]?.toUpperCase()}
-                          </div>
-                          <span className="font-medium text-slate-700">{customerName}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <p className="text-sm text-slate-600 truncate max-w-xs">{productNames}</p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="font-semibold text-slate-800">${amount}</span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <StatusBadge status={status} />
-                      </td>
-                    </motion.tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          <div className="p-4 border-t border-slate-100 flex items-center justify-between">
-            <p className="text-sm text-slate-500">
-              Showing {(ordersPage - 1) * ORDERS_PER_PAGE + 1} to{" "}
-              {Math.min(ordersPage * ORDERS_PER_PAGE, filteredOrders.length)} of{" "}
-              {filteredOrders.length} orders
-            </p>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setOrdersPage((p) => Math.max(1, p - 1))}
-                disabled={ordersPage === 1}
-                className="px-3 py-1.5 text-sm font-medium rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => setOrdersPage((p) => p + 1)}
-                disabled={ordersPage * ORDERS_PER_PAGE >= filteredOrders.length}
-                className="px-3 py-1.5 text-sm font-medium rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Top Products */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-800">Top Products</h3>
-              <p className="text-sm text-slate-400">Best performing items</p>
-            </div>
-            <div className="p-2 bg-orange-100 rounded-lg">
-              <FaFire className="text-orange-500" />
-            </div>
-          </div>
-
-          <div className="space-y-2 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
-            {topProducts.length === 0 ? (
-              <div className="text-center py-8">
-                <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-full flex items-center justify-center">
-                  <FaBox className="text-slate-400 text-xl" />
-                </div>
-                <p className="text-slate-500">No top products found</p>
+          {/* Top Products */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+            className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-800">Top Products</h3>
+                <p className="text-sm text-slate-400">Best performing items</p>
               </div>
-            ) : (
-              topProducts.map((product, index) => (
-                <TopProductCard key={index} product={product} index={index} />
-              ))
-            )}
-          </div>
-        </motion.div>
-      </div>
-
-      {/* BOTTOM SECTION - HEATMAP & SEGMENTATION */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Activity Heatmap */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.9 }}
-          className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-800">Activity Heatmap</h3>
-              <p className="text-sm text-slate-400">Daily sales activity</p>
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <FaFire className="text-orange-500" />
+              </div>
             </div>
-          </div>
-          <div className="grid grid-cols-7 gap-2">
-            {Array.from({ length: 28 }).map((_, i) => (
-              <HeatmapCell key={i} intensity={Math.random()} delay={i * 0.02} />
-            ))}
-          </div>
-          <div className="flex items-center justify-between mt-4 text-xs text-slate-400">
-            <span>Less</span>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-slate-100 rounded" />
-              <div className="w-3 h-3 bg-emerald-200 rounded" />
-              <div className="w-3 h-3 bg-emerald-300 rounded" />
-              <div className="w-3 h-3 bg-emerald-400 rounded" />
-              <div className="w-3 h-3 bg-emerald-500 rounded" />
-            </div>
-            <span>More</span>
-          </div>
-        </motion.div>
 
-        {/* Customer Segmentation */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1 }}
-          className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-800">Customer Segments</h3>
-              <p className="text-sm text-slate-400">Distribution by value</p>
-            </div>
-          </div>
-          <div className="h-48">
-            <Doughnut
-              data={doughnutData}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: "70%",
-                plugins: { legend: { position: "bottom", labels: { usePointStyle: true, padding: 15 } } },
-              }}
-            />
-          </div>
-        </motion.div>
-
-        {/* Quick Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.1 }}
-          className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
-        >
-          <h3 className="text-lg font-semibold text-slate-800 mb-4">Quick Insights</h3>
-          <div className="space-y-4">
-            {[
-              { icon: FaFire, label: "High Value Customers", value: "120", color: "from-orange-400 to-red-500" },
-              { icon: FaShoppingCart, label: "Repeat Buyers", value: "340", color: "from-emerald-400 to-teal-500" },
-              { icon: FaUsers, label: "New Customers", value: "89", color: "from-blue-400 to-indigo-500" },
-              { icon: FaChartLine, label: "Avg. Order Value", value: "$142", color: "from-purple-400 to-pink-500" },
-            ].map((item, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 1.2 + idx * 0.1 }}
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${item.color} flex items-center justify-center`}>
-                    <item.icon className="text-white text-sm" />
+            <div className="space-y-2 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
+              {topProducts.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-full flex items-center justify-center">
+                    <FaBox className="text-slate-400 text-xl" />
                   </div>
-                  <span className="text-slate-600">{item.label}</span>
+                  <p className="text-slate-500">No top products found</p>
                 </div>
-                <span className="font-bold text-slate-800">{item.value}</span>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </div>
-
-      {/* ENTERPRISE FEATURES SECTION */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.2 }}
-        className="mb-8"
-      >
-        <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-          <FaRocket className="text-indigo-500" />
-          Enterprise Features
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* TensorFlow.js */}
-          <motion.div
-            whileHover={{ y: -5 }}
-            className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
-                <FaBrain className="text-white text-xl" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-slate-800">TensorFlow.js AI</h3>
-                <p className="text-sm text-slate-400">Revenue regression model</p>
-              </div>
-            </div>
-            <button
-              onClick={async () => {
-                const tf = await import("@tensorflow/tfjs");
-                const model = tf.sequential();
-                model.add(tf.layers.dense({ units: 1, inputShape: [1] }));
-                model.compile({ loss: "meanSquaredError", optimizer: "sgd" });
-                const xs = tf.tensor2d([1, 2, 3, 4], [4, 1]);
-                const ys = tf.tensor2d([100, 200, 300, 400], [4, 1]);
-                await model.fit(xs, ys, { epochs: 50 });
-                const prediction = model.predict(tf.tensor2d([5], [1, 1]));
-                prediction.print();
-                alert("Model trained! Check console for prediction.");
-              }}
-              className="w-full py-2.5 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-purple-500/25 transition-shadow"
-            >
-              Train AI Model
-            </button>
-          </motion.div>
-
-          {/* Stripe Sync */}
-          <motion.div
-            whileHover={{ y: -5 }}
-            className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center">
-                <FaCreditCard className="text-white text-xl" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-slate-800">Stripe Sync</h3>
-                <p className="text-sm text-slate-400">Live revenue integration</p>
-              </div>
-            </div>
-            <button
-              onClick={async () => {
-                const res = await fetch("/api/stripe/revenue");
-                const data = await res.json();
-                alert(`Live Revenue: $${data.total}`);
-              }}
-              className="w-full py-2.5 bg-gradient-to-r from-indigo-500 to-blue-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-indigo-500/25 transition-shadow"
-            >
-              Sync Revenue
-            </button>
-          </motion.div>
-
-          {/* Fraud Detection */}
-          <motion.div
-            whileHover={{ y: -5 }}
-            className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-red-600 flex items-center justify-center">
-                <FaShieldAlt className="text-white text-xl" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-slate-800">Fraud Detection</h3>
-                <p className="text-sm text-slate-400">AI-powered security scan</p>
-              </div>
-            </div>
-            <button
-              onClick={() => {
-                const randomRisk = Math.random();
-                if (randomRisk > 0.7) {
-                  alert("⚠️ High Fraud Risk Transaction Detected!");
-                } else {
-                  alert("Transaction Safe ✅");
-                }
-              }}
-              className="w-full py-2.5 bg-gradient-to-r from-rose-500 to-red-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-rose-500/25 transition-shadow"
-            >
-              Run Fraud Scan
-            </button>
-          </motion.div>
-
-          {/* Push Notifications */}
-          <motion.div
-            whileHover={{ y: -5 }}
-            className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-                <FaBell className="text-white text-xl" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-slate-800">Push Notifications</h3>
-                <p className="text-sm text-slate-400">Real-time browser alerts</p>
-              </div>
-            </div>
-            <button
-              onClick={async () => {
-                if ("Notification" in window) {
-                  const permission = await Notification.requestPermission();
-                  if (permission === "granted") {
-                    new Notification("New Order Received 🚀");
-                  }
-                }
-              }}
-              className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-emerald-500/25 transition-shadow"
-            >
-              Enable Push
-            </button>
-          </motion.div>
-
-          {/* Drag & Drop */}
-          <motion.div
-            whileHover={{ y: -5 }}
-            className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
-                <FaHandPaper className="text-white text-xl" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-slate-800">Drag & Drop</h3>
-                <p className="text-sm text-slate-400">Customizable widgets</p>
-              </div>
-            </div>
-            <div
-              draggable
-              className="p-3 bg-gradient-to-r from-amber-100 to-orange-100 rounded-xl cursor-move text-center text-amber-700 font-medium"
-              onDragStart={(e) => e.dataTransfer.setData("text/plain", "widget")}
-            >
-              Drag Me
-            </div>
-          </motion.div>
-
-          {/* Geo Map */}
-          <motion.div
-            whileHover={{ y: -5 }}
-            className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
-                <FaMapMarkerAlt className="text-white text-xl" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-slate-800">Customer Map</h3>
-                <p className="text-sm text-slate-400">Geographic distribution</p>
-              </div>
-            </div>
-            <div className="h-24 bg-gradient-to-r from-cyan-100 via-blue-100 to-emerald-100 rounded-xl flex items-center justify-center">
-              <span className="text-cyan-600 font-medium">Interactive Map Ready</span>
+              ) : (
+                topProducts.map((product, index) => (
+                  <TopProductCard key={index} product={product} index={index} />
+                ))
+              )}
             </div>
           </motion.div>
         </div>
-      </motion.div>
 
-      {/* Admin Actions */}
-      {userRole === "admin" && (
+        {/* BOTTOM SECTION - HEATMAP & SEGMENTATION */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Activity Heatmap */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.9 }}
+            className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-800">Activity Heatmap</h3>
+                <p className="text-sm text-slate-400">Daily sales activity</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-7 gap-2">
+              {Array.from({ length: 28 }).map((_, i) => (
+                <HeatmapCell key={i} intensity={Math.random()} delay={i * 0.02} />
+              ))}
+            </div>
+            <div className="flex items-center justify-between mt-4 text-xs text-slate-400">
+              <span>Less</span>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-slate-100 rounded" />
+                <div className="w-3 h-3 bg-emerald-200 rounded" />
+                <div className="w-3 h-3 bg-emerald-300 rounded" />
+                <div className="w-3 h-3 bg-emerald-400 rounded" />
+                <div className="w-3 h-3 bg-emerald-500 rounded" />
+              </div>
+              <span>More</span>
+            </div>
+          </motion.div>
+
+          {/* Customer Segmentation */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1 }}
+            className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-800">Customer Segments</h3>
+                <p className="text-sm text-slate-400">Distribution by value</p>
+              </div>
+            </div>
+            <div className="h-48">
+              <Doughnut
+                data={doughnutData}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  cutout: "70%",
+                  plugins: { legend: { position: "bottom", labels: { usePointStyle: true, padding: 15 } } },
+                }}
+              />
+            </div>
+          </motion.div>
+
+          {/* Quick Stats */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.1 }}
+            className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
+          >
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">Quick Insights</h3>
+            <div className="space-y-4">
+              {[
+                { icon: FaFire, label: "High Value Customers", value: "120", color: "from-orange-400 to-red-500" },
+                { icon: FaShoppingCart, label: "Repeat Buyers", value: "340", color: "from-emerald-400 to-teal-500" },
+                { icon: FaUsers, label: "New Customers", value: "89", color: "from-blue-400 to-indigo-500" },
+                { icon: FaChartLine, label: "Avg. Order Value", value: "$142", color: "from-purple-400 to-pink-500" },
+              ].map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 1.2 + idx * 0.1 }}
+                  className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${item.color} flex items-center justify-center`}>
+                      <item.icon className="text-white text-sm" />
+                    </div>
+                    <span className="text-slate-600">{item.label}</span>
+                  </div>
+                  <span className="font-bold text-slate-800">{item.value}</span>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+
+        {/* ENTERPRISE FEATURES SECTION */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1.3 }}
-          className="mt-8 p-6 bg-gradient-to-r from-rose-500 to-red-600 rounded-2xl text-white"
+          transition={{ delay: 1.2 }}
+          className="mb-8"
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold">Admin Actions</h3>
-              <p className="text-sm opacity-80">Restricted operations requiring admin privileges</p>
-            </div>
-            <button className="px-6 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl font-medium transition-colors">
-              Delete Action
-            </button>
+          <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+            <FaRocket className="text-indigo-500" />
+            Enterprise Features
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* TensorFlow.js */}
+            <motion.div
+              whileHover={{ y: -5 }}
+              className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+                  <FaBrain className="text-white text-xl" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-800">TensorFlow.js AI</h3>
+                  <p className="text-sm text-slate-400">Revenue regression model</p>
+                </div>
+              </div>
+              <button
+                onClick={async () => {
+                  const tf = await import("@tensorflow/tfjs");
+                  const model = tf.sequential();
+                  model.add(tf.layers.dense({ units: 1, inputShape: [1] }));
+                  model.compile({ loss: "meanSquaredError", optimizer: "sgd" });
+                  const xs = tf.tensor2d([1, 2, 3, 4], [4, 1]);
+                  const ys = tf.tensor2d([100, 200, 300, 400], [4, 1]);
+                  await model.fit(xs, ys, { epochs: 50 });
+                  const prediction = model.predict(tf.tensor2d([5], [1, 1]));
+                  prediction.print();
+                  alert("Model trained! Check console for prediction.");
+                }}
+                className="w-full py-2.5 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-purple-500/25 transition-shadow"
+              >
+                Train AI Model
+              </button>
+            </motion.div>
+
+            {/* Stripe Sync */}
+            <motion.div
+              whileHover={{ y: -5 }}
+              className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center">
+                  <FaCreditCard className="text-white text-xl" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-800">Stripe Sync</h3>
+                  <p className="text-sm text-slate-400">Live revenue integration</p>
+                </div>
+              </div>
+              <button
+                onClick={async () => {
+                  const res = await fetch("/api/stripe/revenue");
+                  const data = await res.json();
+                  alert(`Live Revenue: $${data.total}`);
+                }}
+                className="w-full py-2.5 bg-gradient-to-r from-indigo-500 to-blue-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-indigo-500/25 transition-shadow"
+              >
+                Sync Revenue
+              </button>
+            </motion.div>
+
+            {/* Fraud Detection */}
+            <motion.div
+              whileHover={{ y: -5 }}
+              className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-red-600 flex items-center justify-center">
+                  <FaShieldAlt className="text-white text-xl" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-800">Fraud Detection</h3>
+                  <p className="text-sm text-slate-400">AI-powered security scan</p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  const randomRisk = Math.random();
+                  if (randomRisk > 0.7) {
+                    alert("⚠️ High Fraud Risk Transaction Detected!");
+                  } else {
+                    alert("Transaction Safe ✅");
+                  }
+                }}
+                className="w-full py-2.5 bg-gradient-to-r from-rose-500 to-red-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-rose-500/25 transition-shadow"
+              >
+                Run Fraud Scan
+              </button>
+            </motion.div>
+
+            {/* Push Notifications */}
+            <motion.div
+              whileHover={{ y: -5 }}
+              className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                  <FaBell className="text-white text-xl" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-800">Push Notifications</h3>
+                  <p className="text-sm text-slate-400">Real-time browser alerts</p>
+                </div>
+              </div>
+              <button
+                onClick={async () => {
+                  if ("Notification" in window) {
+                    const permission = await Notification.requestPermission();
+                    if (permission === "granted") {
+                      new Notification("New Order Received 🚀");
+                    }
+                  }
+                }}
+                className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-emerald-500/25 transition-shadow"
+              >
+                Enable Push
+              </button>
+            </motion.div>
+
+            {/* Drag & Drop */}
+            <motion.div
+              whileHover={{ y: -5 }}
+              className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+                  <FaHandPaper className="text-white text-xl" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-800">Drag & Drop</h3>
+                  <p className="text-sm text-slate-400">Customizable widgets</p>
+                </div>
+              </div>
+              <div
+                draggable
+                className="p-3 bg-gradient-to-r from-amber-100 to-orange-100 rounded-xl cursor-move text-center text-amber-700 font-medium"
+                onDragStart={(e) => e.dataTransfer.setData("text/plain", "widget")}
+              >
+                Drag Me
+              </div>
+            </motion.div>
+
+            {/* Geo Map */}
+            <motion.div
+              whileHover={{ y: -5 }}
+              className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+                  <FaMapMarkerAlt className="text-white text-xl" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-800">Customer Map</h3>
+                  <p className="text-sm text-slate-400">Geographic distribution</p>
+                </div>
+              </div>
+              <div className="h-24 bg-gradient-to-r from-cyan-100 via-blue-100 to-emerald-100 rounded-xl flex items-center justify-center">
+                <span className="text-cyan-600 font-medium">Interactive Map Ready</span>
+              </div>
+            </motion.div>
           </div>
         </motion.div>
-      )}
+
+        {/* Admin Actions */}
+        {userRole === "admin" && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.3 }}
+            className="mt-8 p-6 bg-gradient-to-r from-rose-500 to-red-600 rounded-2xl text-white"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold">Admin Actions</h3>
+                <p className="text-sm opacity-80">Restricted operations requiring admin privileges</p>
+              </div>
+              <button className="px-6 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl font-medium transition-colors">
+                Delete Action
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </main>
     </div>
   );
 }
