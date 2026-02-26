@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useCallback } from 'react'
 import image1 from '/images/banner/img1.webp'
 import image2 from '/images/banner/img2.webp'
 import image3 from '/images/banner/img3.jpg'
@@ -13,7 +13,7 @@ import image5Mobile from '/images/banner/img5_mobile.png'
 
 import { FaAngleRight, FaAngleLeft } from 'react-icons/fa'
 
-const SLIDE_DURATION = 15000
+const SLIDE_DURATION = 8000
 
 const BannerProduct = () => {
   const [currentImage, setCurrentImage] = useState(0)
@@ -25,17 +25,9 @@ const BannerProduct = () => {
   const touchEndX = useRef(0)
 
   const desktopImages = [image1, image2, image3, image4, image5]
-  const mobileImages = [
-    image1Mobile,
-    image2Mobile,
-    image3Mobile,
-    image4Mobile,
-    image5Mobile,
-  ]
-
+  const mobileImages = [image1Mobile, image2Mobile, image3Mobile, image4Mobile, image5Mobile]
   const images = isMobile ? mobileImages : desktopImages
 
-  /* SCREEN SIZE */
   useEffect(() => {
     const checkScreen = () => setIsMobile(window.innerWidth < 768)
     checkScreen()
@@ -43,43 +35,34 @@ const BannerProduct = () => {
     return () => window.removeEventListener('resize', checkScreen)
   }, [])
 
-  /* AUTO SLIDE — ALL SCREENS */
   useEffect(() => {
     if (isPaused) return
-
     const timer = setInterval(() => {
       setCurrentImage((prev) => (prev + 1) % images.length)
       setProgress(0)
     }, SLIDE_DURATION)
-
     return () => clearInterval(timer)
   }, [isPaused, images.length])
 
-  /* PROGRESS BAR */
   useEffect(() => {
     if (isPaused) return
-
-    const step = 100 / (SLIDE_DURATION / 100)
+    const step = 100 / (SLIDE_DURATION / 16)
     const timer = setInterval(() => {
       setProgress((prev) => (prev >= 100 ? 100 : prev + step))
-    }, 100)
-
+    }, 16)
     return () => clearInterval(timer)
   }, [isPaused, currentImage])
 
-  const nextImage = () => {
+  const nextImage = useCallback(() => {
     setCurrentImage((prev) => (prev + 1) % images.length)
     setProgress(0)
-  }
+  }, [images.length])
 
-  const prevImage = () => {
-    setCurrentImage((prev) =>
-      prev === 0 ? images.length - 1 : prev - 1
-    )
+  const prevImage = useCallback(() => {
+    setCurrentImage((prev) => (prev === 0 ? images.length - 1 : prev - 1))
     setProgress(0)
-  }
+  }, [images.length])
 
-  /* TOUCH EVENTS */
   const handleTouchStart = (e) => {
     setIsPaused(true)
     touchStartX.current = e.touches[0].clientX
@@ -92,56 +75,71 @@ const BannerProduct = () => {
   const handleTouchEnd = () => {
     setIsPaused(false)
     const diff = touchStartX.current - touchEndX.current
-
     if (diff > 50) nextImage()
     if (diff < -50) prevImage()
   }
 
   return (
-    <div className="container px-4 mx-auto rounded">
+    <div className="container mx-auto px-4">
       <div
-        className="relative h-72 w-full overflow-hidden bg-slate-200"
+        className="group relative h-72 w-full overflow-hidden bg-neutral-100 md:h-[500px]"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
       >
-        {/* SLIDER */}
+        {/* Slides */}
         <div
-          className="flex h-full transition-transform duration-[2000ms] ease-in-out"
+          className="flex h-full transition-transform duration-700 ease-out"
           style={{ transform: `translateX(-${currentImage * 100}%)` }}
         >
           {images.map((img, index) => (
-            <div key={index} className="h-72 w-full min-w-full">
+            <div key={index} className="h-full w-full min-w-full">
               <img
                 src={img}
                 alt=""
-                className="w-full h-full object-cover"
+                className="h-full w-full object-cover"
               />
             </div>
           ))}
         </div>
 
-        {/* ARROWS */}
+        {/* Arrows - Minimal */}
         <button
           onClick={prevImage}
-          className="absolute top-1/2 left-3 -translate-y-1/2 bg-white shadow-md rounded-full p-2 text-2xl"
+          className="absolute left-4 top-1/2 -translate-y-1/2 p-3 text-white/70 transition-all duration-300 hover:text-white opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0"
         >
-          <FaAngleLeft />
+          <FaAngleLeft className="text-3xl drop-shadow-lg" />
         </button>
 
         <button
           onClick={nextImage}
-          className="absolute top-1/2 right-3 -translate-y-1/2 bg-white shadow-md rounded-full p-2 text-2xl"
+          className="absolute right-4 top-1/2 -translate-y-1/2 p-3 text-white/70 transition-all duration-300 hover:text-white opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0"
         >
-          <FaAngleRight />
+          <FaAngleRight className="text-3xl drop-shadow-lg" />
         </button>
 
-        {/* PROGRESS BAR */}
-        <div className="absolute bottom-0 left-0 w-full h-1 bg-black/10">
+        {/* Progress Line */}
+        <div className="absolute bottom-0 left-0 h-0.5 w-full bg-black/10">
           <div
-            className="h-full bg-white transition-all duration-100"
+            className="h-full bg-white/90 transition-none"
             style={{ width: `${progress}%` }}
           />
+        </div>
+
+        {/* Dots */}
+        <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
+          {images.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => {
+                setCurrentImage(index)
+                setProgress(0)
+              }}
+              className={`h-1.5 transition-all duration-300 ${currentImage === index ? 'w-6 bg-white' : 'w-1.5 bg-white/40 hover:bg-white/60'}`}
+            />
+          ))}
         </div>
       </div>
     </div>

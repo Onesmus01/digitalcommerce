@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import fetchCategoryWiseProducts from "@/helpers/fetchCategoryWiseProducts.js";
-
+import { Link } from "react-router-dom";  
 const MultiCategoryConveyor = ({ 
   categories, 
   title = "Trending Now",
@@ -185,7 +185,7 @@ const MultiCategoryConveyor = ({
                     {/* Content */}
                     <div className="relative h-full flex flex-col p-3">
                       {/* Image */}
-                      <div className="relative flex-1 flex items-center justify-center overflow-hidden rounded-lg bg-gray-50 group-hover:bg-gray-100 transition-colors">
+                      <Link to={`product/${product?._id}`}  className="relative flex-1 flex items-center justify-center overflow-hidden rounded-lg bg-gray-50 group-hover:bg-gray-100 transition-colors">
                         <img
                           src={product.productImage?.[0]}
                           alt={product.productName}
@@ -200,7 +200,7 @@ const MultiCategoryConveyor = ({
                             e.target.src = '/placeholder-product.png'; // Fallback image
                           }}
                         />
-                      </div>
+                      </Link>
 
                       {/* Info - Always visible, emphasized on hover */}
                       <div className="mt-2 space-y-1">
