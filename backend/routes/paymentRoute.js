@@ -308,87 +308,103 @@ paymentRouter.post('/mpesa/cancel/:transactionId', authToken, async (req, res) =
 });
 
 // ======= M-PESA CALLBACK =======
-paymentRouter.post('/mpesa/webhook', express.json(), async (req, res) => {
-  console.log('================ MPESA WEBHOOK HIT ================');
-  console.log('[MPESA WEBHOOK] Received request');
-  console.log('Headers:', req.headers);
-  console.log('Body:', JSON.stringify(req.body, null, 2));
-
-  // Extract stkCallback from payload
-  const stkCallback = req.body?.Body?.stkCallback;
-  if (!stkCallback) {
-    console.log('[MPESA WEBHOOK] Invalid payload, missing stkCallback');
-    return res.status(400).json({ message: 'Invalid payload' });
-  }
-
-  const { CheckoutRequestID, ResultCode } = stkCallback;
-  console.log('[MPESA WEBHOOK] CheckoutRequestID:', CheckoutRequestID, 'ResultCode:', ResultCode);
-
-  // Determine payment status
-  let status;
-  switch (ResultCode) {
-    case 0:
-      status = 'success';
-      break;
-    case 1032:
-      status = 'cancelled';
-      break;
-    default:
-      status = 'failed';
-  }
-  console.log('[MPESA WEBHOOK] Determined status:', status);
+paymentRouter.post("/mpesa/webhook", express.json(), async (req, res) => {
+  console.log("========== MPESA WEBHOOK HIT ==========");
 
   try {
-    // Log the webhook for auditing
-    const log = await MpesaLog.create({ transaction_id: CheckoutRequestID, status, payload: req.body });
-    console.log('[MPESA WEBHOOK] Logged webhook:', log._id);
+    const stkCallback = req.body?.Body?.stkCallback;
 
-    // Find payment record
-    const payment = await Payment.findOne({ transaction: CheckoutRequestID });
+    if (!stkCallback) {
+      console.log("[MPESA WEBHOOK] Invalid payload");
+      return res.status(400).json({ message: "Invalid payload" });
+    }
+
+    const { CheckoutRequestID, ResultCode } = stkCallback;
+
+    console.log(
+      "[MPESA WEBHOOK] Transaction:",
+      CheckoutRequestID,
+      "| ResultCode:",
+      ResultCode
+    );
+
+    /* ----------------------------------------
+       STANDARDIZED STATUS MAPPING
+    ----------------------------------------- */
+    let status = "failed";
+
+    if (ResultCode === 0) {
+      status = "success";
+    } else if (ResultCode === 1032) {
+      status = "cancelled";
+    }
+
+    console.log("[MPESA WEBHOOK] Mapped status:", status);
+
+    /* ----------------------------------------
+       LOG WEBHOOK
+    ----------------------------------------- */
+    await MpesaLog.create({
+      transaction_id: CheckoutRequestID,
+      status,
+      payload: req.body,
+    });
+
+    /* ----------------------------------------
+       FIND PAYMENT
+    ----------------------------------------- */
+    const payment = await Payment.findOne({
+      transaction: CheckoutRequestID,
+    });
+
     if (!payment) {
-      console.log('[MPESA WEBHOOK] Payment not found for transaction:', CheckoutRequestID);
-      return res.status(404).json({ message: 'Payment not found' });
+      console.log("[MPESA WEBHOOK] Payment not found");
+      return res.status(404).json({ message: "Payment not found" });
     }
 
-    // Skip if already processed
-    if (payment.status === 'success' || payment.status === 'cancelled') {
-      console.log('[MPESA WEBHOOK] Payment already processed, skipping update');
-      return res.status(200).end();
+    /* ----------------------------------------
+       PREVENT DOUBLE PROCESSING
+    ----------------------------------------- */
+    if (["success", "cancelled", "failed"].includes(payment.status)) {
+      console.log("[MPESA WEBHOOK] Already processed. Skipping.");
+      return res.status(200).json({ message: "Already processed" });
     }
 
-    // Update payment status
+    /* ----------------------------------------
+       UPDATE PAYMENT
+    ----------------------------------------- */
     payment.status = status;
     await payment.save();
-    console.log('[MPESA WEBHOOK] Payment status updated to:', status);
 
-    // Update associated order
+    console.log("[MPESA WEBHOOK] Payment updated:", status);
+
+    /* ----------------------------------------
+       UPDATE ORDER
+    ----------------------------------------- */
     const order = await Order.findById(payment.order);
-    if (order) {
-      console.log('[MPESA WEBHOOK] Found associated order:', order._id);
 
-      if (status === 'success') {
-        order.paymentStatus = 'paid';
-        order.orderStatus = 'processing';
-      } else if (status === 'cancelled') {
-        order.paymentStatus = 'cancelled';
-        order.orderStatus = 'pending';
-      } else {
-        order.paymentStatus = 'failed';
-        order.orderStatus = 'pending';
-      }
+    if (order) {
+      order.paymentStatus = status; // ✅ NOW STANDARDIZED
+      order.orderStatus =
+        status === "success" ? "processing" : "pending";
 
       await order.save();
-      console.log('[MPESA WEBHOOK] Order updated:', {
+
+      console.log("[MPESA WEBHOOK] Order updated:", {
         paymentStatus: order.paymentStatus,
         orderStatus: order.orderStatus,
       });
     }
 
-    // Send email notifications on success
-    if (status === 'success') {
+    /* ----------------------------------------
+       SEND EMAIL IF SUCCESS
+    ----------------------------------------- */
+    if (status === "success") {
       const user = await User.findById(payment.user);
+
       if (user && order) {
-        const recipients = [user.email, process.env.OWNER_EMAIL]; // notify both user & owner
+        const recipients = [user.email, process.env.OWNER_EMAIL];
+
         await sendPaymentEmail(
           recipients,
           user.name,
@@ -396,18 +412,27 @@ paymentRouter.post('/mpesa/webhook', express.json(), async (req, res) => {
           CheckoutRequestID,
           order._id
         );
-        console.log('[MPESA WEBHOOK] Payment email sent to user & owner:', recipients);
+
+        console.log(
+          "[MPESA WEBHOOK] Email sent to:",
+          recipients
+        );
       }
     }
 
-    console.log('[MPESA WEBHOOK] Finished processing');
-    return res.status(200).json({ message: 'Webhook processed', status });
-  } catch (err) {
-    console.error('[MPESA WEBHOOK ERROR]', err);
-    return res.status(500).json({ message: 'Webhook processing failed' });
+    console.log("========== WEBHOOK COMPLETE ==========");
+
+    return res.status(200).json({
+      message: "Webhook processed",
+      status,
+    });
+  } catch (error) {
+    console.error("[MPESA WEBHOOK ERROR]", error);
+    return res.status(500).json({
+      message: "Webhook processing failed",
+    });
   }
 });
-
 // ======= PAYMENT STATUS =======
 paymentRouter.get('/mpesa/status/:transactionId', authToken, async (req, res) => {
   try {
