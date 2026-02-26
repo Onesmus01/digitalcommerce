@@ -366,11 +366,11 @@ const CategoryProduct = () => {
               <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Categories</h3>
             </div>
             
-            <div className="flex flex-col gap-1 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
+            <div className="flex text-black flex-col gap-1 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
               {ProductCategory.map((cat) => (
                 <label 
                   key={cat.value} 
-                  className="flex items-center gap-3 cursor-pointer group p-3 rounded-xl hover:bg-indigo-50 transition-all duration-200"
+                  className="flex items-center gap-3 cursor-pointer group p-3 rounded-xl hover:bg-indigo-500 transition-all duration-200"
                 >
                   <div className="relative flex items-center">
                     <input 
