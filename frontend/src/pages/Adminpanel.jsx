@@ -21,6 +21,7 @@ import {
 import { Context } from "@/context/ProductContext.jsx";
 import { io } from "socket.io-client";
 import { motion, AnimatePresence } from "framer-motion";
+import toast, { Toaster } from "react-hot-toast";
 
 const socketUrl = import.meta.env.VITE_SOCKET_URL || "http://localhost:8080";
 
@@ -97,11 +98,34 @@ export default function AdminPanel() {
     socket.on("connect", () => console.log("Socket connected:", socket.id));
 
     socket.on("new-order", (order) => {
+      // Add to notification list
       setNotifications((prev) => [{ ...order, isRead: false }, ...prev]);
       setUnreadCount((prev) => prev + 1);
       setShake(true);
       setTimeout(() => setShake(false), 600);
+      
+      // Play sound
       new Audio("/notification.mp3").play().catch(() => {});
+      
+      // SHOW TOAST NOTIFICATION - This is the key addition!
+      toast.success(
+        <div className="flex flex-col gap-1">
+          <span className="font-bold">🛒 New Order Received!</span>
+          <span className="text-sm">{order.customer} ordered {order.product}</span>
+          <span className="text-xs text-slate-500">KES {order.amount?.toLocaleString() || '0'}</span>
+        </div>,
+        {
+          duration: 6000,
+          position: 'top-right',
+          icon: '🎉',
+          style: {
+            borderRadius: '12px',
+            background: '#fff',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+          },
+        }
+      );
     });
 
     socket.on("admins-online", (count) => setOnlineAdmins(count));
@@ -184,6 +208,20 @@ export default function AdminPanel() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 text-slate-800">
+      {/* TOASTER FOR NOTIFICATIONS */}
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          duration: 5000,
+          style: {
+            borderRadius: '12px',
+            padding: '16px',
+            fontSize: '14px',
+            maxWidth: '400px',
+          },
+        }}
+      />
+
       {/* SIDEBAR - Fixed Position */}
       <motion.aside
         initial={false}

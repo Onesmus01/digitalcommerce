@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import displayKESCurrency from "@/helpers/displayCurrency.js";
 import { 
@@ -155,6 +155,7 @@ const PaymentPage = () => {
   const pollRef = useRef(null);
   const lastRequestTime = useRef(0);
   const isMounted = useRef(true);
+  const txIdRef = useRef(null);
 
   const REQUEST_DELAY = 60000;
   const POLL_INTERVAL = 3000;
@@ -175,9 +176,17 @@ const PaymentPage = () => {
 
     return () => {
       isMounted.current = false;
-      if (pollRef.current) clearInterval(pollRef.current);
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
     };
   }, [orderId, navigate]);
+
+  /* ---------------- DEBUG ---------------- */
+  useEffect(() => {
+    console.log("[STATE] paymentStatus changed to:", paymentStatus);
+  }, [paymentStatus]);
 
   /* ---------------- FORMAT PHONE ---------------- */
   const formatPhone = (phone) => {
@@ -188,51 +197,155 @@ const PaymentPage = () => {
   };
 
   /* ---------------- POLLING ---------------- */
-  const startPolling = (txId) => {
+  const startPolling = useCallback((txId) => {
+    // Store txId in ref to avoid closure issues
+    txIdRef.current = txId;
     setTransactionId(txId);
     let count = 0;
+    
+    // Clear any existing interval first
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
 
-    pollRef.current = setInterval(async () => {
+    const checkStatus = async () => {
+      const currentTxId = txIdRef.current;
+      if (!currentTxId) return false;
+      
       count++;
+      console.log(`[POLLING] Attempt ${count}/${MAX_POLLS} for tx: ${currentTxId}`);
 
       try {
         const res = await fetch(
-          `${backendUrl}/payment/mpesa/status/${txId}?t=${Date.now()}`,
-          { credentials: "include" }
+          `${backendUrl}/payment/mpesa/status/${currentTxId}?_cb=${Date.now()}`,
+          { 
+            credentials: "include",
+            headers: {
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache'
+            }
+          }
         );
 
-        const data = await res.json();
-        if (!isMounted.current) return;
-
-        if (["success", "failed", "cancelled"].includes(data.status)) {
-          clearInterval(pollRef.current);
-          setProcessing(false);
-          toast.dismiss("mpesa");
-
-          setPaymentStatus(data.status);
-
-          if (data.status === "success") {
-            toast.success("Payment successful! 🎉", { duration: 4000 });
-            setTimeout(() => navigate("/thank-you"), 2000);
-          } else if (data.status === "failed") {
-            toast.error("Payment failed. Please try again.");
-          } else {
-            toast.error("Payment was cancelled.");
-          }
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
         }
 
+        const data = await res.json();
+        console.log("[POLLING] Response:", data);
+
+        if (!isMounted.current) return true;
+
+        // Check if we have a final status
+        if (data.success && ["success", "failed", "cancelled"].includes(data.status)) {
+          console.log("[POLLING] ✅ Final status detected:", data.status);
+          
+          // Stop polling
+          if (pollRef.current) {
+            clearInterval(pollRef.current);
+            pollRef.current = null;
+          }
+
+          // Update all states
+          setProcessing(false);
+          toast.dismiss("mpesa");
+          
+          // Force status update
+          setPaymentStatus(data.status);
+
+          // Handle success/failure
+          if (data.status === "success") {
+            toast.success(data.message || "Payment successful! 🎉", { duration: 4000 });
+            setTimeout(() => navigate("/thank-you"), 2000);
+          } else if (data.status === "failed") {
+            toast.error(data.message || "Payment failed. Please try again.");
+          } else if (data.status === "cancelled") {
+            toast.error(data.message || "Payment was cancelled.");
+          }
+          
+          return true; // Stop polling
+        }
+
+        // Timeout check
         if (count >= MAX_POLLS) {
-          clearInterval(pollRef.current);
+          console.log("[POLLING] ⏰ Timeout reached");
+          
+          if (pollRef.current) {
+            clearInterval(pollRef.current);
+            pollRef.current = null;
+          }
+          
           setProcessing(false);
           toast.dismiss("mpesa");
           setPaymentStatus("failed");
-          toast.error("Payment timeout. Please retry.");
+          toast.error("Payment timeout. Please check your M-Pesa messages.");
+          return true;
         }
+
+        return false; // Continue polling
       } catch (err) {
-        console.error("Polling error:", err);
+        console.error("[POLLING ERROR]", err);
+        return false; // Continue polling on error
       }
-    }, POLL_INTERVAL);
-  };
+    };
+
+    // Start polling immediately, then every 3 seconds
+    checkStatus().then(shouldStop => {
+      if (!shouldStop) {
+        pollRef.current = setInterval(() => {
+          checkStatus().then(stop => {
+            if (stop && pollRef.current) {
+              clearInterval(pollRef.current);
+              pollRef.current = null;
+            }
+          });
+        }, POLL_INTERVAL);
+      }
+    });
+  }, [backendUrl, navigate]);
+
+  /* ---------------- VISIBILITY CHECK (Emergency Fallback) ---------------- */
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && txIdRef.current && processing) {
+        console.log("[VISIBILITY] Tab visible, forcing status check for:", txIdRef.current);
+        
+        fetch(`${backendUrl}/payment/mpesa/status/${txIdRef.current}?_cb=${Date.now()}`, {
+          credentials: "include",
+          headers: { 'Cache-Control': 'no-cache' }
+        })
+        .then(res => res.json())
+        .then(data => {
+          console.log("[VISIBILITY] Forced check result:", data);
+          if (data.success && ["success", "failed", "cancelled"].includes(data.status)) {
+            // Stop any existing polling
+            if (pollRef.current) {
+              clearInterval(pollRef.current);
+              pollRef.current = null;
+            }
+            
+            setPaymentStatus(data.status);
+            setProcessing(false);
+            toast.dismiss("mpesa");
+            
+            if (data.status === "success") {
+              toast.success("Payment successful! 🎉");
+              setTimeout(() => navigate("/thank-you"), 1500);
+            } else if (data.status === "failed") {
+              toast.error(data.message || "Payment failed");
+            } else {
+              toast.error(data.message || "Payment cancelled");
+            }
+          }
+        })
+        .catch(err => console.error("[VISIBILITY] Check failed:", err));
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [processing, backendUrl, navigate]);
 
   /* ---------------- PAY ---------------- */
   const handleMpesaPayment = async () => {

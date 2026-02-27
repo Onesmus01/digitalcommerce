@@ -1,6 +1,5 @@
 import Order from "../models/OrderModel.js";
-import { io } from "../index.js"; // 🔥 IMPORTANT
-
+import { getIO } from "../soket.js"; 
 
 // CREATE order
 export const createOrder = async (req, res) => {
@@ -28,15 +27,19 @@ export const createOrder = async (req, res) => {
     await order.populate("user", "name"); // populate user name
 
     // 🔔 Emit real-time notification to admins
-    if (io) {
+    try {
+      const io = getIO();
       io.to("admins").emit("new-order", {
         id: order._id,
         customer: order.user?.name || "Unknown",
         product: order.items[0]?.name || "Product",
+        amount: order.totalAmount,
         status: order.orderStatus || "processing",
         isRead: false,
       });
       console.log("🔥 Admins notified of new order:", order._id);
+    } catch (socketErr) {
+      console.log("⚠️ Socket emit failed:", socketErr.message);
     }
 
     res.status(201).json({
@@ -117,12 +120,17 @@ export const cancelOrder = async (req, res) => {
     await order.save();
 
     // 🔥 REAL-TIME CANCEL EVENT
-    io.to("admins").emit("order-cancelled", {
-      id: order._id,
-      customer: order.user?.name || "Unknown",
-      product: order.items[0]?.name || "Product",
-      status: "cancelled",
-    });
+    try {
+      const io = getIO();
+      io.to("admins").emit("order-cancelled", {
+        id: order._id,
+        customer: order.user?.name || "Unknown",
+        product: order.items[0]?.name || "Product",
+        status: "cancelled",
+      });
+    } catch (socketErr) {
+      console.log("⚠️ Socket emit failed:", socketErr.message);
+    }
 
     res.json({ message: "Order cancelled" });
   } catch (error) {
@@ -151,6 +159,7 @@ export const getRecentOrders = async (req, res) => {
     });
   }
 };
+
 export const getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find()
@@ -192,12 +201,17 @@ export const updateOrderStatus = async (req, res) => {
     await order.save();
 
     // 🔥 REAL-TIME STATUS UPDATE
-    io.to("admins").emit("order-status-updated", {
-      id: order._id,
-      customer: order.user?.name || "Unknown",
-      product: order.items[0]?.name || "Product",
-      status: order.orderStatus,
-    });
+    try {
+      const io = getIO();
+      io.to("admins").emit("order-status-updated", {
+        id: order._id,
+        customer: order.user?.name || "Unknown",
+        product: order.items[0]?.name || "Product",
+        status: order.orderStatus,
+      });
+    } catch (socketErr) {
+      console.log("⚠️ Socket emit failed:", socketErr.message);
+    }
 
     res.status(200).json({
       message: "Order status updated successfully",
@@ -233,6 +247,7 @@ export const getOrderNotifications = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch notifications" });
   }
 };
+
 export const markNotificationsAsRead = async (req, res) => {
   try {
     await Order.updateMany(

@@ -9,7 +9,6 @@ import ProductProvider from "@/context/ProductContext.jsx";
 import { SocketProvider } from "@/context/SocketContext.jsx"; // ✅ IMPORT THIS
 
 createRoot(document.getElementById("root")).render(
-  <StrictMode>
     <BrowserRouter>
       <Provider store={store}>
         <ProductProvider>
@@ -19,5 +18,4 @@ createRoot(document.getElementById("root")).render(
         </ProductProvider>
       </Provider>
     </BrowserRouter>
-  </StrictMode>
 );

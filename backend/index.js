@@ -2,12 +2,13 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import http from "http";
-import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
 import cookie from "cookie";
 
 import connectDb from "./config/db.js";
+import { initSocket, getIO } from "./soket.js"; // Import from socket.js
+
 import userRouter from "./routes/userRoute.js";
 import productRouter from "./routes/productRoutes.js";
 import orderRouter from "./routes/orderRoutes.js";
@@ -19,7 +20,6 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-// Allowed origins
 const allowedOrigins = ["http://localhost:5173"];
 
 // ---------------- MIDDLEWARES ----------------
@@ -44,12 +44,7 @@ app.use("/api/personal-details", personalDetailsRouter);
 app.use("/api/payment", paymentRouter);
 
 // ---------------- SOCKET.IO ----------------
-export const io = new Server(server, {
-  cors: {
-    origin: allowedOrigins,
-    credentials: true,
-  },
-});
+const io = initSocket(server, allowedOrigins);
 
 // Socket authentication
 io.use((socket, next) => {
@@ -84,6 +79,7 @@ io.on("connection", (socket) => {
     socket.join("admins");
     onlineAdmins.add(socket.id);
     io.to("admins").emit("admins-online", onlineAdmins.size);
+    console.log(`👑 Admin ${socket.userId} joined admins room`);
   }
 
   socket.on("disconnect", (reason) => {
@@ -103,4 +99,4 @@ io.on("connection", (socket) => {
 const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-}); 
+});
