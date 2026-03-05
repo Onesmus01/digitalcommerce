@@ -25,6 +25,8 @@ import {
   FaCreditCard,
   FaHandPaper,
   FaRocket,
+  FaSpinner,
+  FaExclamationTriangle,
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -98,9 +100,12 @@ const TopProductCard = ({ product, index }) => (
   >
     <div className="relative">
       <img
-        src={product.productImage}
-        alt={product.productName}
+        src={product.productImage || product.image || "https://via.placeholder.com/56"}
+        alt={product.productName || product.name}
         className="w-14 h-14 rounded-xl object-cover shadow-md group-hover:shadow-lg transition-shadow"
+        onError={(e) => {
+          e.target.src = "https://via.placeholder.com/56";
+        }}
       />
       <div className={`absolute -top-2 -left-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg ${
         index === 0 ? "bg-gradient-to-br from-yellow-400 to-orange-500" :
@@ -112,9 +117,9 @@ const TopProductCard = ({ product, index }) => (
       </div>
     </div>
     <div className="flex-1 min-w-0">
-      <p className="font-semibold text-slate-700 truncate">{product.productName}</p>
+      <p className="font-semibold text-slate-700 truncate">{product.productName || product.name}</p>
       <div className="flex items-center gap-2 mt-1">
-        <span className="text-sm text-slate-400">{product.selling} sales</span>
+        <span className="text-sm text-slate-400">{product.selling || product.sales || 0} sales</span>
         <span className="w-1 h-1 bg-slate-300 rounded-full" />
         <span className="text-sm text-emerald-500 font-medium">+{Math.floor(Math.random() * 20 + 5)}%</span>
       </div>
@@ -137,14 +142,35 @@ const StatusBadge = ({ status }) => {
   
   return (
     <span className={`px-3 py-1 text-xs font-semibold rounded-full border ${styles[status?.toLowerCase()] || styles.pending}`}>
-      {status}
+      {status || "Pending"}
     </span>
   );
 };
 
-// ===================== Progress Bar =====================
-const ProgressBar = ({ current, goal, label }) => {
-  const percent = Math.min(100, ((current / goal) * 100).toFixed(0));
+// ===================== Progress Bar with API Integration =====================
+const ProgressBar = ({ progressData, loading, error }) => {
+  if (loading) {
+    return (
+      <div className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6 flex items-center justify-center h-40">
+        <FaSpinner className="animate-spin text-indigo-500 text-2xl" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6 flex items-center gap-3 text-rose-500">
+        <FaExclamationTriangle />
+        <span>Failed to load progress data</span>
+      </div>
+    );
+  }
+
+  // Use API data or fallback
+  const current = progressData?.current || 0;
+  const goal = progressData?.goal || 60000;
+  const label = progressData?.label || "Monthly Sales Goal";
+  const percent = Math.min(100, Math.round((current / goal) * 100));
   
   return (
     <div className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6">
@@ -173,6 +199,83 @@ const ProgressBar = ({ current, goal, label }) => {
         <span className="text-slate-400">Goal: ${goal?.toLocaleString()}</span>
       </div>
     </div>
+  );
+};
+
+// ===================== AI Prediction Card with API Integration =====================
+const AIPredictionCard = ({ predictionData, loading, error, stats }) => {
+  if (loading) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.4 }}
+        className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-6 text-white relative overflow-hidden flex items-center justify-center h-40"
+      >
+        <FaSpinner className="animate-spin text-white text-2xl" />
+      </motion.div>
+    );
+  }
+
+  if (error) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.4 }}
+        className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-6 text-white relative overflow-hidden"
+      >
+        <div className="flex items-center gap-2 mb-2">
+          <FaBrain className="text-lg" />
+          <span className="text-sm font-medium opacity-90">AI Prediction</span>
+        </div>
+        <p className="text-sm opacity-80">Unable to fetch prediction</p>
+      </motion.div>
+    );
+  }
+
+  // Use API prediction or calculate fallback
+  const predictedRevenue = predictionData?.predictedRevenue || Math.round((stats?.revenue || 0) * 1.12);
+  const growthPercent = predictionData?.growthPercent || 12;
+  const confidence = predictionData?.confidence || "medium";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: 0.4 }}
+      className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-6 text-white relative overflow-hidden"
+    >
+      <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+      
+      <div className="relative z-10">
+        <div className="flex items-center gap-2 mb-3">
+          <FaBrain className="text-lg" />
+          <span className="text-sm font-medium opacity-90">AI Prediction</span>
+          {confidence === "high" && (
+            <span className="px-2 py-0.5 bg-white/20 rounded-full text-xs">High Confidence</span>
+          )}
+        </div>
+        <p className="text-sm opacity-80 mb-2">Predicted revenue next month</p>
+        <h3 className="text-3xl font-bold">${predictedRevenue?.toLocaleString()}</h3>
+        <div className="flex items-center gap-2 mt-3 text-sm">
+          <span className="px-2 py-1 bg-white/20 rounded-lg">+{growthPercent}% growth</span>
+          <span className="opacity-70">based on trends</span>
+        </div>
+        
+        {predictionData?.factors && (
+          <div className="mt-4 pt-4 border-t border-white/20">
+            <p className="text-xs opacity-70 mb-2">Key factors:</p>
+            <div className="flex flex-wrap gap-2">
+              {predictionData.factors.map((factor, idx) => (
+                <span key={idx} className="px-2 py-1 bg-white/10 rounded text-xs">{factor}</span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </motion.div>
   );
 };
 
@@ -205,21 +308,138 @@ export default function AdminDashboard() {
   const { backendUrl, toast, user } = useContext(Context);
 
   const ORDERS_PER_PAGE = 5;
-  const salesGoal = 60000;
-  const userRole = "admin";
 
   const [recentOrders, setRecentOrders] = useState([]);
   const [orders, setOrders] = useState([]);
   const [topProducts, setTopProducts] = useState([]);
   
+  // Progress Bar State
+  const [progressData, setProgressData] = useState(null);
+  const [progressLoading, setProgressLoading] = useState(true);
+  const [progressError, setProgressError] = useState(null);
+
+  // AI Prediction State
+  const [predictionData, setPredictionData] = useState(null);
+  const [predictionLoading, setPredictionLoading] = useState(true);
+  const [predictionError, setPredictionError] = useState(null);
+
   const [stats, setStats] = useState({
-    users: 1200,
-    orders: 340,
-    products: 95,
-    revenue: 45230,
+    users: 0,
+    orders: 0,
+    products: 0,
+    revenue: 0,
   });
 
-  // ===================== Fetch Functions =====================
+  // ===================== API Fetch Functions =====================
+
+  // Fetch Progress Data for ProgressBar
+const fetchProgress = async () => {
+  try {
+    setProgressLoading(true);
+    setProgressError(null);
+
+    const res = await fetch(`${backendUrl}/sales-progress/sales-progress`, {
+      method: "GET",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!res.ok) throw new Error("Failed to fetch progress");
+
+    const data = await res.json();
+
+    // Extract revenue progress from backend response
+    const revenueProgress = data.progress?.revenue || {};
+
+    const current = revenueProgress.current || 0;
+    const goal = revenueProgress.goal || 60000;
+
+    setProgressData({
+      current,
+      goal,
+      label: revenueProgress.label || "Monthly Sales Goal",
+      percent: Math.min(100, ((current / goal) * 100).toFixed(0)),
+      period: "monthly",
+    });
+
+  } catch (error) {
+    console.error("Progress fetch error:", error);
+    setProgressError(error.message);
+
+    // Fallback to stats-based calculation
+    const fallbackCurrent = stats?.revenue || 0;
+    const fallbackGoal = 60000;
+
+    setProgressData({
+      current: fallbackCurrent,
+      goal: fallbackGoal,
+      label: "Monthly Sales Goal",
+      percent: Math.min(100, ((fallbackCurrent / fallbackGoal) * 100).toFixed(0)),
+      period: "monthly",
+    });
+
+  } finally {
+    setProgressLoading(false);
+  }
+};
+console.log('Progress Data:', progressData);
+  // Fetch AI Prediction Data
+const fetchAIPrediction = async () => {
+    try {
+      setPredictionLoading(true);
+      setPredictionError(null);
+      
+      const res = await fetch(`${backendUrl}/sales-progress/ai-prediction`, {
+        method: "GET",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      
+      // If AI endpoint doesn't exist, try alternative endpoints
+      if (!res.ok) {
+        // Try analytics/prediction as fallback
+        const fallbackRes = await fetch(`${backendUrl}/analytics/prediction`, {
+          method: "GET",
+          credentials: "include",
+        });
+        
+        if (!fallbackRes.ok) throw new Error("Prediction endpoint not available");
+        
+        const fallbackData = await fallbackRes.json();
+        setPredictionData(formatPredictionData(fallbackData));
+        return;
+      }
+      
+      const data = await res.json();
+      setPredictionData(formatPredictionData(data));
+      
+    } catch (error) {
+      console.error("AI Prediction fetch error:", error);
+      setPredictionError(error.message);
+      // Fallback calculation
+      setPredictionData({
+        predictedRevenue: Math.round(stats.revenue * 1.12),
+        growthPercent: 12,
+        confidence: "medium",
+        factors: ["Seasonal trends", "Historical data"],
+      });
+    } finally {
+      setPredictionLoading(false);
+    }
+};
+
+  // Helper to format prediction data from various API structures
+ const formatPredictionData = (data) => {
+    const pred = data.prediction || data.data || data;
+    return {
+      predictedRevenue: pred.predictedRevenue || pred.nextMonthRevenue || pred.value || 0,
+      growthPercent: pred.growthPercent || pred.growth || pred.percentage || 12,
+      confidence: pred.confidence || "medium",
+      factors: pred.factors || pred.keyFactors || pred.reasons || ["Historical trends"],
+      period: pred.period || "next_month",
+    };
+  };
+
   const fetchRecentOrders = async () => {
     try {
       setLoading(true);
@@ -232,7 +452,7 @@ export default function AdminDashboard() {
       setRecentOrders(data.orders || []);
     } catch (error) {
       console.log(error);
-      toast.error(error.message || "Error while fetching recent orders");
+      toast?.error(error.message || "Error while fetching recent orders");
     } finally {
       setLoading(false);
     }
@@ -247,7 +467,7 @@ export default function AdminDashboard() {
       setOrders(data.orders || []);
     } catch (err) {
       console.error(err);
-      toast.error(err.message || "Error fetching orders");
+      toast?.error(err.message || "Error fetching orders");
     } finally {
       setLoading(false);
     }
@@ -263,12 +483,11 @@ export default function AdminDashboard() {
       if (!res.ok) throw new Error(data.message || "Failed to fetch total products");
       setStats((prev) => ({
         ...prev,
-        products: data.data.totalProducts || 0,
-        revenue: data.data.totalSales || 0,
+        products: data.data?.totalProducts || data.totalProducts || 0,
       }));
     } catch (error) {
       console.error("Error fetching total products:", error);
-      toast.error(error.message || "Failed to fetch total products");
+      toast?.error(error.message || "Failed to fetch total products");
     }
   };
 
@@ -282,11 +501,11 @@ export default function AdminDashboard() {
       if (!res.ok) throw new Error(data.message || "Failed to fetch revenue");
       setStats((prev) => ({
         ...prev,
-        revenue: data.data.totalRevenue || 0,
+        revenue: data.data?.totalRevenue || data.totalRevenue || 0,
       }));
     } catch (error) {
       console.error("Revenue fetch error:", error);
-      toast.error(error.message || "Failed to fetch revenue");
+      toast?.error(error.message || "Failed to fetch revenue");
     }
   };
 
@@ -299,11 +518,11 @@ export default function AdminDashboard() {
       if (!res.ok) throw new Error(data.message || "Failed to fetch users");
       setStats((prev) => ({
         ...prev,
-        users: data.data.totalUsers || 0,
+        users: data.data?.totalUsers || data.totalUsers || 0,
       }));
     } catch (error) {
       console.error("User stats error:", error);
-      toast.error("Failed to fetch users");
+      toast?.error("Failed to fetch users");
     }
   };
 
@@ -317,11 +536,11 @@ export default function AdminDashboard() {
       if (!res.ok) throw new Error(data.message || "Failed to fetch total orders");
       setStats((prev) => ({
         ...prev,
-        orders: data.data.totalOrders || 0,
+        orders: data.data?.totalOrders || data.totalOrders || 0,
       }));
     } catch (error) {
       console.error("Total orders error:", error);
-      toast.error("Failed to fetch total orders");
+      toast?.error("Failed to fetch total orders");
     }
   };
 
@@ -335,7 +554,7 @@ export default function AdminDashboard() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to fetch top products");
-      setTopProducts(data.data || []);
+      setTopProducts(data.data || data.products || []);
     } catch (error) {
       console.error("Failed to fetch top products:", error.message);
       toast?.error(error.message || "Error fetching top products");
@@ -345,14 +564,39 @@ export default function AdminDashboard() {
   };
 
   // ===================== UseEffects =====================
-  useEffect(() => { fetchRecentOrders(); }, []);
-  useEffect(() => { fetchOrders(); }, []);
-  useEffect(() => { fetchTotalProducts(); }, [backendUrl, toast]);
-  useEffect(() => { fetchTotalRevenue(); }, [backendUrl, toast]);
-  useEffect(() => { fetchTotalUsers(); }, [backendUrl, toast]);
-  useEffect(() => { fetchTotalOrders(); }, [backendUrl, toast]);
-  useEffect(() => { fetchTopProducts(); }, [backendUrl, toast]);
+  
+  // Initial data fetch
+  useEffect(() => {
+    fetchRecentOrders();
+    fetchOrders();
+    fetchTotalProducts();
+    fetchTotalRevenue();
+    fetchTotalUsers();
+    fetchTotalOrders();
+    fetchTopProducts();
+  }, [backendUrl]);
 
+  // Fetch progress and prediction when stats are available
+  useEffect(() => {
+    if (stats.revenue > 0) {
+      fetchProgress();
+      fetchAIPrediction();
+    }
+  }, []);
+
+  // Refresh data periodically
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Refresh stats
+      fetchTotalRevenue();
+      fetchProgress();
+      fetchAIPrediction();
+    }, 30000); // Every 30 seconds
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  // Simulated real-time updates (optional)
   useEffect(() => {
     const interval = setInterval(() => {
       setStats((prev) => ({
@@ -370,46 +614,49 @@ export default function AdminDashboard() {
   }, []);
 
   // ===================== Helpers =====================
-  const formatNumber = (num) => new Intl.NumberFormat().format(num);
-  const revenueTrend = (((stats.revenue - 38000) / 38000) * 100).toFixed(1);
-  const predictNextMonthSales = () => Math.round(stats.revenue * 1.12);
+  const formatNumber = (num) => new Intl.NumberFormat().format(num || 0);
+  
+  const revenueTrend = stats.revenue > 0 
+    ? (((stats.revenue - 38000) / 38000) * 100).toFixed(1)
+    : "0.0";
 
   const exportCSV = () => {
     const rows = [
       ["Customer Name", "Customer Email", "Phone", "User Role", "Product Name", "Product Price", "Quantity", "Total Amount", "Order Status", "Payment Method", "Payment Status", "Shipping Country", "Shipping City", "Shipping Street", "Shipping PostalCode"],
       ...orders.map((o) =>
-        o.items.map((item) => [
+        (o.items || []).map((item) => [
           o.user?.name || "Unknown",
           o.user?.email || "Unknown",
           o.shippingAddress?.phone || "N/A",
           o.user?.role || "GENERAL",
-          item.name || "Unknown Product",
+          item.name || item.productName || "Unknown Product",
           item.price || 0,
           item.quantity || 0,
           o.totalAmount || 0,
           o.orderStatus || "Pending",
           o.paymentMethod || "N/A",
           o.paymentStatus || "pending",
-          o.shippingAddress?.address?.country || "N/A",
-          o.shippingAddress?.address?.city || "N/A",
-          o.shippingAddress?.address?.street || "N/A",
-          o.shippingAddress?.address?.postalCode || "N/A",
+          o.shippingAddress?.address?.country || o.shippingAddress?.country || "N/A",
+          o.shippingAddress?.address?.city || o.shippingAddress?.city || "N/A",
+          o.shippingAddress?.address?.street || o.shippingAddress?.street || "N/A",
+          o.shippingAddress?.address?.postalCode || o.shippingAddress?.postalCode || "N/A",
         ])
       ).flat(),
     ];
     const csvContent = "data:text/csv;charset=utf-8," + rows.map((e) => e.join(",")).join("\n");
     const link = document.createElement("a");
     link.href = encodeURI(csvContent);
-    link.download = "all-orders.csv";
+    link.download = `orders-export-${new Date().toISOString().split('T')[0]}.csv`;
     document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
   };
 
   const searchTermLower = searchTerm.toLowerCase();
   const filteredOrders = recentOrders.filter((o) => {
     const customerName = o.user?.name?.toLowerCase() || "";
-    const productName = o.items?.[0]?.product?.name?.toLowerCase() || "";
-    const status = o.status?.toLowerCase() || "";
+    const productName = o.items?.[0]?.name?.toLowerCase() || o.items?.[0]?.product?.name?.toLowerCase() || "";
+    const status = o.orderStatus?.toLowerCase() || o.status?.toLowerCase() || "";
     return (
       customerName.includes(searchTermLower) ||
       productName.includes(searchTermLower) ||
@@ -428,7 +675,7 @@ export default function AdminDashboard() {
     datasets: [
       {
         label: "Revenue",
-        data: [1200, 1900, 800, 1400, 1700, 2300],
+        data: [1200, 1900, 800, 1400, 1700, stats.revenue > 0 ? stats.revenue / 100 : 2300],
         backgroundColor: "rgba(99, 102, 241, 0.8)",
         borderColor: "rgba(99, 102, 241, 1)",
         borderWidth: 2,
@@ -437,7 +684,7 @@ export default function AdminDashboard() {
       },
       {
         label: "Orders",
-        data: [30, 50, 20, 40, 60, 80],
+        data: [30, 50, 20, 40, 60, stats.orders > 0 ? stats.orders : 80],
         backgroundColor: "rgba(16, 185, 129, 0.8)",
         borderColor: "rgba(16, 185, 129, 1)",
         borderWidth: 2,
@@ -513,7 +760,9 @@ export default function AdminDashboard() {
     ],
   };
 
-  if (loading) {
+  const userRole = user?.role || "admin";
+
+  if (loading && !stats.revenue) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
         <motion.div
@@ -537,12 +786,15 @@ export default function AdminDashboard() {
         className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-white/50 shadow-[0_4px_20px_rgba(0,0,0,0.04)] px-6 py-4"
       >
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          {/* <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
               Dashboard Overview
             </h1>
-            <p className="text-slate-500 mt-1">Welcome back! Here's what's happening with your store.</p>
-          </div> */}
+            <div className="flex items-center gap-2 text-sm text-slate-500">
+              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+              Live
+            </div>
+          </div>
 
           <div className="flex items-center gap-3">
             {/* Time Range Selector */}
@@ -561,6 +813,14 @@ export default function AdminDashboard() {
                 </button>
               ))}
             </div>
+
+            {/* Dark Mode Toggle */}
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
+            >
+              {darkMode ? <FaSun className="text-amber-500" /> : <FaMoon className="text-slate-600" />}
+            </button>
 
             {/* Action Buttons */}
             <motion.button
@@ -585,7 +845,7 @@ export default function AdminDashboard() {
         </div>
       </motion.header>
 
-      {/* MAIN CONTENT - Scrollable area below header */}
+      {/* MAIN CONTENT */}
       <main className="p-6 overflow-y-auto">
         {/* STATS CARDS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -627,32 +887,22 @@ export default function AdminDashboard() {
           />
         </div>
 
-        {/* PROGRESS BAR & AI PREDICTION */}
+        {/* PROGRESS BAR & AI PREDICTION - CONNECTED TO APIs */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           <div className="lg:col-span-2">
-            <ProgressBar current={stats.revenue} goal={salesGoal} label="Monthly Sales Goal" />
+            <ProgressBar 
+              progressData={progressData} 
+              loading={progressLoading} 
+              error={progressError}
+            />
           </div>
           
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4 }}
-            className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-6 text-white relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-            <div className="relative z-10">
-              <div className="flex items-center gap-2 mb-3">
-                <FaBrain className="text-lg" />
-                <span className="text-sm font-medium opacity-90">AI Prediction</span>
-              </div>
-              <p className="text-sm opacity-80 mb-2">Predicted revenue next month</p>
-              <h3 className="text-3xl font-bold">${formatNumber(predictNextMonthSales())}</h3>
-              <div className="flex items-center gap-2 mt-3 text-sm">
-                <span className="px-2 py-1 bg-white/20 rounded-lg">+12% growth</span>
-                <span className="opacity-70">based on trends</span>
-              </div>
-            </div>
-          </motion.div>
+          <AIPredictionCard 
+            predictionData={predictionData}
+            loading={predictionLoading}
+            error={predictionError}
+            stats={stats}
+          />
         </div>
 
         {/* MAIN CHARTS SECTION */}
@@ -759,42 +1009,52 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {paginatedOrders.map((order, idx) => {
-                    const customerName = order.user?.name || "Unknown User";
-                    const productNames = order.items && order.items.length > 0
-                      ? order.items.map((i) => i.name).join(", ")
-                      : "No products";
-                    const amount = order.totalAmount || 0;
-                    const status = order.orderStatus || "Pending";
+                  {paginatedOrders.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" className="px-6 py-8 text-center text-slate-500">
+                        No orders found
+                      </td>
+                    </tr>
+                  ) : (
+                    paginatedOrders.map((order, idx) => {
+                      const customerName = order.user?.name || "Unknown User";
+                      const productNames = order.items && order.items.length > 0
+                        ? order.items.map((i) => i.name || i.product?.name).filter(Boolean).join(", ")
+                        : "No products";
+                      const amount = order.totalAmount || 0;
+                      const status = order.orderStatus || order.status || "Pending";
 
-                    return (
-                      <motion.tr
-                        key={order._id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: idx * 0.05 }}
-                        className="hover:bg-slate-50 transition-colors"
-                      >
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
-                              {customerName[0]?.toUpperCase()}
+                      return (
+                        <motion.tr
+                          key={order._id || idx}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: idx * 0.05 }}
+                          className="hover:bg-slate-50 transition-colors"
+                        >
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
+                                {customerName[0]?.toUpperCase() || "?"}
+                              </div>
+                              <span className="font-medium text-slate-700">{customerName}</span>
                             </div>
-                            <span className="font-medium text-slate-700">{customerName}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <p className="text-sm text-slate-600 truncate max-w-xs">{productNames}</p>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="font-semibold text-slate-800">${amount}</span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <StatusBadge status={status} />
-                        </td>
-                      </motion.tr>
-                    );
-                  })}
+                          </td>
+                          <td className="px-6 py-4">
+                            <p className="text-sm text-slate-600 truncate max-w-xs" title={productNames}>
+                              {productNames}
+                            </p>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="font-semibold text-slate-800">${amount}</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <StatusBadge status={status} />
+                          </td>
+                        </motion.tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
@@ -802,7 +1062,7 @@ export default function AdminDashboard() {
             {/* Pagination */}
             <div className="p-4 border-t border-slate-100 flex items-center justify-between">
               <p className="text-sm text-slate-500">
-                Showing {(ordersPage - 1) * ORDERS_PER_PAGE + 1} to{" "}
+                Showing {filteredOrders.length > 0 ? (ordersPage - 1) * ORDERS_PER_PAGE + 1 : 0} to{" "}
                 {Math.min(ordersPage * ORDERS_PER_PAGE, filteredOrders.length)} of{" "}
                 {filteredOrders.length} orders
               </p>
@@ -852,7 +1112,7 @@ export default function AdminDashboard() {
                 </div>
               ) : (
                 topProducts.map((product, index) => (
-                  <TopProductCard key={index} product={product} index={index} />
+                  <TopProductCard key={product._id || index} product={product} index={index} />
                 ))
               )}
             </div>
@@ -931,7 +1191,7 @@ export default function AdminDashboard() {
                 { icon: FaFire, label: "High Value Customers", value: "120", color: "from-orange-400 to-red-500" },
                 { icon: FaShoppingCart, label: "Repeat Buyers", value: "340", color: "from-emerald-400 to-teal-500" },
                 { icon: FaUsers, label: "New Customers", value: "89", color: "from-blue-400 to-indigo-500" },
-                { icon: FaChartLine, label: "Avg. Order Value", value: "$142", color: "from-purple-400 to-pink-500" },
+                { icon: FaChartLine, label: "Avg. Order Value", value: `$${stats.revenue > 0 && stats.orders > 0 ? Math.round(stats.revenue / stats.orders) : 142}`, color: "from-purple-400 to-pink-500" },
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
@@ -982,16 +1242,20 @@ export default function AdminDashboard() {
               </div>
               <button
                 onClick={async () => {
-                  const tf = await import("@tensorflow/tfjs");
-                  const model = tf.sequential();
-                  model.add(tf.layers.dense({ units: 1, inputShape: [1] }));
-                  model.compile({ loss: "meanSquaredError", optimizer: "sgd" });
-                  const xs = tf.tensor2d([1, 2, 3, 4], [4, 1]);
-                  const ys = tf.tensor2d([100, 200, 300, 400], [4, 1]);
-                  await model.fit(xs, ys, { epochs: 50 });
-                  const prediction = model.predict(tf.tensor2d([5], [1, 1]));
-                  prediction.print();
-                  alert("Model trained! Check console for prediction.");
+                  try {
+                    const tf = await import("@tensorflow/tfjs");
+                    const model = tf.sequential();
+                    model.add(tf.layers.dense({ units: 1, inputShape: [1] }));
+                    model.compile({ loss: "meanSquaredError", optimizer: "sgd" });
+                    const xs = tf.tensor2d([1, 2, 3, 4], [4, 1]);
+                    const ys = tf.tensor2d([100, 200, 300, 400], [4, 1]);
+                    await model.fit(xs, ys, { epochs: 50 });
+                    const prediction = model.predict(tf.tensor2d([5], [1, 1]));
+                    const predValue = prediction.dataSync()[0];
+                    alert(`Model trained! Predicted value: ${Math.round(predValue)}`);
+                  } catch (err) {
+                    alert("TensorFlow.js not available or error occurred");
+                  }
                 }}
                 className="w-full py-2.5 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-purple-500/25 transition-shadow"
               >
@@ -999,29 +1263,29 @@ export default function AdminDashboard() {
               </button>
             </motion.div>
 
-            {/* Stripe Sync */}
+            {/* Refresh Predictions */}
             <motion.div
               whileHover={{ y: -5 }}
               className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
             >
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center">
-                  <FaCreditCard className="text-white text-xl" />
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                  <FaChartLine className="text-white text-xl" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-slate-800">Stripe Sync</h3>
-                  <p className="text-sm text-slate-400">Live revenue integration</p>
+                  <h3 className="font-semibold text-slate-800">Refresh Predictions</h3>
+                  <p className="text-sm text-slate-400">Update AI forecasts</p>
                 </div>
               </div>
               <button
-                onClick={async () => {
-                  const res = await fetch("/api/stripe/revenue");
-                  const data = await res.json();
-                  alert(`Live Revenue: $${data.total}`);
+                onClick={() => {
+                  fetchProgress();
+                  fetchAIPrediction();
+                  toast?.success("Predictions refreshed!");
                 }}
-                className="w-full py-2.5 bg-gradient-to-r from-indigo-500 to-blue-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-indigo-500/25 transition-shadow"
+                className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-emerald-500/25 transition-shadow"
               >
-                Sync Revenue
+                Refresh Data
               </button>
             </motion.div>
 
@@ -1052,77 +1316,6 @@ export default function AdminDashboard() {
               >
                 Run Fraud Scan
               </button>
-            </motion.div>
-
-            {/* Push Notifications */}
-            <motion.div
-              whileHover={{ y: -5 }}
-              className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-                  <FaBell className="text-white text-xl" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-slate-800">Push Notifications</h3>
-                  <p className="text-sm text-slate-400">Real-time browser alerts</p>
-                </div>
-              </div>
-              <button
-                onClick={async () => {
-                  if ("Notification" in window) {
-                    const permission = await Notification.requestPermission();
-                    if (permission === "granted") {
-                      new Notification("New Order Received 🚀");
-                    }
-                  }
-                }}
-                className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-emerald-500/25 transition-shadow"
-              >
-                Enable Push
-              </button>
-            </motion.div>
-
-            {/* Drag & Drop */}
-            <motion.div
-              whileHover={{ y: -5 }}
-              className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
-                  <FaHandPaper className="text-white text-xl" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-slate-800">Drag & Drop</h3>
-                  <p className="text-sm text-slate-400">Customizable widgets</p>
-                </div>
-              </div>
-              <div
-                draggable
-                className="p-3 bg-gradient-to-r from-amber-100 to-orange-100 rounded-xl cursor-move text-center text-amber-700 font-medium"
-                onDragStart={(e) => e.dataTransfer.setData("text/plain", "widget")}
-              >
-                Drag Me
-              </div>
-            </motion.div>
-
-            {/* Geo Map */}
-            <motion.div
-              whileHover={{ y: -5 }}
-              className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
-                  <FaMapMarkerAlt className="text-white text-xl" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-slate-800">Customer Map</h3>
-                  <p className="text-sm text-slate-400">Geographic distribution</p>
-                </div>
-              </div>
-              <div className="h-24 bg-gradient-to-r from-cyan-100 via-blue-100 to-emerald-100 rounded-xl flex items-center justify-center">
-                <span className="text-cyan-600 font-medium">Interactive Map Ready</span>
-              </div>
             </motion.div>
           </div>
         </motion.div>

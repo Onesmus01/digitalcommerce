@@ -14,8 +14,11 @@ import productRouter from "./routes/productRoutes.js";
 import orderRouter from "./routes/orderRoutes.js";
 import personalDetailsRouter from "./routes/personalDetailsRoutes.js";
 import paymentRouter from "./routes/paymentRoute.js";
+import salesProgressRoute from "./routes/salesProgressRoute.js";
 
 dotenv.config();
+// ---------------- DATABASE ----------------
+connectDb();
 
 const app = express();
 const server = http.createServer(app);
@@ -33,8 +36,7 @@ app.use(
   })
 );
 
-// ---------------- DATABASE ----------------
-connectDb();
+
 
 // ---------------- ROUTES ----------------
 app.use("/api/user", userRouter);
@@ -42,7 +44,7 @@ app.use("/api/product", productRouter);
 app.use("/api/order", orderRouter);
 app.use("/api/personal-details", personalDetailsRouter);
 app.use("/api/payment", paymentRouter);
-
+app.use("/api/sales-progress", salesProgressRoute);
 // ---------------- SOCKET.IO ----------------
 const io = initSocket(server, allowedOrigins);
 

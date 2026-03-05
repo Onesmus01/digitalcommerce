@@ -188,22 +188,60 @@ const PaymentPage = () => {
     console.log("[STATE] paymentStatus changed to:", paymentStatus);
   }, [paymentStatus]);
 
-  /* ---------------- FORMAT PHONE ---------------- */
+  /* ---------------- FORMAT PHONE - ALL KENYAN FORMATS ---------------- */
   const formatPhone = (phone) => {
-    const cleaned = phone.replace(/\D/g, "");
-    if (cleaned.startsWith("0")) return "254" + cleaned.slice(1);
-    if (cleaned.startsWith("254")) return cleaned;
-    return null;
+    // Remove all non-digits, spaces, dashes, plus signs
+    let cleaned = phone.replace(/[\s\-\+\(\)]/g, "");
+    
+    console.log("[PHONE FORMAT] Input:", phone, "Cleaned:", cleaned);
+
+    // Handle different formats
+    if (cleaned.startsWith("0")) {
+      // 07XXXXXXXX or 01XXXXXXXX → 2547XXXXXXXX or 2541XXXXXXXX
+      cleaned = "254" + cleaned.slice(1);
+    } else if (cleaned.startsWith("254")) {
+      // Already in correct format (2547XXXXXXXX or 2541XXXXXXXX)
+      // Keep as is
+    } else if (cleaned.startsWith("7") || cleaned.startsWith("1")) {
+      // 7XXXXXXXX or 1XXXXXXXX → 2547XXXXXXXX or 2541XXXXXXXX
+      cleaned = "254" + cleaned;
+    } else {
+      // Invalid format
+      console.log("[PHONE FORMAT] Invalid format");
+      return null;
+    }
+
+    console.log("[PHONE FORMAT] Output:", cleaned);
+
+    // Validate: Must be 2547XXXXXXXX or 2541XXXXXXXX (12 digits total)
+    if (!/^(2547|2541)\d{8}$/.test(cleaned)) {
+      console.log("[PHONE FORMAT] Regex failed");
+      return null;
+    }
+
+    return cleaned;
+  };
+
+  /* Validate phone for UI feedback */
+  const isValidPhone = (phone) => {
+    if (!phone) return false;
+    const cleaned = phone.replace(/[\s\-\+\(\)]/g, "");
+    
+    // Check if it matches any valid Kenyan format
+    return (
+      /^(07|01)\d{8}$/.test(cleaned) ||           // 07XX or 01XX
+      /^(2547|2541)\d{8}$/.test(cleaned) ||       // 2547XX or 2541XX
+      /^(7|1)\d{8}$/.test(cleaned) ||             // 7XX or 1XX
+      /^\+254(7|1)\d{8}$/.test(phone.replace(/\s/g, ''))  // +2547XX or +2541XX
+    );
   };
 
   /* ---------------- POLLING ---------------- */
   const startPolling = useCallback((txId) => {
-    // Store txId in ref to avoid closure issues
     txIdRef.current = txId;
     setTransactionId(txId);
     let count = 0;
     
-    // Clear any existing interval first
     if (pollRef.current) {
       clearInterval(pollRef.current);
       pollRef.current = null;
@@ -237,24 +275,18 @@ const PaymentPage = () => {
 
         if (!isMounted.current) return true;
 
-        // Check if we have a final status
         if (data.success && ["success", "failed", "cancelled"].includes(data.status)) {
           console.log("[POLLING] ✅ Final status detected:", data.status);
           
-          // Stop polling
           if (pollRef.current) {
             clearInterval(pollRef.current);
             pollRef.current = null;
           }
 
-          // Update all states
           setProcessing(false);
           toast.dismiss("mpesa");
-          
-          // Force status update
           setPaymentStatus(data.status);
 
-          // Handle success/failure
           if (data.status === "success") {
             toast.success(data.message || "Payment successful! 🎉", { duration: 4000 });
             setTimeout(() => navigate("/thank-you"), 2000);
@@ -264,10 +296,9 @@ const PaymentPage = () => {
             toast.error(data.message || "Payment was cancelled.");
           }
           
-          return true; // Stop polling
+          return true;
         }
 
-        // Timeout check
         if (count >= MAX_POLLS) {
           console.log("[POLLING] ⏰ Timeout reached");
           
@@ -283,14 +314,13 @@ const PaymentPage = () => {
           return true;
         }
 
-        return false; // Continue polling
+        return false;
       } catch (err) {
         console.error("[POLLING ERROR]", err);
-        return false; // Continue polling on error
+        return false;
       }
     };
 
-    // Start polling immediately, then every 3 seconds
     checkStatus().then(shouldStop => {
       if (!shouldStop) {
         pollRef.current = setInterval(() => {
@@ -305,7 +335,7 @@ const PaymentPage = () => {
     });
   }, [backendUrl, navigate]);
 
-  /* ---------------- VISIBILITY CHECK (Emergency Fallback) ---------------- */
+  /* ---------------- VISIBILITY CHECK ---------------- */
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && txIdRef.current && processing) {
@@ -319,7 +349,6 @@ const PaymentPage = () => {
         .then(data => {
           console.log("[VISIBILITY] Forced check result:", data);
           if (data.success && ["success", "failed", "cancelled"].includes(data.status)) {
-            // Stop any existing polling
             if (pollRef.current) {
               clearInterval(pollRef.current);
               pollRef.current = null;
@@ -353,14 +382,14 @@ const PaymentPage = () => {
 
     if (now - lastRequestTime.current < REQUEST_DELAY) {
       const remaining = Math.ceil((REQUEST_DELAY - (now - lastRequestTime.current)) / 1000);
-      toast.error(`Wait ${remaining}s`);
+      toast.error(`Wait ${remaining}s before retrying`);
       return;
     }
 
     const phone = formatPhone(mpesaPhone);
 
-    if (!phone || phone.length !== 12) {
-      toast.error("Enter valid M-Pesa number");
+    if (!phone) {
+      toast.error("Enter valid Kenyan number (07XX, 01XX, 254XXX, or +254XXX)");
       return;
     }
 
@@ -368,7 +397,7 @@ const PaymentPage = () => {
     setProcessing(true);
     setPaymentStatus("pending");
 
-    toast.loading("Sending prompt...", { 
+    toast.loading("Sending STK push...", { 
       id: "mpesa",
       duration: Infinity
     });
@@ -389,19 +418,19 @@ const PaymentPage = () => {
 
       if (!data.success) {
         toast.dismiss("mpesa");
-        toast.error(data.message || "Failed");
+        toast.error(data.message || "Failed to initiate payment");
         setProcessing(false);
         setPaymentStatus("failed");
         return;
       }
 
       toast.dismiss("mpesa");
-      toast.success("Enter M-Pesa PIN", { duration: 6000 });
+      toast.success("Check your phone! Enter M-Pesa PIN", { duration: 8000 });
       startPolling(data.transaction_id);
     } catch (err) {
       console.error(err);
       toast.dismiss("mpesa");
-      toast.error("Network error");
+      toast.error("Network error. Please try again.");
       setProcessing(false);
       setPaymentStatus("failed");
     }
@@ -556,14 +585,35 @@ const PaymentPage = () => {
                               type="tel"
                               value={mpesaPhone}
                               onChange={(e) => setMpesaPhone(e.target.value)}
-                              placeholder="07XX XXX XXX"
+                              placeholder="07XX XXX XXX or 01XX XXX XXX"
                               disabled={processing}
-                              className="w-full pl-10 sm:pl-12 pr-16 sm:pr-20 py-2.5 sm:py-3 bg-white border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all font-medium text-sm sm:text-base placeholder:text-gray-400 disabled:bg-gray-100"
+                              className={`w-full pl-10 sm:pl-12 pr-16 sm:pr-20 py-2.5 sm:py-3 bg-white border-2 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all font-medium text-sm sm:text-base placeholder:text-gray-400 disabled:bg-gray-100 ${
+                                mpesaPhone && !isValidPhone(mpesaPhone) 
+                                  ? 'border-red-300 focus:ring-red-200' 
+                                  : mpesaPhone && isValidPhone(mpesaPhone)
+                                  ? 'border-green-300 focus:ring-green-200'
+                                  : 'border-gray-300'
+                              }`}
                             />
                             <div className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2">
                               <span className="text-[10px] sm:text-xs text-gray-400 font-medium">KE</span>
                             </div>
                           </div>
+                          
+                          {/* Validation feedback */}
+                          {mpesaPhone && !isValidPhone(mpesaPhone) && (
+                            <p className="mt-2 text-[10px] sm:text-xs text-red-500 flex items-center gap-1">
+                              <FaExclamationCircle size={10} />
+                              <span>Invalid format. Use 07XX, 01XX, 254XXX, or +254XXX</span>
+                            </p>
+                          )}
+                          {mpesaPhone && isValidPhone(mpesaPhone) && (
+                            <p className="mt-2 text-[10px] sm:text-xs text-green-600 flex items-center gap-1">
+                              <FaCheckCircle size={10} />
+                              <span>Valid number</span>
+                            </p>
+                          )}
+                          
                           <p className="mt-2 text-[10px] sm:text-xs text-gray-500 flex items-center gap-1">
                             <FaLock size={10} />
                             <span className="hidden sm:inline">You'll receive an STK push on your phone</span>
@@ -590,9 +640,9 @@ const PaymentPage = () => {
                 {selectedMethod === "mpesa" && (
                   <button
                     onClick={handleMpesaPayment}
-                    disabled={processing || paymentStatus === "success" || !mpesaPhone}
+                    disabled={processing || paymentStatus === "success" || !isValidPhone(mpesaPhone)}
                     className={`w-full mt-2 sm:mt-4 py-3 sm:py-4 rounded-xl font-bold text-white shadow-lg transition-all duration-200 flex items-center justify-center gap-2 ${
-                      processing || paymentStatus === "success"
+                      processing || paymentStatus === "success" || !isValidPhone(mpesaPhone)
                         ? "bg-gray-400 cursor-not-allowed shadow-none"
                         : "bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 hover:shadow-xl active:scale-[0.98]"
                     }`}
@@ -762,9 +812,9 @@ const PaymentPage = () => {
           {selectedMethod === "mpesa" && (
             <button
               onClick={handleMpesaPayment}
-              disabled={processing || paymentStatus === "success" || !mpesaPhone}
+              disabled={processing || paymentStatus === "success" || !isValidPhone(mpesaPhone)}
               className={`px-6 py-3 rounded-xl font-bold text-white shadow-lg transition-all ${
-                processing || paymentStatus === "success" || !mpesaPhone
+                processing || paymentStatus === "success" || !isValidPhone(mpesaPhone)
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-gradient-to-r from-green-600 to-green-500 active:scale-95"
               }`}

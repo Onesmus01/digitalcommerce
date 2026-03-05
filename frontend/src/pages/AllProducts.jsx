@@ -436,7 +436,7 @@ const AllProducts = () => {
           </motion.div>
         )}
       </div>
-    </div>
+    </div> 
   );
 };
 

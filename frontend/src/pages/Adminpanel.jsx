@@ -14,22 +14,22 @@ import {
   FaChevronRight,
   FaSignOutAlt,
   FaCog,
-  FaPlus,
-  FaDownload,
   FaSearch,
 } from "react-icons/fa";
 import { Context } from "@/context/ProductContext.jsx";
 import { io } from "socket.io-client";
 import { motion, AnimatePresence } from "framer-motion";
 import toast, { Toaster } from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
 
 const socketUrl = import.meta.env.VITE_SOCKET_URL || "http://localhost:8080";
 
 export default function AdminPanel() {
   const location = useLocation();
-  const { backendUrl, user, setUserDetails } = useContext(Context);
+  const { backendUrl, setUserDetails } = useContext(Context);
 
   const socketRef = useRef(null);
+  const reconnectAttempts = useRef(0);
 
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -40,6 +40,22 @@ export default function AdminPanel() {
   const [onlineAdmins, setOnlineAdmins] = useState(0);
   const [hoveredItem, setHoveredItem] = useState(null);
   const [selectedTimeRange, setSelectedTimeRange] = useState("7d");
+  const [socketStatus, setSocketStatus] = useState("disconnected");
+
+  const user = useSelector((state) => state?.user?.user); // single user state
+  const dispatch = useDispatch();
+
+
+  /* ================= DEBUG USER ================= */
+  useEffect(() => {
+    console.log("👤 USER DEBUG:", {
+      userExists: !!user,
+      userId: user?._id,
+      userRole: user?.role,
+      userName: user?.name,
+      isAdmin: user?.role?.toLowerCase() === "admin"
+    });
+  }, [user]);
 
   /* ================= FETCH AUTH USER ================= */
   const fetchUser = useCallback(async () => {
@@ -47,11 +63,12 @@ export default function AdminPanel() {
 
     try {
       const res = await fetch(`${backendUrl}/user/user-details`, {
+        method: "GET",
         credentials: "include",
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
-      setUserDetails(data.user);
+      dispatch(setUserDetails(data.data));
     } catch (err) {
       console.error("Auth fetch failed:", err.message);
       window.location.href = "/login";
@@ -59,6 +76,7 @@ export default function AdminPanel() {
       setLoading(false);
     }
   }, [backendUrl, user, setUserDetails]);
+  console.log("fetchUser function recreated", { user, backendUrl });
 
   /* ================= FETCH NOTIFICATIONS ================= */
   const fetchNotifications = useCallback(async () => {
@@ -80,61 +98,180 @@ export default function AdminPanel() {
     fetchUser();
   }, [fetchUser]);
 
-  /* ================= SOCKET SETUP ================= */
+  /* ================= SOCKET SETUP - BULLETPROOF ================= */
   useEffect(() => {
-    if (!user || socketRef.current) return;
+    // Wait for user to load and be admin
+    if (!user) {
+      console.log("⏳ Waiting for user...");
+      return;
+    }
 
+    if (!user.role || user.role.toLowerCase() !== "admin") {
+      console.log("🚫 User is not admin, skipping socket");
+      return;
+    }
+
+    if (socketRef.current) {
+      console.log("⚠️ Socket already exists");
+      return;
+    }
+
+    console.log("🔌 Initializing socket for admin:", user.name);
     fetchNotifications();
 
     const socket = io(socketUrl, {
-      transports: ["websocket"],
+      transports: ["websocket", "polling"], // Try websocket first, fallback to polling
       withCredentials: true,
-      reconnectionAttempts: 5,
-      timeout: 10000,
+      reconnection: true,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      timeout: 20000,
+      autoConnect: true,
     });
 
     socketRef.current = socket;
+    setSocketStatus("connecting");
 
-    socket.on("connect", () => console.log("Socket connected:", socket.id));
+    // Connection opened
+    socket.on("connect", () => {
+      console.log("✅ SOCKET CONNECTED:", socket.id);
+      console.log("🔌 Transport:", socket.io.engine?.transport?.name);
+      setSocketStatus("connected");
+      reconnectAttempts.current = 0;
+      
+      // Force refresh admin count on reconnect
+      socket.emit("ping-admins");
+    });
 
+    // Connection error
+    socket.on("connect_error", (err) => {
+      console.error("❌ SOCKET CONNECTION ERROR:", err.message);
+      setSocketStatus("error");
+      
+      // Try polling if websocket fails
+      if (socket.io.opts.transports[0] === "websocket") {
+        console.log("🔄 Falling back to polling...");
+        socket.io.opts.transports = ["polling", "websocket"];
+      }
+    });
+
+    // Disconnected
+    socket.on("disconnect", (reason) => {
+      console.log("🔴 SOCKET DISCONNECTED:", reason);
+      setSocketStatus("disconnected");
+    });
+
+    // Reconnecting
+    socket.on("reconnecting", (attempt) => {
+      reconnectAttempts.current = attempt;
+      console.log(`🔄 RECONNECTING... Attempt ${attempt}`);
+      setSocketStatus("reconnecting");
+    });
+
+    // Reconnected
+    socket.on("reconnect", (attempt) => {
+      console.log(`✅ SOCKET RECONNECTED after ${attempt} attempts`);
+      setSocketStatus("connected");
+    });
+
+    // Reconnect failed
+    socket.on("reconnect_failed", () => {
+      console.error("❌ RECONNECT FAILED");
+      setSocketStatus("failed");
+    });
+
+    // Admin room events
+    socket.on("admins-online", (count) => {
+      console.log("👥 ADMINS ONLINE UPDATE:", count);
+      setOnlineAdmins(count);
+    });
+
+    // New order event - THE MAIN ONE
     socket.on("new-order", (order) => {
-      // Add to notification list
-      setNotifications((prev) => [{ ...order, isRead: false }, ...prev]);
-      setUnreadCount((prev) => prev + 1);
+      console.log("🎉🎉🎉 RECEIVED NEW ORDER EVENT:", order);
+      
+      setNotifications((prev) => {
+        const newNotifs = [{ ...order, isRead: false }, ...prev];
+        console.log("📋 Updated notifications:", newNotifs.length);
+        return newNotifs;
+      });
+      
+      setUnreadCount((prev) => {
+        const newCount = prev + 1;
+        console.log("🔔 New unread count:", newCount);
+        return newCount;
+      });
+      
       setShake(true);
       setTimeout(() => setShake(false), 600);
       
       // Play sound
-      new Audio("/notification.mp3").play().catch(() => {});
+      try {
+        const audio = new Audio("/notification.mp3");
+        audio.volume = 0.5;
+        audio.play().catch((e) => console.log("🔇 Audio play failed:", e.message));
+      } catch (e) {
+        console.log("🔇 Audio error:", e);
+      }
       
-      // SHOW TOAST NOTIFICATION - This is the key addition!
+      // SHOW TOAST
       toast.success(
         <div className="flex flex-col gap-1">
-          <span className="font-bold">🛒 New Order Received!</span>
-          <span className="text-sm">{order.customer} ordered {order.product}</span>
-          <span className="text-xs text-slate-500">KES {order.amount?.toLocaleString() || '0'}</span>
+          <span className="font-bold text-base">🛒 New Order!</span>
+          <span className="text-sm font-medium">{order.customer}</span>
+          <span className="text-xs text-slate-600">Ordered: {order.product}</span>
+          <span className="text-xs font-bold text-green-600">KES {order.amount?.toLocaleString() || '0'}</span>
         </div>,
         {
-          duration: 6000,
+          duration: 8000,
           position: 'top-right',
           icon: '🎉',
           style: {
-            borderRadius: '12px',
+            borderRadius: '16px',
             background: '#fff',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+            border: '2px solid #10b981',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.15)',
+            padding: '16px',
+            minWidth: '300px',
           },
         }
       );
     });
 
-    socket.on("admins-online", (count) => setOnlineAdmins(count));
-    socket.on("connect_error", (err) => console.error("Socket error:", err.message));
-    socket.on("unauthorized", () => (window.location.href = "/login"));
+    // Other events
+    socket.on("order-cancelled", (data) => {
+      console.log("⚠️ Order cancelled:", data);
+      toast.error(`Order cancelled by ${data.customer}`);
+    });
 
+    socket.on("order-status-updated", (data) => {
+      console.log("📝 Order status updated:", data);
+    });
+
+    // Error handling
+    socket.on("error", (err) => {
+      console.error("⚠️ Socket error event:", err);
+    });
+
+    socket.on("unauthorized", () => {
+      console.error("🚫 Socket unauthorized - redirecting to login");
+      window.location.href = "/login";
+    });
+
+    // Debug: Ping response
+    socket.on("pong", (data) => {
+      console.log("🏓 Pong received:", data);
+    });
+
+    // Cleanup
     return () => {
-      socket.disconnect();
-      socketRef.current = null;
+      console.log("🧹 Cleaning up socket...");
+      if (socketRef.current) {
+        socketRef.current.removeAllListeners();
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
     };
   }, [user, fetchNotifications]);
 
@@ -180,7 +317,6 @@ export default function AdminPanel() {
     }
   };
 
-  // Get page title based on current route
   const getPageTitle = () => {
     const path = location.pathname;
     if (path === "/admin-panel") return "Dashboard Overview";
@@ -208,11 +344,11 @@ export default function AdminPanel() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 text-slate-800">
-      {/* TOASTER FOR NOTIFICATIONS */}
+      {/* TOASTER */}
       <Toaster 
         position="top-right"
         toastOptions={{
-          duration: 5000,
+          duration: 6000,
           style: {
             borderRadius: '12px',
             padding: '16px',
@@ -222,17 +358,25 @@ export default function AdminPanel() {
         }}
       />
 
-      {/* SIDEBAR - Fixed Position */}
+      {/* DEBUG PANEL - Remove in production */}
+      <div className="fixed bottom-4 right-4 z-50 bg-slate-900 text-white p-3 rounded-lg text-xs shadow-lg opacity-80 hover:opacity-100 transition-opacity">
+        <div>Socket: {socketStatus}</div>
+        <div>Admins Online: {onlineAdmins}</div>
+        <div>Notifications: {notifications.length}</div>
+        <div>Unread: {unreadCount}</div>
+        <div>User Role: {user?.role || 'none'}</div>
+      </div>
+
+      {/* SIDEBAR */}
       <motion.aside
         initial={false}
         animate={{ width: sidebarOpen ? 280 : 80 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="fixed left-0 top-0 h-screen z-50 bg-white/80 backdrop-blur-xl border-r border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] flex flex-col overflow-hidden"
+        className="fixed left-0 top-0 h-screen z-40 bg-white/80 backdrop-blur-xl border-r border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] flex flex-col overflow-hidden"
       >
-        {/* Glass overlay effect */}
         <div className="absolute inset-0 bg-gradient-to-b from-indigo-50/30 via-transparent to-purple-50/20 pointer-events-none" />
         
-        {/* LOGO SECTION */}
+        {/* LOGO */}
         <div className="relative z-10 flex items-center justify-center py-6 border-b border-slate-100/80 shrink-0">
           <motion.div
             initial={false}
@@ -267,7 +411,7 @@ export default function AdminPanel() {
           </motion.div>
         </div>
 
-        {/* USER INFO CARD */}
+        {/* USER INFO */}
         <div className="relative z-10 px-4 py-4 shrink-0">
           <motion.div
             initial={false}
@@ -312,7 +456,7 @@ export default function AdminPanel() {
           </motion.div>
         </div>
 
-        {/* NAVIGATION - Scrollable */}
+        {/* NAVIGATION */}
         <nav className="relative z-10 flex-1 px-3 py-2 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent min-h-0">
           <div className="mb-4">
             <AnimatePresence>
@@ -359,7 +503,6 @@ export default function AdminPanel() {
                       : "text-slate-500 hover:text-slate-700"
                   }`}
                 >
-                  {/* Active indicator */}
                   {active && (
                     <motion.div
                       layoutId="activeIndicator"
@@ -368,7 +511,6 @@ export default function AdminPanel() {
                     />
                   )}
                   
-                  {/* Icon container */}
                   <motion.div
                     animate={{
                       scale: isHovered ? 1.1 : 1,
@@ -393,7 +535,6 @@ export default function AdminPanel() {
                     )}
                   </motion.div>
                   
-                  {/* Label */}
                   <AnimatePresence>
                     {sidebarOpen && (
                       <motion.span
@@ -410,7 +551,6 @@ export default function AdminPanel() {
                     )}
                   </AnimatePresence>
                   
-                  {/* Active dot for collapsed state */}
                   {!sidebarOpen && active && (
                     <motion.div
                       initial={{ scale: 0 }}
@@ -424,7 +564,7 @@ export default function AdminPanel() {
           })}
         </nav>
 
-        {/* BOTTOM ACTIONS - Fixed at bottom */}
+        {/* BOTTOM ACTIONS */}
         <div className="relative z-10 p-3 border-t border-slate-100/80 space-y-1 shrink-0 bg-white/80 backdrop-blur-xl">
           <motion.button
             whileHover={{ scale: 1.02 }}
@@ -489,16 +629,16 @@ export default function AdminPanel() {
         </div>
       </motion.aside>
 
-      {/* MAIN CONTENT - Offset by sidebar width */}
+      {/* MAIN CONTENT */}
       <div 
         className="flex flex-col min-h-screen transition-all duration-300"
         style={{ marginLeft: sidebarOpen ? 280 : 80 }}
       >
-        {/* HEADER - Fixed Sticky Header Matching Dashboard Style */}
+        {/* HEADER */}
         <motion.header
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-white/50 shadow-[0_4px_20px_rgba(0,0,0,0.04)] px-6 py-4"
+          className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-white/50 shadow-[0_4px_20px_rgba(0,0,0,0.04)] px-6 py-4"
         >
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
@@ -513,7 +653,6 @@ export default function AdminPanel() {
             </div>
 
             <div className="flex items-center gap-3">
-              {/* Time Range Selector - Only show on Dashboard */}
               {location.pathname === "/admin-panel" && (
                 <div className="flex items-center bg-white rounded-xl shadow-sm border border-slate-200 p-1">
                   {["24h", "7d", "30d", "90d"].map((range) => (
@@ -532,7 +671,6 @@ export default function AdminPanel() {
                 </div>
               )}
 
-              {/* Search */}
               <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-slate-100/80 rounded-full">
                 <FaSearch className="text-slate-400 text-sm" />
                 <input 
@@ -627,7 +765,7 @@ export default function AdminPanel() {
                 </AnimatePresence>
               </div>
 
-              {/* Profile Quick Access */}
+              {/* Profile */}
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -641,7 +779,7 @@ export default function AdminPanel() {
           </div>
         </motion.header>
 
-        {/* PAGE CONTENT - Scrollable */}
+        {/* PAGE CONTENT */}
         <main className="flex-1 p-6 overflow-y-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
