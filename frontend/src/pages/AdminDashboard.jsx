@@ -151,7 +151,7 @@ const StatusBadge = ({ status }) => {
 const ProgressBar = ({ progressData, loading, error }) => {
   if (loading) {
     return (
-      <div className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6 flex items-center justify-center h-40">
+      <div className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6 flex items-center justify-center h-full min-h-[180px]">
         <FaSpinner className="animate-spin text-indigo-500 text-2xl" />
       </div>
     );
@@ -159,7 +159,7 @@ const ProgressBar = ({ progressData, loading, error }) => {
 
   if (error) {
     return (
-      <div className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6 flex items-center gap-3 text-rose-500">
+      <div className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6 flex items-center gap-3 text-rose-500 h-full min-h-[180px]">
         <FaExclamationTriangle />
         <span>Failed to load progress data</span>
       </div>
@@ -173,7 +173,7 @@ const ProgressBar = ({ progressData, loading, error }) => {
   const percent = Math.min(100, Math.round((current / goal) * 100));
   
   return (
-    <div className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6">
+    <div className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-6 h-full min-h-[180px] flex flex-col justify-center">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="font-semibold text-slate-800">{label}</h3>
@@ -210,7 +210,7 @@ const AIPredictionCard = ({ predictionData, loading, error, stats }) => {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.4 }}
-        className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-6 text-white relative overflow-hidden flex items-center justify-center h-40"
+        className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-6 text-white relative overflow-hidden flex items-center justify-center h-full min-h-[180px]"
       >
         <FaSpinner className="animate-spin text-white text-2xl" />
       </motion.div>
@@ -223,7 +223,7 @@ const AIPredictionCard = ({ predictionData, loading, error, stats }) => {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.4 }}
-        className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-6 text-white relative overflow-hidden"
+        className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-6 text-white relative overflow-hidden h-full min-h-[180px] flex flex-col justify-center"
       >
         <div className="flex items-center gap-2 mb-2">
           <FaBrain className="text-lg" />
@@ -244,7 +244,7 @@ const AIPredictionCard = ({ predictionData, loading, error, stats }) => {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.4 }}
-      className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-6 text-white relative overflow-hidden"
+      className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-6 text-white relative overflow-hidden h-full min-h-[180px] flex flex-col justify-center"
     >
       <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
       <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
@@ -333,60 +333,58 @@ export default function AdminDashboard() {
   // ===================== API Fetch Functions =====================
 
   // Fetch Progress Data for ProgressBar
-const fetchProgress = async () => {
-  try {
-    setProgressLoading(true);
-    setProgressError(null);
-
-    const res = await fetch(`${backendUrl}/sales-progress/sales-progress`, {
-      method: "GET",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-    });
-
-    if (!res.ok) throw new Error("Failed to fetch progress");
-
-    const data = await res.json();
-
-    // Extract revenue progress from backend response
-    const revenueProgress = data.progress?.revenue || {};
-
-    const current = revenueProgress.current || 0;
-    const goal = revenueProgress.goal || 60000;
-
-    setProgressData({
-      current,
-      goal,
-      label: revenueProgress.label || "Monthly Sales Goal",
-      percent: Math.min(100, ((current / goal) * 100).toFixed(0)),
-      period: "monthly",
-    });
-
-  } catch (error) {
-    console.error("Progress fetch error:", error);
-    setProgressError(error.message);
-
-    // Fallback to stats-based calculation
-    const fallbackCurrent = stats?.revenue || 0;
-    const fallbackGoal = 60000;
-
-    setProgressData({
-      current: fallbackCurrent,
-      goal: fallbackGoal,
-      label: "Monthly Sales Goal",
-      percent: Math.min(100, ((fallbackCurrent / fallbackGoal) * 100).toFixed(0)),
-      period: "monthly",
-    });
-
-  } finally {
-    setProgressLoading(false);
-  }
-};
-console.log('Progress Data:', progressData);
-  // Fetch AI Prediction Data
-const fetchAIPrediction = async () => {
+  const fetchProgress = async () => {
     try {
-      setPredictionLoading(true);
+      setProgressError(null);
+
+      const res = await fetch(`${backendUrl}/sales-progress/sales-progress`, {
+        method: "GET",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch progress");
+
+      const data = await res.json();
+
+      // Extract revenue progress from backend response
+      const revenueProgress = data.progress?.revenue || {};
+
+      const current = revenueProgress.current || 0;
+      const goal = revenueProgress.goal || 60000;
+
+      setProgressData({
+        current,
+        goal,
+        label: revenueProgress.label || "Monthly Sales Goal",
+        percent: Math.min(100, ((current / goal) * 100).toFixed(0)),
+        period: "monthly",
+      });
+
+    } catch (error) {
+      console.error("Progress fetch error:", error);
+      setProgressError(error.message);
+
+      // Fallback to stats-based calculation
+      const fallbackCurrent = stats?.revenue || 0;
+      const fallbackGoal = 60000;
+
+      setProgressData({
+        current: fallbackCurrent,
+        goal: fallbackGoal,
+        label: "Monthly Sales Goal",
+        percent: Math.min(100, ((fallbackCurrent / fallbackGoal) * 100).toFixed(0)),
+        period: "monthly",
+      });
+
+    } finally {
+      setProgressLoading(false);
+    }
+  };
+
+  // Fetch AI Prediction Data
+  const fetchAIPrediction = async () => {
+    try {
       setPredictionError(null);
       
       const res = await fetch(`${backendUrl}/sales-progress/ai-prediction`, {
@@ -426,10 +424,10 @@ const fetchAIPrediction = async () => {
     } finally {
       setPredictionLoading(false);
     }
-};
+  };
 
   // Helper to format prediction data from various API structures
- const formatPredictionData = (data) => {
+  const formatPredictionData = (data) => {
     const pred = data.prediction || data.data || data;
     return {
       predictedRevenue: pred.predictedRevenue || pred.nextMonthRevenue || pred.value || 0,
@@ -582,7 +580,7 @@ const fetchAIPrediction = async () => {
       fetchProgress();
       fetchAIPrediction();
     }
-  }, []);
+  }, [stats.revenue]);
 
   // Refresh data periodically
   useEffect(() => {
@@ -786,15 +784,6 @@ const fetchAIPrediction = async () => {
         className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-white/50 shadow-[0_4px_20px_rgba(0,0,0,0.04)] px-6 py-4"
       >
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-              Dashboard Overview
-            </h1>
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-              Live
-            </div>
-          </div>
 
           <div className="flex items-center gap-3">
             {/* Time Range Selector */}
@@ -887,8 +876,8 @@ const fetchAIPrediction = async () => {
           />
         </div>
 
-        {/* PROGRESS BAR & AI PREDICTION - CONNECTED TO APIs */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {/* PROGRESS BAR & AI PREDICTION - EQUAL HEIGHT CARDS */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 items-stretch">
           <div className="lg:col-span-2">
             <ProgressBar 
               progressData={progressData} 
@@ -897,12 +886,14 @@ const fetchAIPrediction = async () => {
             />
           </div>
           
-          <AIPredictionCard 
-            predictionData={predictionData}
-            loading={predictionLoading}
-            error={predictionError}
-            stats={stats}
-          />
+          <div className="lg:col-span-1">
+            <AIPredictionCard 
+              predictionData={predictionData}
+              loading={predictionLoading}
+              error={predictionError}
+              stats={stats}
+            />
+          </div>
         </div>
 
         {/* MAIN CHARTS SECTION */}
