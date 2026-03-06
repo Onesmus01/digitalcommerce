@@ -26,6 +26,7 @@ import ThankYouPage from "@/pages/ThankyouPage.jsx";
 import MyOrdersPage from "@/pages/MyOrdersPage.jsx";
 import NewArrivalsPage from "@/pages/NewArrivalPage.jsx";
 import HotDealsPage from "@/pages/HotDealsPage.jsx";
+import ProductsPage from "@/pages/ProductsPage.jsx";
 
 // Admin pages
 import AdminPanel from "@/pages/Adminpanel.jsx";
@@ -164,6 +165,7 @@ const App = () => {
             <Route path="/search" element={<SearchProduct />} />
             <Route path="/new-arrivals" element={<NewArrivalsPage />} />
             <Route path="/hot-deals" element={<HotDealsPage/>} />
+            <Route path="/all-products" element={<ProductsPage />} />
 
             {/* ---------------- Protected User Routes ---------------- */}
             <Route
