@@ -464,7 +464,7 @@ const Header = () => {
             <nav className="flex items-center gap-1 py-2">
               <NavLink to="/" icon={Home} label="Home" />
               <NavLink to="/all-products" icon={Box} label="Products" />
-              <NavLink to="/deals" icon={Zap} label="Deals" badge="HOT" />
+              <NavLink to="/hot-deals" icon={Zap} label="Deals" badge="HOT" />
               <NavLink to="/new-arrivals" icon={TrendingUp} label="New Arrivals" />
               <NavLink to="/categories" icon={Tag} label="Categories" />
               {user?._id && <NavLink to="/my-orders" icon={CreditCard} label="My Orders" />}
@@ -527,7 +527,7 @@ const Header = () => {
               <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100%-200px)]">
                 <MobileNavLink to="/" icon={Home} label="Home" onClick={() => setIsMobileMenuOpen(false)} />
                 <MobileNavLink to="/all-products" icon={Box} label="Products" onClick={() => setIsMobileMenuOpen(false)} />
-                <MobileNavLink to="/deals" icon={Zap} label="Hot Deals" badge="NEW" onClick={() => setIsMobileMenuOpen(false)} />
+                <MobileNavLink to="/hot-deals" icon={Zap} label="Hot Deals" badge="NEW" onClick={() => setIsMobileMenuOpen(false)} />
                 <MobileNavLink to="/new-arrivals" icon={TrendingUp} label="New Arrivals" onClick={() => setIsMobileMenuOpen(false)} />
                 {user?._id && (
                   <>

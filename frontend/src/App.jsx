@@ -24,6 +24,8 @@ import CheckoutPage from "@/pages/CheckoutPage.jsx";
 import Payment from "@/pages/Payment.jsx";
 import ThankYouPage from "@/pages/ThankyouPage.jsx";
 import MyOrdersPage from "@/pages/MyOrdersPage.jsx";
+import NewArrivalsPage from "@/pages/NewArrivalPage.jsx";
+import HotDealsPage from "@/pages/HotDealsPage.jsx";
 
 // Admin pages
 import AdminPanel from "@/pages/Adminpanel.jsx";
@@ -160,6 +162,8 @@ const App = () => {
             <Route path="/product/:id" element={<ProductDetails />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/search" element={<SearchProduct />} />
+            <Route path="/new-arrivals" element={<NewArrivalsPage />} />
+            <Route path="/hot-deals" element={<HotDealsPage/>} />
 
             {/* ---------------- Protected User Routes ---------------- */}
             <Route

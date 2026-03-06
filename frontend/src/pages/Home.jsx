@@ -7,6 +7,8 @@ import VerticalCardProduct from '@/components/VerticalCardProduct.jsx'
 import ConveyorBelt from '@/components/ConveyorBelt.jsx'
 import MultiCategoryConveyor from '@/components/MultiCategoryConveyor.jsx'
 import VerticalProductStyle from '@/components/VerticalProductStyle.jsx'
+import NewArrivals from "@/components/NewArrivals";
+
 
 const categories = ["televisions", "refrigerators", "watches"];
 
@@ -21,6 +23,7 @@ const Home = () => {
               <MultiCategoryConveyor categories={categories} />
 
       <HorizontalCardProduct category={"airpodes"} heading={"Top's Airpodes"}  />
+    <NewArrivals category={"televisions"} heading={"New Arrivals "} />
       
       <HorizontalCardProduct category={"watches"} heading={"Popular Watches"} />
       <VerticalCardProduct category={"mobiles"} heading={"Mobiles"} />
