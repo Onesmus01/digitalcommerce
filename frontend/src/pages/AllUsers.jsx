@@ -299,7 +299,7 @@ const AllUsers = () => {
 
   // Stats
   const totalUsers = allUsers?.length || 0;
-  const adminCount = allUsers?.filter(u => u?.role === 'Admin').length || 0;
+  const adminCount = allUsers?.filter(u => u?.role === 'ADMIN').length || 0;
   const newThisMonth = allUsers?.filter(u => {
     const created = new Date(u?.createdAt);
     const now = new Date();
@@ -312,7 +312,7 @@ const AllUsers = () => {
       _id: userData._id,
       name: userData.name || "",
       email: userData.email || "",
-      role: userData.role || "Customer",
+      role: userData.role || "GENERAL",
     });
   };
 
@@ -395,9 +395,9 @@ const AllUsers = () => {
                   className="w-full pl-12 pr-10 py-3 bg-slate-50 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none appearance-none cursor-pointer"
                 >
                   <option value="all">All Roles</option>
-                  <option value="Admin">Admin</option>
+                  <option value="ADMIN">Admin</option>
                   <option value="Vendor">Vendor</option>
-                  <option value="Customer">Customer</option>
+                  <option value="GENERAL">Customer</option>
                 </select>
               </div>
             </div>

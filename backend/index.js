@@ -15,6 +15,7 @@ import orderRouter from "./routes/orderRoutes.js";
 import personalDetailsRouter from "./routes/personalDetailsRoutes.js";
 import paymentRouter from "./routes/paymentRoute.js";
 import salesProgressRoute from "./routes/salesProgressRoute.js";
+import wishlistRouter from "./routes/wishlistRoutes.js";
 
 dotenv.config();
 // ---------------- DATABASE ----------------
@@ -45,6 +46,7 @@ app.use("/api/order", orderRouter);
 app.use("/api/personal-details", personalDetailsRouter);
 app.use("/api/payment", paymentRouter);
 app.use("/api/sales-progress", salesProgressRoute);
+app.use("/api/wishlist",wishlistRouter);
 // ---------------- SOCKET.IO ----------------
 const io = initSocket(server, allowedOrigins);
 

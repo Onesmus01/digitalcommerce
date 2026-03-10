@@ -1,7 +1,7 @@
- "use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast, Toaster } from "react-hot-toast";
 import { setUserDetails } from "../store/userSlice.js";
@@ -27,6 +27,7 @@ import MyOrdersPage from "@/pages/MyOrdersPage.jsx";
 import NewArrivalsPage from "@/pages/NewArrivalPage.jsx";
 import HotDealsPage from "@/pages/HotDealsPage.jsx";
 import ProductsPage from "@/pages/ProductsPage.jsx";
+import WishlistPage from "@/pages/WishlistPage.jsx";
 
 // Admin pages
 import AdminPanel from "@/pages/Adminpanel.jsx";
@@ -51,8 +52,14 @@ const PrivateAdminRoute = ({ user, children }) => {
 
 // ------------------- App Component -------------------
 const App = () => {
-  const user = useSelector((state) => state?.user?.user); // single user state
+  const user = useSelector((state) => state?.user?.user);
   const dispatch = useDispatch();
+
+  const location = useLocation();
+
+  // ✅ Hide header/footer on admin pages
+  const hideHeaderAndFooter =
+    location.pathname.startsWith("/admin") || location.pathname === "/admin-panel";
 
   const [cartProductCount, setCartProductCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -108,7 +115,7 @@ const App = () => {
 
   // ---------------- SOCKET.IO CONNECTION ----------------
   useEffect(() => {
-    if (!user?._id) return; // wait until user is loaded
+    if (!user?._id) return;
 
     const socketClient = io(backendUrl, { withCredentials: true });
     setSocket(socketClient);
@@ -142,12 +149,12 @@ const App = () => {
         cartProductCount,
         setCartProductCount,
         fetchCountCart,
-        socket, // optional: pass socket to children if needed
+        socket,
       }}
     >
       <div className="flex flex-col min-h-screen">
         <Toaster position="top-center" />
-        <Header />
+        {!hideHeaderAndFooter && <Header />}
 
         <main className="flex-1 pt-[16px]">
           <Routes>
@@ -164,8 +171,9 @@ const App = () => {
             <Route path="/cart" element={<Cart />} />
             <Route path="/search" element={<SearchProduct />} />
             <Route path="/new-arrivals" element={<NewArrivalsPage />} />
-            <Route path="/hot-deals" element={<HotDealsPage/>} />
+            <Route path="/hot-deals" element={<HotDealsPage />} />
             <Route path="/all-products" element={<ProductsPage />} />
+            <Route path="/wishlist" element={<WishlistPage />} />
 
             {/* ---------------- Protected User Routes ---------------- */}
             <Route
@@ -230,7 +238,7 @@ const App = () => {
           </Routes>
         </main>
 
-        <Footer />
+        {!hideHeaderAndFooter && <Footer />}
 
         {/* Optional: show online admins badge for admin users */}
         {user?.role === "ADMIN" && (

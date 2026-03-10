@@ -37,6 +37,10 @@ const SkeletonCard = () => (
 const ProductCard = ({ product, index, onAddToCart }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
+
+  const { AddWishlist } = useContext(Context);
+
   
   const discount = Math.round(((product?.price - product?.selling) / product?.price) * 100);
   
@@ -50,6 +54,25 @@ const ProductCard = ({ product, index, onAddToCart }) => {
     { primary: 'from-amber-400 to-orange-500', accent: 'amber', bg: 'bg-amber-50' },
   ];
   const color = colors[index % colors.length];
+  
+  const handleWishlistClick = async (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    if (isAddingToWishlist) return;
+    
+    setIsAddingToWishlist(true);
+    
+    try {
+      // Call the AddWishlist function from context with the product ID
+      await AddWishlist(product?._id);
+      setIsLiked(!isLiked);
+    } catch (error) {
+      console.error('Failed to add to wishlist:', error);
+    } finally {
+      setIsAddingToWishlist(false);
+    }
+  };
   
   return (
     <motion.div
@@ -118,25 +141,32 @@ const ProductCard = ({ product, index, onAddToCart }) => {
             </motion.span>
           </div>
 
-          {/* Animated Wishlist */}
+          {/* Animated Wishlist Button with Context API */}
           <motion.button
             whileHover={{ scale: 1.2, rotate: 15 }}
             whileTap={{ scale: 0.8 }}
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsLiked(!isLiked);
-            }}
+            onClick={handleWishlistClick}
+            disabled={isAddingToWishlist}
             className={`absolute top-3 right-3 p-2.5 rounded-full shadow-lg transition-all z-20 ${
               isLiked 
                 ? 'bg-gradient-to-r from-rose-500 to-pink-600 text-white' 
                 : 'bg-white text-slate-400 hover:text-rose-500'
-            }`}
+            } ${isAddingToWishlist ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
             <motion.div
-              animate={isLiked ? { scale: [1, 1.5, 1] } : {}}
+              animate={isLiked ? { scale: [1, 1.5, 1] } : { scale: 1 }}
               transition={{ duration: 0.3 }}
             >
-              <FaHeart size={14} />
+              {isAddingToWishlist ? (
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                >
+                  <FaHeart size={14} className="opacity-50" />
+                </motion.div>
+              ) : (
+                <FaHeart size={14} />
+              )}
             </motion.div>
           </motion.button>
 
