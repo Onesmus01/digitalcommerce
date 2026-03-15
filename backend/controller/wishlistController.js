@@ -155,3 +155,53 @@ export const clearWishlist = async (req, res) => {
   }
 
 };
+
+export const getMostWishlistedProducts = async (req, res) => {
+
+  try {
+
+    const products = await Wishlist.aggregate([
+
+      {
+        $group: {
+          _id: "$productId",
+          wishlistCount: { $sum: 1 }
+        }
+      },
+
+      {
+        $sort: { wishlistCount: -1 }
+      },
+
+      {
+        $limit: 10
+      },
+
+      {
+        $lookup: {
+          from: "products",
+          localField: "_id",
+          foreignField: "_id",
+          as: "product"
+        }
+      },
+
+      {
+        $unwind: "$product"
+      }
+
+    ]);
+
+    res.json({
+      success: true,
+      data: products
+    });
+
+  } catch (error) {
+
+    console.log(error);
+    res.status(500).json({ success: false, message: error.message });
+
+  }
+
+};

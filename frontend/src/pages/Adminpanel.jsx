@@ -16,6 +16,7 @@ import {
   FaCog,
   FaSearch,
 } from "react-icons/fa";
+import { FiTrendingUp } from "react-icons/fi";
 import { Context } from "@/context/ProductContext.jsx";
 import { io } from "socket.io-client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -301,6 +302,7 @@ export default function AdminPanel() {
     { icon: FaBox, label: "Products", to: "/admin-panel/all-products" },
     { icon: FaShoppingCart, label: "Orders", to: "/admin-panel/orders" },
     { icon: FaDollarSign, label: "Revenue", to: "/admin-panel/revenue" },
+    { icon: FiTrendingUp, label: "Trending", to: "/admin-panel/trending-products" },
     { icon: FaFileAlt, label: "Reports", to: "/admin-panel/reports" },
   ];
 
@@ -324,6 +326,7 @@ export default function AdminPanel() {
     if (path.includes("products")) return "Products Management";
     if (path.includes("orders")) return "Orders Management";
     if (path.includes("revenue")) return "Revenue Analytics";
+    if (path.includes("trending")) return "Trending Products";
     if (path.includes("reports")) return "Reports & Insights";
     return "Dashboard";
   };

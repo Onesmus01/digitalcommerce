@@ -25,7 +25,11 @@ import {
   ArrowRight,
   Tag,
   Star,
-  Flame
+  Flame,
+  Package,
+  Truck,
+  CheckCircle,
+  Check
 } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -33,10 +37,332 @@ import { toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { setUserDetails } from "../../store/userSlice.js";
 import Context from "@/context/index.js";
+import { io } from "socket.io-client";
+import { formatDistanceToNow } from "date-fns";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
-// ===================== Animated Cart Badge =====================
+// ===================== NEW: Sound Effect =====================
+const playNotificationSound = (type) => {
+  const sounds = {
+    new_product: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3',
+    order_update: 'https://assets.mixkit.co/active_storage/sfx/2868/2868-preview.mp3',
+    default: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'
+  };
+  
+  const audio = new Audio(sounds[type] || sounds.default);
+  audio.volume = 0.4;
+  audio.play().catch(err => console.log('Audio play failed:', err));
+};
+
+// ===================== NEW: Notification Toast =====================
+const NotificationToast = ({ t, title, message, type, data }) => {
+  const icons = {
+    new_product: <Sparkles className="w-5 h-5 text-violet-500" />,
+    order_update: <Package className="w-5 h-5 text-amber-500" />,
+    shipped: <Truck className="w-5 h-5 text-blue-500" />,
+    delivered: <CheckCircle className="w-5 h-5 text-emerald-500" />,
+    processing: <Package className="w-5 h-5 text-amber-500" />,
+    default: <Bell className="w-5 h-5 text-slate-500" />
+  };
+
+  const gradients = {
+    new_product: 'from-violet-500/20 to-pink-500/20 border-violet-200',
+    order_update: 'from-blue-500/20 to-cyan-500/20 border-blue-200',
+    delivered: 'from-emerald-500/20 to-teal-500/20 border-emerald-200',
+    shipped: 'from-blue-500/20 to-indigo-500/20 border-blue-200',
+    processing: 'from-amber-500/20 to-orange-500/20 border-amber-200',
+    default: 'from-slate-500/20 to-gray-500/20 border-slate-200'
+  };
+
+  const handleClick = () => {
+    if (data?.productId) {
+      window.location.href = `/product/${data.productId}`;
+    } else if (data?.orderId) {
+      window.location.href = `/my-orders`;
+    }
+    toast.dismiss(t.id);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 50, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, x: 100 }}
+      onClick={handleClick}
+      className={`max-w-sm w-full bg-white rounded-2xl shadow-2xl border-2 overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform bg-gradient-to-br ${gradients[type] || gradients.default}`}
+    >
+      <div className="p-4">
+        <div className="flex items-start gap-3">
+          <div className="p-2 bg-white rounded-xl shadow-lg">
+            {icons[type] || icons.default}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className="font-bold text-slate-800 text-sm mb-1">{title}</h4>
+            <p className="text-slate-600 text-xs line-clamp-2">{message}</p>
+            {data?.image && (
+              <img 
+                src={data.image} 
+                alt="" 
+                className="w-10 h-10 rounded-lg object-cover mt-2 border border-slate-200"
+              />
+            )}
+          </div>
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              toast.dismiss(t.id);
+            }}
+            className="p-1 hover:bg-slate-100 rounded-lg transition-colors"
+          >
+            <X size={14} className="text-slate-400" />
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// ===================== NEW: Notification Bell Component =====================
+const NotificationBell = ({ user }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const dropdownRef = useRef(null);
+  const socketRef = useRef(null);
+
+  // Initialize socket connection
+  useEffect(() => {
+    if (!user?._id) return;
+
+    const socket = io(backendUrl, {
+      withCredentials: true,
+      query: { userId: user._id }
+    });
+
+    socketRef.current = socket;
+
+    socket.on('connect', () => {
+      console.log('🔔 Notification socket connected');
+      socket.emit('join', `user_${user._id}`);
+    });
+
+    // Listen for new product notifications
+    socket.on('new-product-added', (data) => {
+      console.log('🛍️ New product:', data);
+      playNotificationSound('new_product');
+      showToast(data.title || 'New Product!', data.message || 'Check it out!', 'new_product', data);
+      addNotification(data);
+    });
+
+    // Listen for order status updates
+    socket.on('user-order-status', (data) => {
+      console.log('📦 Order status:', data);
+      playNotificationSound('order_update');
+      const title = `Order ${data.status}`;
+      showToast(title, data.message || `Your order is now ${data.status}`, data.status || 'order_update', data);
+      addNotification({
+        ...data,
+        title,
+        type: 'order_update',
+        createdAt: new Date()
+      });
+    });
+
+    // Fetch existing notifications
+    fetchNotifications();
+
+    return () => socket.close();
+  }, [user?._id]);
+
+  const showToast = (title, message, type, data) => {
+    toast.custom((t) => (
+      <NotificationToast t={t} title={title} message={message} type={type} data={data} />
+    ), { duration: 6000, position: 'top-right' });
+  };
+
+  const addNotification = (data) => {
+    setNotifications(prev => [{
+      _id: Date.now(),
+      title: data.title,
+      message: data.message,
+      type: data.type || 'general',
+      data: data,
+      read: false,
+      createdAt: new Date()
+    }, ...prev]);
+    setUnreadCount(prev => prev + 1);
+  };
+
+  const fetchNotifications = async () => {
+  try {
+    const res = await fetch(`${backendUrl}/order/user-notifications`, {
+      method: 'GET',
+      credentials: 'include'
+    });
+    const data = await res.json();
+    if (data.success) {
+      setNotifications(data.notifications);
+      setUnreadCount(data.unreadCount);
+      console.log('📬 Fetched notifications:', data.notifications);
+    }
+    console.log('📬 Fetch notifications response:', data);
+  } catch (error) {
+    console.error('Failed to fetch notifications:', error);
+  }
+};
+
+  const markAsRead = async (notificationId) => {
+    try {
+      await fetch(`${backendUrl}/order/notifications/${notificationId}/read`, { method: 'PUT' });
+      setNotifications(prev => prev.map(n => 
+        n._id === notificationId ? { ...n, read: true } : n
+      ));
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error('Failed to mark as read:', error);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    try {
+      await fetch(`${backendUrl}/order/notifications/${user._id}/read-all`, { method: 'PUT' });
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Failed to mark all as read:', error);
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const getNotificationIcon = (type, status) => {
+    if (type === 'new_product') return <Sparkles className="w-4 h-4 text-violet-500" />;
+    if (status === 'shipped') return <Truck className="w-4 h-4 text-blue-500" />;
+    if (status === 'delivered') return <CheckCircle className="w-4 h-4 text-emerald-500" />;
+    if (status === 'processing') return <Package className="w-4 h-4 text-amber-500" />;
+    return <Bell className="w-4 h-4 text-slate-500" />;
+  };
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <motion.button
+        whileHover={{ scale: 1.08, y: -2 }}
+        whileTap={{ scale: 0.92 }}
+        onClick={() => setIsOpen(!isOpen)}
+        className="hidden md:flex w-11 h-11 items-center justify-center rounded-xl bg-slate-50 hover:bg-violet-50 border border-transparent hover:border-violet-200 text-slate-600 hover:text-violet-600 transition-all shadow-sm hover:shadow-md group relative"
+      >
+        <Bell size={20} strokeWidth={2} className="transition-transform group-hover:scale-110" />
+        <AnimatePresence>
+          {unreadCount > 0 && (
+            <motion.span
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0 }}
+              className="absolute top-2 right-2.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white animate-pulse"
+            />
+          )}
+        </AnimatePresence>
+        <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-slate-800 text-white text-[10px] font-medium rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+          Notifications
+        </span>
+      </motion.button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            className="absolute right-0 mt-3 w-80 bg-white rounded-3xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] border border-slate-100 overflow-hidden z-50"
+          >
+            <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+              <div>
+                <h3 className="font-bold text-slate-800">Notifications</h3>
+                <p className="text-xs text-slate-500">{unreadCount} unread</p>
+              </div>
+              {unreadCount > 0 && (
+                <button
+                  onClick={markAllAsRead}
+                  className="text-xs font-semibold text-violet-600 hover:text-violet-700 flex items-center gap-1 px-3 py-1.5 rounded-full hover:bg-violet-50 transition-colors"
+                >
+                  <Check size={12} /> Mark all read
+                </button>
+              )}
+            </div>
+
+            <div className="max-h-[350px] overflow-y-auto">
+              {notifications.length === 0 ? (
+                <div className="p-8 text-center">
+                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Bell className="w-8 h-8 text-slate-400" />
+                  </div>
+                  <p className="text-slate-500 text-sm">No notifications yet</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-50">
+                  {notifications.map((notif) => (
+                    <motion.div
+                      key={notif._id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className={`p-4 hover:bg-slate-50 transition-colors cursor-pointer ${!notif.read ? 'bg-violet-50/30' : ''}`}
+                      onClick={() => {
+                        if (!notif.read) markAsRead(notif._id);
+                        if (notif.data?.productId) {
+                          window.location.href = `/product/${notif.data.productId}`;
+                        } else if (notif.data?.orderId) {
+                          window.location.href = `/my-orders`;
+                        }
+                        setIsOpen(false);
+                      }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`p-2 rounded-xl ${!notif.read ? 'bg-white shadow-sm' : 'bg-slate-100'}`}>
+                          {getNotificationIcon(notif.type, notif.data?.status)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm text-slate-800 mb-1 flex items-center gap-2">
+                            {notif.title}
+                            {!notif.read && <span className="w-2 h-2 bg-violet-500 rounded-full" />}
+                          </p>
+                          <p className="text-xs text-slate-600 line-clamp-2">{notif.message}</p>
+                          <p className="text-[10px] text-slate-400 mt-1">
+                            {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true })}
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="p-3 border-t border-slate-100 bg-slate-50">
+              <Link 
+                to="/notifications" 
+                onClick={() => setIsOpen(false)}
+                className="block text-center text-sm font-semibold text-violet-600 hover:text-violet-700 py-2 rounded-xl hover:bg-white transition-colors"
+              >
+                View all notifications
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// ===================== Animated Cart Badge (ORIGINAL) =====================
 const CartBadge = ({ count }) => (
   <motion.span
     initial={{ scale: 0 }}
@@ -48,7 +374,7 @@ const CartBadge = ({ count }) => (
   </motion.span>
 );
 
-// ===================== User Avatar with Glow =====================
+// ===================== User Avatar with Glow (ORIGINAL) =====================
 const UserAvatar = ({ user, onClick, size = "md" }) => {
   const sizes = {
     sm: "w-9 h-9",
@@ -79,7 +405,7 @@ const UserAvatar = ({ user, onClick, size = "md" }) => {
   );
 };
 
-// ===================== Main Header =====================
+// ===================== Main Header (ORIGINAL STYLING PRESERVED) =====================
 const Header = () => {
   const user = useSelector((state) => state?.user?.user);
   const context = useContext(Context);
@@ -160,7 +486,7 @@ const Header = () => {
 
   return (
     <>
-      {/* ===================== ANNOUNCEMENT BAR ===================== */}
+      {/* ===================== ANNOUNCEMENT BAR (ORIGINAL) ===================== */}
       <motion.div
         initial={{ y: -50 }}
         animate={{ y: 0 }}
@@ -181,7 +507,7 @@ const Header = () => {
         </div>
       </motion.div>
 
-      {/* ===================== MAIN HEADER ===================== */}
+      {/* ===================== MAIN HEADER (ORIGINAL STYLING) ===================== */}
       <motion.header
         initial={{ y: -100 }}
         animate={{ y: 0 }}
@@ -316,21 +642,8 @@ const Header = () => {
                   </span>
                 </motion.button>
 
-                {/* Notifications */}
-                {user?._id && (
-                  <motion.button
-                    whileHover={{ scale: 1.08, y: -2 }}
-                    whileTap={{ scale: 0.92 }}
-                    onClick={() => navigate("/notifications")}
-                    className="hidden md:flex w-11 h-11 items-center justify-center rounded-xl bg-slate-50 hover:bg-violet-50 border border-transparent hover:border-violet-200 text-slate-600 hover:text-violet-600 transition-all shadow-sm hover:shadow-md group relative"
-                  >
-                    <Bell size={20} strokeWidth={2} className="transition-transform group-hover:scale-110" />
-                    <span className="absolute top-2 right-2.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white animate-pulse" />
-                    <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-slate-800 text-white text-[10px] font-medium rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                      Notifications
-                    </span>
-                  </motion.button>
-                )}
+                {/* ===================== NEW: Notification Bell (REPLACES OLD BELL BUTTON) ===================== */}
+                {user?._id && <NotificationBell user={user} />}
 
                 {/* Cart */}
                 <motion.button
@@ -416,12 +729,15 @@ const Header = () => {
                               <DropdownItem to="/my-orders" icon={CreditCard} label="My Orders" desc="Track purchases" color="violet" />
                               <DropdownItem to="/wishlist" icon={Heart} label="Wishlist" desc="Saved items" color="rose" />
                               <DropdownItem to="/manage-account" icon={Settings} label="Settings" desc="Account settings" color="slate" />
+                              
+                              {/* ===================== NEW: Admin Panel (ONLY FOR ADMINS) ===================== */}
                               {user.role === "ADMIN" && (
                                 <>
                                   <div className="my-2 border-t border-slate-100" />
                                   <DropdownItem to="/admin-panel" icon={Sparkles} label="Admin Panel" desc="Manage store" color="purple" highlight />
                                 </>
                               )}
+                              
                               <div className="my-2 border-t border-slate-100" />
                               <motion.button
                                 whileHover={{ x: 4 }}
@@ -476,7 +792,7 @@ const Header = () => {
       {/* Spacer */}
       <div className="h-[110px] sm:h-[120px] lg:h-[145px]" />
 
-      {/* ===================== MOBILE MENU ===================== */}
+      {/* ===================== MOBILE MENU (ORIGINAL) ===================== */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
@@ -537,12 +853,15 @@ const Header = () => {
                     <MobileNavLink to="/manage-account" icon={Settings} label="Settings" onClick={() => setIsMobileMenuOpen(false)} />
                   </>
                 )}
+                
+                {/* ===================== NEW: Admin Panel in Mobile Menu ===================== */}
                 {user?.role === "ADMIN" && (
                   <>
                     <div className="my-4 border-t border-slate-100" />
                     <MobileNavLink to="/admin-panel" icon={Sparkles} label="Admin Panel" highlight onClick={() => setIsMobileMenuOpen(false)} />
                   </>
                 )}
+                
                 {user?._id && (
                   <>
                     <div className="my-4 border-t border-slate-100" />
@@ -573,7 +892,7 @@ const Header = () => {
   );
 };
 
-// ===================== Nav Link =====================
+// ===================== Nav Link (ORIGINAL) =====================
 const NavLink = ({ to, icon: Icon, label, badge }) => {
   const location = useLocation();
   const isActive = location.pathname === to;
@@ -610,7 +929,7 @@ const NavLink = ({ to, icon: Icon, label, badge }) => {
   );
 };
 
-// ===================== Dropdown Item =====================
+// ===================== Dropdown Item (ORIGINAL) =====================
 const DropdownItem = ({ to, icon: Icon, label, desc, color, highlight }) => {
   const colors = {
     violet: "bg-violet-50 text-violet-600 group-hover:bg-violet-100",
@@ -640,7 +959,7 @@ const DropdownItem = ({ to, icon: Icon, label, desc, color, highlight }) => {
   );
 };
 
-// ===================== Mobile Nav Link =====================
+// ===================== Mobile Nav Link (ORIGINAL) =====================
 const MobileNavLink = ({ to, icon: Icon, label, onClick, badge, highlight }) => {
   const location = useLocation();
   const isActive = location.pathname === to;

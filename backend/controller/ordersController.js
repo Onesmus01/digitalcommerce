@@ -1,7 +1,10 @@
 import Order from "../models/OrderModel.js";
 import { getIO } from "../soket.js"; 
+import Product from "../models/productModel.js"
 
 // CREATE order
+
+
 export const createOrder = async (req, res) => {
   try {
     const { items, shippingAddress, paymentMethod, totalAmount } = req.body;
@@ -30,13 +33,14 @@ export const createOrder = async (req, res) => {
     try {
       const io = getIO();
       io.to("admins").emit("new-order", {
-        id: order._id,
-        customer: order.user?.name || "Unknown",
-        product: order.items[0]?.name || "Product",
-        amount: order.totalAmount,
-        status: order.orderStatus || "processing",
-        isRead: false,
-      });
+      id: order._id,
+      customer: order.user?.name || "Unknown",
+      product: order.items[0]?.name || "Product",
+      amount: order.totalAmount,
+      status: order.orderStatus || "processing",
+      createdAt: order.createdAt,   // ✅ ADD THIS
+      isRead: false,
+});
       console.log("🔥 Admins notified of new order:", order._id);
     } catch (socketErr) {
       console.log("⚠️ Socket emit failed:", socketErr.message);
@@ -203,12 +207,25 @@ export const updateOrderStatus = async (req, res) => {
     // 🔥 REAL-TIME STATUS UPDATE
     try {
       const io = getIO();
+
+      // 🔔 Notify admins
       io.to("admins").emit("order-status-updated", {
         id: order._id,
         customer: order.user?.name || "Unknown",
         product: order.items[0]?.name || "Product",
         status: order.orderStatus,
       });
+
+      // 🔔 Notify the specific user
+      io.to(order.user._id.toString()).emit("user-order-status", {
+      orderId: order._id,
+      status: order.orderStatus,
+      product: order.items[0]?.name || "Product",  // ✅ ADD
+      message: `Your order for ${order.items[0]?.name || "product"} is now ${order.orderStatus}`,
+});
+
+      console.log("🔔 Order status notification sent to user:", order.user._id);
+
     } catch (socketErr) {
       console.log("⚠️ Socket emit failed:", socketErr.message);
     }
@@ -217,6 +234,7 @@ export const updateOrderStatus = async (req, res) => {
       message: "Order status updated successfully",
       order,
     });
+
   } catch (err) {
     console.error("Error updating order status:", err);
     res.status(500).json({
@@ -226,6 +244,9 @@ export const updateOrderStatus = async (req, res) => {
 };
 
 export const getOrderNotifications = async (req, res) => {
+  if (req.role !== "ADMIN") {
+  return res.status(403).json({ message: "Unauthorized" });
+}
   try {
     const orders = await Order.find()
       .populate("user", "name")
@@ -285,5 +306,94 @@ export const getTotalOrders = async (req, res) => {
       success: false,
       message: error.message,
     });
+  }
+};
+
+
+export const addProductUserNotification = async (req,res)=>{
+  try{
+
+    const product = await Product.create(req.body)
+
+    const io = getIO()
+
+    // 🔔 Notify all users
+    io.emit("new-product-added",{
+    title: "New Product",
+    message:`🔥 ${product.productName} is now available`,
+    productId:product._id,
+    image: product.productImage?.[0] || null
+  })
+
+    res.status(201).json({
+      success:true,
+      product
+    })
+
+  }catch(err){
+    res.status(500).json({message:err.message})
+  }
+}
+
+// GET user notifications with product images
+export const getUserNotifications = async (req, res) => {
+  try {
+    // Fetch orders of the logged-in user, populate product info
+    const orders = await Order.find({ user: req.userId })
+      .populate("items.product", "name image") // ✅ populate product name & image
+      .sort({ createdAt: -1 })
+      .limit(20); // last 20 notifications
+
+    const unreadCount = orders.filter(o => !o.isRead).length;
+
+    const notifications = orders.map(order => ({
+      id: order._id,
+      product: order.items[0]?.product?.name || "Product",
+      image: order.items[0]?.product?.image?.[0] || null, // ✅ first product image
+      status: order.orderStatus,
+      createdAt: order.createdAt,
+      isRead: order.isRead,
+    }));
+
+    res.status(200).json({ success: true, notifications, unreadCount });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Failed to fetch notifications" });
+  }
+};
+
+// Mark a single notification (order) as read
+export const markNotificationAsRead = async (req, res) => {
+  try {
+    const { notificationId } = req.params;
+
+    // Find the order/notification
+    const notification = await Order.findById(notificationId);
+
+    if (!notification) {
+      return res.status(404).json({ success: false, message: "Notification not found" });
+    }
+
+    // Only the user who owns it can mark as read
+    if (notification.user.toString() !== req.userId) {
+      return res.status(403).json({ success: false, message: "Unauthorized" });
+    }
+
+    notification.isRead = true;
+    await notification.save();
+
+    res.status(200).json({ success: true, message: "Notification marked as read" });
+  } catch (err) {
+    console.error("Failed to mark notification as read:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const markAllNotificationsAsRead = async (req, res) => {
+  try {
+    await Order.updateMany({ user: req.userId, isRead: false }, { $set: { isRead: true } });
+    res.status(200).json({ success: true, message: "All notifications marked as read" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };

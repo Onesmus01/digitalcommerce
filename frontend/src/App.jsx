@@ -28,6 +28,7 @@ import NewArrivalsPage from "@/pages/NewArrivalPage.jsx";
 import HotDealsPage from "@/pages/HotDealsPage.jsx";
 import ProductsPage from "@/pages/ProductsPage.jsx";
 import WishlistPage from "@/pages/WishlistPage.jsx";
+import TrendingProducts from "@/pages/TrendingProducts.jsx";
 
 // Admin pages
 import AdminPanel from "@/pages/Adminpanel.jsx";
@@ -231,6 +232,7 @@ const App = () => {
               <Route path="all-products" element={<AllProducts />} />
               <Route path="product" element={<Products />} />
               <Route path="orders" element={<Orders />} />
+              <Route path="trending-products" element={<TrendingProducts />} />
             </Route>
 
             {/* ---------------- Fallback ---------------- */}

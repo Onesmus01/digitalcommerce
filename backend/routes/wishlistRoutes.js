@@ -4,7 +4,8 @@ addToWishlist,
 getWishlist,
 removeFromWishlist,
 checkWishlist,
-clearWishlist
+clearWishlist,
+getMostWishlistedProducts
 } from "../controller/wishlistController.js";
 import authToken from '../middleware/authToken.js'
 
@@ -15,5 +16,6 @@ wishlistRouter.get("/get", authToken, getWishlist);
 wishlistRouter.post("/remove", authToken, removeFromWishlist);
 wishlistRouter.get("/check/:productId", authToken, checkWishlist);
 wishlistRouter.delete("/clear", authToken, clearWishlist);
+wishlistRouter.get("/most-loved", authToken, getMostWishlistedProducts);
 
 export default wishlistRouter;
