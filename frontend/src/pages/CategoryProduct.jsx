@@ -22,6 +22,7 @@ const ProductCard = ({ product, index, onAddToCart }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   
+  // Using 'selling' as requested
   const discount = Math.round(((product?.price - product?.selling) / product?.price) * 100);
   
   return (
@@ -141,6 +142,7 @@ const ProductCard = ({ product, index, onAddToCart }) => {
           
           <div className="flex items-end justify-between mb-3">
             <div>
+              {/* Using 'selling' as requested */}
               <p className="text-lg font-bold text-slate-800">
                 {displayKESCurrency(product?.selling)}
               </p>
@@ -149,8 +151,11 @@ const ProductCard = ({ product, index, onAddToCart }) => {
               </p>
             </div>
             
+            {/* Using 'selling' as requested */}
             {product?.selling < product?.price && (
               <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">
+                {/* Using FaStar instead of FaSparkles to fix import error */}
+                <FaStar className="inline text-[10px] mr-1 text-emerald-500" />
                 Save {displayKESCurrency(product?.price - product?.selling)}
               </span>
             )}
@@ -296,9 +301,11 @@ const CategoryProduct = () => {
     const value = e.target.value;
     setSortBy(value);
     if (value === "asc") {
+      // Using 'selling' as requested
       setData((prev) => [...prev].sort((a, b) => a.selling - b.selling));
     }
     if (value === "dsc") {
+      // Using 'selling' as requested
       setData((prev) => [...prev].sort((a, b) => b.selling - a.selling));
     }
   };
@@ -366,11 +373,12 @@ const CategoryProduct = () => {
               <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Categories</h3>
             </div>
             
-            <div className="flex text-black flex-col gap-1 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
+            {/* Fixed: Removed text-black class, using hover:bg-indigo-50 */}
+            <div className="flex flex-col gap-1 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
               {ProductCategory.map((cat) => (
                 <label 
                   key={cat.value} 
-                  className="flex items-center gap-3 cursor-pointer group p-3 rounded-xl hover:bg-indigo-500 transition-all duration-200"
+                  className="flex items-center gap-3 cursor-pointer group p-3 rounded-xl hover:bg-indigo-50 transition-all duration-200"
                 >
                   <div className="relative flex items-center">
                     <input 
@@ -389,6 +397,7 @@ const CategoryProduct = () => {
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   </div>
+                  {/* Fixed: Now visible with proper contrast */}
                   <span className="text-sm font-medium text-slate-700 group-hover:text-indigo-700 transition-colors break-words leading-tight">
                     {cat.label}
                   </span>
@@ -466,18 +475,11 @@ const CategoryProduct = () => {
 
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
+          display: none;
         }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f1f5f9;
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #94a3b8;
+        .custom-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
         }
       `}</style>
     </div>

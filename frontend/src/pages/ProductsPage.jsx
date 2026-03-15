@@ -9,7 +9,7 @@ const ProductsPage = () => {
   return (
     <div>
       <HorizontalCardProduct category={"airpodes"} heading={"Top's Airpodes"}  />
-    <NewArrivals category={"televisions"} heading={"New Arrivals "} />
+      <NewArrivals category={"televisions"} heading={"New Arrivals "} />
       
       <HorizontalCardProduct category={"watches"} heading={"Popular Watches"} />
       <VerticalCardProduct category={"mobiles"} heading={"Mobiles"} />
