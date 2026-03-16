@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useContext } from "react";
 import { 
   FaFacebookF, 
   FaTwitter, 
@@ -10,29 +10,57 @@ import {
   FaEnvelope
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
+import {Context} from "../context/ProductContext"
 
 const Footer = () => {
   const [email, setEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState("");
   const [hoveredLink, setHoveredLink] = useState(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const {backendUrl} = useContext(Context)
 
   useEffect(() => {
-    const handleMouseMove = (e) => {  // Removed TypeScript type annotation
+    const handleMouseMove = (e) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
     };
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
-  const handleSubscribe = (e) => {
+  const handleSubscribe = async (e) => {
     e.preventDefault();
-    if (email) {
-      setIsSubscribed(true);
-      setTimeout(() => {
-        setIsSubscribed(false);
-        setEmail("");
-      }, 3000);
+    if (!email) return;
+
+    setIsLoading(true);
+    
+    try {
+        const response = await fetch(`${backendUrl}/subscribe/subscribe-user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setIsSubscribed(true);
+        setMessage(data.message);
+        setTimeout(() => {
+          setIsSubscribed(false);
+          setEmail("");
+          setMessage("");
+        }, 3000);
+      } else {
+        setMessage(data.message || "Something went wrong");
+      }
+    } catch (err) {
+      setMessage("Failed to subscribe. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -247,7 +275,7 @@ const Footer = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
                   className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-red-500/50 focus:bg-white/10 transition-all duration-300 pr-36"
-                  disabled={isSubscribed}
+                  disabled={isSubscribed || isLoading}
                 />
                 <motion.button
                   type="submit"
@@ -258,13 +286,27 @@ const Footer = () => {
                       ? "bg-green-500 text-white" 
                       : "bg-gradient-to-r from-red-600 to-red-500 text-white hover:from-red-500 hover:to-red-400 shadow-lg shadow-red-500/25"
                     }
+                    ${isLoading ? "opacity-70 cursor-not-allowed" : ""}
                   `}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  disabled={isSubscribed}
+                  whileHover={!isLoading && !isSubscribed ? { scale: 1.02 } : {}}
+                  whileTap={!isLoading && !isSubscribed ? { scale: 0.98 } : {}}
+                  disabled={isSubscribed || isLoading}
                 >
                   <AnimatePresence mode="wait">
-                    {isSubscribed ? (
+                    {isLoading ? (
+                      <motion.span
+                        key="loading"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="flex items-center gap-2"
+                      >
+                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                      </motion.span>
+                    ) : isSubscribed ? (
                       <motion.span
                         key="success"
                         initial={{ opacity: 0, y: 10 }}
@@ -289,17 +331,17 @@ const Footer = () => {
                 </motion.button>
               </div>
               
-              {/* Success Message */}
+              {/* Success/Error Message */}
               <AnimatePresence>
-                {isSubscribed && (
+                {(isSubscribed || message) && (
                   <motion.p
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="absolute -bottom-8 left-0 text-green-400 text-sm flex items-center gap-2"
+                    className={`absolute -bottom-8 left-0 text-sm flex items-center gap-2 ${isSubscribed ? "text-green-400" : "text-red-400"}`}
                   >
-                    <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                    Welcome to the club! Check your inbox.
+                    <span className={`w-2 h-2 rounded-full animate-pulse ${isSubscribed ? "bg-green-400" : "bg-red-400"}`} />
+                    {isSubscribed ? "Welcome to the club! Check your inbox." : message}
                   </motion.p>
                 )}
               </AnimatePresence>
@@ -369,7 +411,6 @@ const Footer = () => {
 };
 
 export default Footer;
-
 
 
 

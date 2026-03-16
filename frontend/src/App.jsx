@@ -29,6 +29,8 @@ import HotDealsPage from "@/pages/HotDealsPage.jsx";
 import ProductsPage from "@/pages/ProductsPage.jsx";
 import WishlistPage from "@/pages/WishlistPage.jsx";
 import TrendingProducts from "@/pages/TrendingProducts.jsx";
+import PromotionBanner from "@/components/PromotionBanner.jsx";
+import PromotionToast from "@/components/PromotionToast.jsx";
 
 // Admin pages
 import AdminPanel from "@/pages/Adminpanel.jsx";
@@ -36,6 +38,7 @@ import AllUsers from "@/pages/AllUsers.jsx";
 import AllProducts from "@/pages/AllProducts.jsx";
 import Products from "@/pages/Product.jsx";
 import AdminDashboard from "@/pages/AdminDashboard.jsx";
+import PromotionDashboard from "@/pages/PromotionDashboard.jsx";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -66,6 +69,8 @@ const App = () => {
   const [loading, setLoading] = useState(false);
   const [socket, setSocket] = useState(null);
   const [onlineAdmins, setOnlineAdmins] = useState(0);
+  // 🔥 Track banner visibility for layout adjustments
+  const [showBanner, setShowBanner] = useState(false);
 
   console.log("admin user role", user?.role);
 
@@ -116,9 +121,21 @@ const App = () => {
 
   // ---------------- SOCKET.IO CONNECTION ----------------
   useEffect(() => {
-    if (!user?._id) return;
+    if (!user?._id) {
+      console.log("⏸️ No user logged in, socket not connected");
+      setSocket(null);
+      return;
+    }
 
-    const socketClient = io(backendUrl, { withCredentials: true });
+    console.log("🔌 Connecting socket for user:", user._id);
+    
+    const socketClient = io(backendUrl, { 
+      withCredentials: true,
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 5
+    });
+    
     setSocket(socketClient);
 
     socketClient.on("connect", () => {
@@ -151,13 +168,26 @@ const App = () => {
         setCartProductCount,
         fetchCountCart,
         socket,
+        backendUrl,
       }}
     >
       <div className="flex flex-col min-h-screen">
         <Toaster position="top-center" />
-        {!hideHeaderAndFooter && <Header />}
+        
+        {/* 🔥 BANNER - Relative positioning, pushes header down */}
+        {!hideHeaderAndFooter && (
+          <PromotionBanner onVisibilityChange={setShowBanner} />
+        )}
+        
+        {/* 🔥 HEADER - Sticky below banner */}
+        {!hideHeaderAndFooter && (
+          <div className="sticky top-0 z-50">
+            <Header />
+          </div>
+        )}
 
-        <main className="flex-1 pt-[16px]">
+        {/* 🔥 MAIN - Adjusted padding based on banner */}
+        <main className={`flex-1 ${!hideHeaderAndFooter ? '' : ''}`}>
           <Routes>
             {/* ---------------- Public Routes ---------------- */}
             <Route path="/" element={<Home />} />
@@ -233,6 +263,7 @@ const App = () => {
               <Route path="product" element={<Products />} />
               <Route path="orders" element={<Orders />} />
               <Route path="trending-products" element={<TrendingProducts />} />
+              <Route path={"promotions"} element={<PromotionDashboard />} />
             </Route>
 
             {/* ---------------- Fallback ---------------- */}
@@ -242,7 +273,6 @@ const App = () => {
 
         {!hideHeaderAndFooter && <Footer />}
 
-        {/* Optional: show online admins badge for admin users */}
         {user?.role === "ADMIN" && (
           <div className="fixed bottom-4 right-4 px-4 py-2 bg-gray-800 text-white rounded-lg shadow-lg">
             Online admins: {onlineAdmins}

@@ -16,6 +16,7 @@ import personalDetailsRouter from "./routes/personalDetailsRoutes.js";
 import paymentRouter from "./routes/paymentRoute.js";
 import salesProgressRoute from "./routes/salesProgressRoute.js";
 import wishlistRouter from "./routes/wishlistRoutes.js";
+import subscribeRouter from "./routes/subscribeRoute.js";
 
 dotenv.config();
 
@@ -54,6 +55,7 @@ app.use("/api/personal-details", personalDetailsRouter);
 app.use("/api/payment", paymentRouter);
 app.use("/api/sales-progress", salesProgressRoute);
 app.use("/api/wishlist", wishlistRouter);
+app.use("/api/subscribe", subscribeRouter);
 
 
 // ---------------- SOCKET.IO ----------------

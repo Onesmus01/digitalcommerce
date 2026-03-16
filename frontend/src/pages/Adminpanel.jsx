@@ -15,6 +15,7 @@ import {
   FaSignOutAlt,
   FaCog,
   FaSearch,
+  FaPercent,
 } from "react-icons/fa";
 import { FiTrendingUp } from "react-icons/fi";
 import { Context } from "@/context/ProductContext.jsx";
@@ -301,6 +302,7 @@ export default function AdminPanel() {
     { icon: FaUsers, label: "Users", to: "/admin-panel/all-users" },
     { icon: FaBox, label: "Products", to: "/admin-panel/all-products" },
     { icon: FaShoppingCart, label: "Orders", to: "/admin-panel/orders" },
+    { icon: FaPercent, label: "Promotions", to: "/admin-panel/promotions" },
     { icon: FaDollarSign, label: "Revenue", to: "/admin-panel/revenue" },
     { icon: FiTrendingUp, label: "Trending", to: "/admin-panel/trending-products" },
     { icon: FaFileAlt, label: "Reports", to: "/admin-panel/reports" },
@@ -325,6 +327,7 @@ export default function AdminPanel() {
     if (path.includes("users")) return "User Management";
     if (path.includes("products")) return "Products Management";
     if (path.includes("orders")) return "Orders Management";
+    if (path.includes("promotions")) return "Promotions Management";
     if (path.includes("revenue")) return "Revenue Analytics";
     if (path.includes("trending")) return "Trending Products";
     if (path.includes("reports")) return "Reports & Insights";

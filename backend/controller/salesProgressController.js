@@ -18,7 +18,7 @@ export const getDashboardProgress = async (req, res) => {
     });
 
     // Example Goals (you can change)
-    const revenueGoal = 100;
+    const revenueGoal = 5000;
     const ordersGoal = 500;
     const deliveryGoal = 300;
 
