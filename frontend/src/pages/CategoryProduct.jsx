@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import ProductCategory from "../helpers/ProductCategory.jsx";
 import { Context } from "@/context/ProductContext.jsx";
 import { 
   FaStar, 
@@ -11,7 +10,8 @@ import {
   FaFire,
   FaPercentage,
   FaFilter,
-  FaSortAmountDown
+  FaSortAmountDown,
+  FaLayerGroup
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import displayKESCurrency from "@/helpers/displayCurrency.js";
@@ -22,7 +22,6 @@ const ProductCard = ({ product, index, onAddToCart }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   
-  // Using 'selling' as requested
   const discount = Math.round(((product?.price - product?.selling) / product?.price) * 100);
   
   return (
@@ -142,7 +141,6 @@ const ProductCard = ({ product, index, onAddToCart }) => {
           
           <div className="flex items-end justify-between mb-3">
             <div>
-              {/* Using 'selling' as requested */}
               <p className="text-lg font-bold text-slate-800">
                 {displayKESCurrency(product?.selling)}
               </p>
@@ -151,10 +149,8 @@ const ProductCard = ({ product, index, onAddToCart }) => {
               </p>
             </div>
             
-            {/* Using 'selling' as requested */}
             {product?.selling < product?.price && (
               <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">
-                {/* Using FaStar instead of FaSparkles to fix import error */}
                 <FaStar className="inline text-[10px] mr-1 text-emerald-500" />
                 Save {displayKESCurrency(product?.price - product?.selling)}
               </span>
@@ -224,6 +220,77 @@ const ProductGrid = ({ data, loading, onAddToCart }) => {
   );
 };
 
+// ===================== NEW: Category Item Component =====================
+const CategoryItem = ({ cat, isSelected, onChange, index }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  
+  return (
+    <motion.label 
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.03 }}
+      className={`flex items-center gap-3 cursor-pointer group p-3 rounded-xl transition-all duration-200 ${
+        isSelected ? 'bg-indigo-50 ring-1 ring-indigo-200' : 'hover:bg-slate-50'
+      }`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className="relative flex items-center">
+        <input 
+          type="checkbox" 
+          value={cat.category} 
+          checked={isSelected}
+          onChange={onChange}
+          className="peer sr-only"
+        />
+        <div className={`w-5 h-5 border-2 rounded transition-all ${
+          isSelected 
+            ? 'border-indigo-600 bg-indigo-600' 
+            : 'border-slate-300 group-hover:border-indigo-400'
+        }`}>
+          {isSelected && (
+            <svg className="w-5 h-5 text-white p-0.5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
+          )}
+        </div>
+      </div>
+      
+      {/* Category Image */}
+      <div className={`w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 transition-all duration-300 ${
+        isHovered || isSelected ? 'ring-2 ring-indigo-500 ring-offset-1' : ''
+      }`}>
+        <img 
+          src={cat.productImage} 
+          alt={cat.category}
+          className="w-full h-full object-contain p-1 bg-slate-100"
+          onError={(e) => {
+            e.target.style.display = 'none';
+          }}
+        />
+      </div>
+      
+      {/* Category Name */}
+      <span className={`text-sm font-medium transition-colors break-words leading-tight flex-1 ${
+        isSelected 
+          ? 'text-indigo-700 font-semibold' 
+          : 'text-slate-700 group-hover:text-indigo-600'
+      }`}>
+        {cat.category}
+      </span>
+      
+      {/* Selection indicator */}
+      {isSelected && (
+        <motion.div 
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className="w-2 h-2 bg-indigo-500 rounded-full"
+        />
+      )}
+    </motion.label>
+  );
+};
+
 const CategoryProduct = () => {
   const { backendUrl, addToCart, fetchCountCart } = useContext(Context);
   const navigate = useNavigate();
@@ -233,6 +300,10 @@ const CategoryProduct = () => {
   const [loading, setLoading] = useState(false);
   const [sortBy, setSortBy] = useState("");
   const [selectedCategory, setSelectedCategory] = useState({});
+  
+  // ===================== NEW: Categories State =====================
+  const [categories, setCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
 
   // Handle add to cart
   const handleAddToCart = async (e, id) => {
@@ -250,6 +321,26 @@ const CategoryProduct = () => {
       } catch (err) {
         console.error('Failed to add to cart:', err);
       }
+    }
+  };
+
+  // ===================== NEW: Fetch All Categories =====================
+  const fetchCategories = async () => {
+    try {
+      setCategoriesLoading(true);
+      const response = await fetch(`${backendUrl}/product/get-product-category`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+      const responseData = await response.json();
+
+      if (responseData.success) {
+        setCategories(responseData.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    } finally {
+      setCategoriesLoading(false);
     }
   };
 
@@ -271,6 +362,11 @@ const CategoryProduct = () => {
       setLoading(false);
     }
   };
+
+  // Initial fetch of categories
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   // Update from URL
   useEffect(() => {
@@ -301,11 +397,9 @@ const CategoryProduct = () => {
     const value = e.target.value;
     setSortBy(value);
     if (value === "asc") {
-      // Using 'selling' as requested
       setData((prev) => [...prev].sort((a, b) => a.selling - b.selling));
     }
     if (value === "dsc") {
-      // Using 'selling' as requested
       setData((prev) => [...prev].sort((a, b) => b.selling - a.selling));
     }
   };
@@ -313,7 +407,7 @@ const CategoryProduct = () => {
   return (
     <div className="container mx-auto p-4">
       {/* Desktop Layout - Wider sidebar */}
-      <div className="hidden lg:grid grid-cols-[280px,1fr] gap-6">
+      <div className="hidden lg:grid grid-cols-[320px,1fr] gap-6">
         {/* Filters Sidebar - Wider and better text visibility */}
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm min-h-[calc(100vh-120px)] h-fit sticky top-24">
           {/* Sort Section */}
@@ -366,44 +460,56 @@ const CategoryProduct = () => {
             </div>
           </div>
 
-          {/* Category Section */}
+          {/* ===================== ALL CATEGORIES SECTION ===================== */}
           <div>
             <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-100">
-              <FaFilter className="text-indigo-600" />
-              <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Categories</h3>
+              <FaLayerGroup className="text-indigo-600" />
+              <div className="flex items-center justify-between flex-1">
+                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide">All Categories</h3>
+                {categories.length > 0 && (
+                  <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
+                    {categories.length}
+                  </span>
+                )}
+              </div>
             </div>
             
-            {/* Fixed: Removed text-black class, using hover:bg-indigo-50 */}
-            <div className="flex flex-col gap-1 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
-              {ProductCategory.map((cat) => (
-                <label 
-                  key={cat.value} 
-                  className="flex items-center gap-3 cursor-pointer group p-3 rounded-xl hover:bg-indigo-50 transition-all duration-200"
-                >
-                  <div className="relative flex items-center">
-                    <input 
-                      type="checkbox" 
-                      value={cat.value} 
-                      checked={!!selectedCategory[cat.value]} 
-                      onChange={handleSelectCategory}
-                      className="peer sr-only"
-                    />
-                    <div className="w-5 h-5 border-2 border-slate-300 rounded peer-checked:border-indigo-600 peer-checked:bg-indigo-600 transition-all" />
-                    <svg 
-                      className="absolute inset-0 w-5 h-5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none p-0.5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
+            {/* Loading State */}
+            {categoriesLoading && (
+              <div className="space-y-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3 p-3 animate-pulse">
+                    <div className="w-10 h-10 bg-slate-200 rounded-lg" />
+                    <div className="h-4 bg-slate-200 rounded w-3/4" />
                   </div>
-                  {/* Fixed: Now visible with proper contrast */}
-                  <span className="text-sm font-medium text-slate-700 group-hover:text-indigo-700 transition-colors break-words leading-tight">
-                    {cat.label}
-                  </span>
-                </label>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
+            
+            {/* ALL Categories List - Scrollable */}
+            {!categoriesLoading && categories.length > 0 && (
+              <div className="flex flex-col gap-1 max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
+                {categories.map((cat, index) => (
+                  <CategoryItem 
+                    key={cat.category}
+                    cat={cat}
+                    isSelected={!!selectedCategory[cat.category]}
+                    onChange={handleSelectCategory}
+                    index={index}
+                  />
+                ))}
+              </div>
+            )}
+            
+            {/* View All Categories Link */}
+            {!categoriesLoading && categories.length > 0 && (
+              <Link 
+                to="/categories"
+                className="mt-4 flex items-center justify-center gap-2 py-3 text-sm font-semibold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors"
+              >
+                View All Categories <FaLayerGroup size={14} />
+              </Link>
+            )}
           </div>
 
           {/* Clear Filters Button */}
@@ -466,6 +572,50 @@ const CategoryProduct = () => {
             </span>
           )}
         </div>
+        
+        {/* Mobile Categories Horizontal Scroll */}
+        {!categoriesLoading && categories.length > 0 && (
+          <div className="mb-4">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">
+              Categories ({categories.length})
+            </p>
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+              {categories.map((cat) => (
+                <button
+                  key={cat.category}
+                  onClick={() => {
+                    const isSelected = selectedCategory[cat.category];
+                    const updated = { ...selectedCategory, [cat.category]: !isSelected };
+                    setSelectedCategory(updated);
+                    const activeCategories = Object.keys(updated).filter((key) => updated[key]);
+                    if (activeCategories.length > 0) {
+                      navigate(`/product-category/${activeCategories.join(",")}`);
+                    }
+                  }}
+                  className={`flex-shrink-0 flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
+                    selectedCategory[cat.category] 
+                      ? 'bg-indigo-50 ring-2 ring-indigo-500' 
+                      : 'bg-white border border-slate-200'
+                  }`}
+                >
+                  <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-50">
+                    <img 
+                      src={cat.productImage} 
+                      alt={cat.category}
+                      className="w-full h-full object-contain p-1"
+                    />
+                  </div>
+                  <span className={`text-[10px] font-medium text-center capitalize ${
+                    selectedCategory[cat.category] ? 'text-indigo-700' : 'text-slate-600'
+                  }`}>
+                    {cat.category.length > 8 ? cat.category.slice(0, 8) + '...' : cat.category}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        
         <ProductGrid 
           data={data} 
           loading={loading} 

@@ -75,7 +75,7 @@ const CategoryList = () => {
   if (categoryProduct.length === 0) return null
 
   return (
-    <div className="w-full py-6 bg-gradient-to-b from-white via-white to-gray-50/30 relative overflow-hidden">
+    <div className="w-full py-10 bg-gradient-to-b from-white via-white to-gray-50/30 relative overflow-hidden">
       {/* Decorative background blur */}
       <div className="absolute top-0 left-1/4 w-64 h-64 bg-purple-100/30 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute top-0 right-1/4 w-64 h-64 bg-pink-100/30 rounded-full blur-3xl pointer-events-none" />
@@ -83,7 +83,7 @@ const CategoryList = () => {
       <div className="px-4 mx-auto max-w-7xl relative">
         {/* Section title */}
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
+          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
             Browse Categories
           </h3>
           <div className="flex gap-1">

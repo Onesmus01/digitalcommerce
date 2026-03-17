@@ -1,4 +1,4 @@
-"use client";
+
 
 import React, { useState, useRef, useEffect, useContext } from "react";
 import Logo from "./Logo";
@@ -29,7 +29,10 @@ import {
   Package,
   Truck,
   CheckCircle,
-  Check
+  Check,
+  Grid3X3,
+  Layers,
+  ChevronRight
 } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -131,7 +134,6 @@ const NotificationBell = ({ user }) => {
   const dropdownRef = useRef(null);
   const socketRef = useRef(null);
 
-  // Initialize socket connection
   useEffect(() => {
     if (!user?._id) return;
 
@@ -147,7 +149,6 @@ const NotificationBell = ({ user }) => {
       socket.emit('join', `user_${user._id}`);
     });
 
-    // Listen for new product notifications
     socket.on('new-product-added', (data) => {
       console.log('🛍️ New product:', data);
       playNotificationSound('new_product');
@@ -155,7 +156,6 @@ const NotificationBell = ({ user }) => {
       addNotification(data);
     });
 
-    // Listen for order status updates
     socket.on('user-order-status', (data) => {
       console.log('📦 Order status:', data);
       playNotificationSound('order_update');
@@ -169,7 +169,6 @@ const NotificationBell = ({ user }) => {
       });
     });
 
-    // Fetch existing notifications
     fetchNotifications();
 
     return () => socket.close();
@@ -195,22 +194,20 @@ const NotificationBell = ({ user }) => {
   };
 
   const fetchNotifications = async () => {
-  try {
-    const res = await fetch(`${backendUrl}/order/user-notifications`, {
-      method: 'GET',
-      credentials: 'include'
-    });
-    const data = await res.json();
-    if (data.success) {
-      setNotifications(data.notifications);
-      setUnreadCount(data.unreadCount);
-      console.log('📬 Fetched notifications:', data.notifications);
+    try {
+      const res = await fetch(`${backendUrl}/order/user-notifications`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      const data = await res.json();
+      if (data.success) {
+        setNotifications(data.notifications);
+        setUnreadCount(data.unreadCount);
+      }
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
     }
-    console.log('📬 Fetch notifications response:', data);
-  } catch (error) {
-    console.error('Failed to fetch notifications:', error);
-  }
-};
+  };
 
   const markAsRead = async (notificationId) => {
     try {
@@ -362,6 +359,160 @@ const NotificationBell = ({ user }) => {
   );
 };
 
+// ===================== NEW: Categories Dropdown Component (SHOWS ALL) =====================
+const CategoriesDropdown = ({ categories, loading }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+  const dropdownRef = useRef(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="hidden lg:flex items-center gap-2 px-4 py-2.5 rounded-xl text-slate-600">
+        <div className="p-1.5 rounded-lg bg-slate-100">
+          <Grid3X3 size={16} className="text-slate-400 animate-pulse" />
+        </div>
+        <span className="font-semibold text-sm">Categories</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onMouseEnter={() => setIsOpen(true)}
+        className={`hidden lg:flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-300 group ${
+          isOpen 
+            ? "bg-gradient-to-r from-violet-500/10 to-purple-500/10 text-violet-600" 
+            : "hover:bg-slate-50 text-slate-600 hover:text-slate-900"
+        }`}
+      >
+        <div className={`p-1.5 rounded-lg transition-all ${
+          isOpen
+            ? "bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-md shadow-violet-500/30"
+            : "bg-slate-100 text-slate-500 group-hover:bg-violet-100 group-hover:text-violet-600"
+        }`}>
+          <Grid3X3 size={16} strokeWidth={2} />
+        </div>
+        <span className="font-semibold text-sm">Categories</span>
+        <ChevronDown
+          size={16}
+          className={`text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+        />
+      </motion.button>
+
+      <AnimatePresence>
+        {isOpen && categories.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 15, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 15, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            onMouseLeave={() => setIsOpen(false)}
+            className="absolute top-full left-0 mt-3 w-[700px] bg-white rounded-3xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] border border-slate-100 overflow-hidden z-50"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl shadow-md shadow-violet-500/30">
+                  <Layers size={20} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-800">Browse All Categories</h3>
+                  <p className="text-xs text-slate-500">{categories.length} categories available</p>
+                </div>
+              </div>
+              <Link 
+                to="/categories"
+                onClick={() => setIsOpen(false)}
+                className="text-xs font-semibold text-violet-600 hover:text-violet-700 flex items-center gap-1 px-3 py-1.5 rounded-full hover:bg-violet-50 transition-colors"
+              >
+                View All <ArrowRight size={12} />
+              </Link>
+            </div>
+
+            {/* ALL Categories Grid - 4 columns, ALL items */}
+            <div className="p-5 max-h-[400px] overflow-y-auto">
+              <div className="grid grid-cols-4 gap-4">
+                {categories.map((cat, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.03 }}
+                    onMouseEnter={() => setHoveredIndex(index)}
+                    onMouseLeave={() => setHoveredIndex(null)}
+                  >
+                    <Link
+                      to={`/product-category/${cat?.category}`}
+                      onClick={() => setIsOpen(false)}
+                      className="flex flex-col items-center gap-3 p-3 rounded-2xl transition-all duration-300 group hover:bg-slate-50"
+                    >
+                      <div className={`relative w-16 h-16 rounded-2xl overflow-hidden transition-all duration-300 ${
+                        hoveredIndex === index 
+                          ? 'scale-110 shadow-xl shadow-gray-400/20 ring-2 ring-violet-500 ring-offset-2' 
+                          : 'scale-100 shadow-md shadow-gray-200/50'
+                      }`}>
+                        <div className={`absolute inset-0 transition-all duration-300 ${
+                          hoveredIndex === index 
+                            ? 'bg-gradient-to-br from-violet-500 via-purple-600 to-fuchsia-500' 
+                            : 'bg-gradient-to-br from-gray-50 to-gray-100'
+                        }`} />
+                        <img
+                          src={cat.productImage}
+                          alt={cat.category}
+                          className={`relative w-full h-full p-3 object-contain transition-all duration-300 ${
+                            hoveredIndex === index 
+                              ? 'scale-110 drop-shadow-lg brightness-110' 
+                              : 'scale-100 grayscale-[20%]'
+                          }`}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                        <div className={`absolute inset-0 bg-gradient-to-tr from-transparent via-white/30 to-transparent translate-x-[-100%] transition-transform duration-700 ${
+                          hoveredIndex === index ? 'translate-x-[100%]' : ''
+                        }`} />
+                      </div>
+                      <span className={`text-xs font-medium text-center capitalize transition-all duration-300 px-2 py-1 rounded-full whitespace-nowrap ${
+                        hoveredIndex === index 
+                          ? 'text-violet-700 bg-violet-50 font-semibold' 
+                          : 'text-slate-600 group-hover:text-slate-800'
+                      }`}>
+                        {cat.category}
+                      </span>
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+              <div className="flex items-center justify-center gap-2 text-slate-400 text-xs">
+                <Sparkles size={14} className="text-violet-500" />
+                <span>Discover {categories.length} amazing categories</span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
 // ===================== Animated Cart Badge (ORIGINAL) =====================
 const CartBadge = ({ count }) => (
   <motion.span
@@ -419,6 +570,11 @@ const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
+  
+  // ===================== NEW: Categories State =====================
+  const [categories, setCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+  
   const userMenuRef = useRef();
   const searchRef = useRef();
 
@@ -429,6 +585,30 @@ const Header = () => {
     { text: "Gaming Laptop", icon: Flame },
     { text: "Running Shoes", icon: Zap },
   ];
+
+  // ===================== NEW: Fetch Categories =====================
+  const fetchCategories = async () => {
+    try {
+      setCategoriesLoading(true);
+      const response = await fetch(`${backendUrl}/product/get-product-category`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+      const responseData = await response.json();
+
+      if (responseData.success) {
+        setCategories(responseData.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   // Handle scroll
   useEffect(() => {
@@ -549,12 +729,10 @@ const Header = () => {
               {/* CENTER: Prominent Search Bar */}
               <div ref={searchRef} className="flex-1 max-w-2xl mx-2 sm:mx-4 lg:mx-8 relative">
                 <form onSubmit={handleSearch} className="relative">
-                  {/* Search Icon */}
                   <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
                     <SearchIcon size={20} className={`transition-colors ${isSearchFocused ? 'text-violet-500' : 'text-slate-400'}`} />
                   </div>
 
-                  {/* Search Input */}
                   <input
                     type="text"
                     value={searchQuery}
@@ -569,7 +747,6 @@ const Header = () => {
                     } rounded-2xl text-sm sm:text-base transition-all duration-300 outline-none placeholder:text-slate-400`}
                   />
 
-                  {/* Keyboard Shortcut Badge */}
                   <div className="absolute inset-y-0 right-3 flex items-center gap-2">
                     <span className="hidden sm:flex px-2 py-1 bg-slate-200 rounded-lg text-[10px] font-bold text-slate-500">
                       ⌘K
@@ -584,7 +761,6 @@ const Header = () => {
                     </motion.button>
                   </div>
 
-                  {/* Search Suggestions Dropdown */}
                   <AnimatePresence>
                     {showSearchSuggestions && isSearchFocused && (
                       <motion.div
@@ -629,7 +805,6 @@ const Header = () => {
               {/* RIGHT: Action Buttons */}
               <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
                 
-                {/* Wishlist */}
                 <motion.button
                   whileHover={{ scale: 1.08, y: -2 }}
                   whileTap={{ scale: 0.92 }}
@@ -642,10 +817,8 @@ const Header = () => {
                   </span>
                 </motion.button>
 
-                {/* ===================== NEW: Notification Bell (REPLACES OLD BELL BUTTON) ===================== */}
                 {user?._id && <NotificationBell user={user} />}
 
-                {/* Cart */}
                 <motion.button
                   whileHover={{ scale: 1.08, y: -2 }}
                   whileTap={{ scale: 0.92 }}
@@ -658,7 +831,6 @@ const Header = () => {
                   )}
                 </motion.button>
 
-                {/* User Menu */}
                 <div className="hidden md:flex items-center ml-1" ref={userMenuRef}>
                   {user?._id ? (
                     <div className="relative">
@@ -682,7 +854,6 @@ const Header = () => {
                         />
                       </motion.button>
 
-                      {/* User Dropdown */}
                       <AnimatePresence>
                         {isUserMenuOpen && (
                           <motion.div
@@ -691,7 +862,6 @@ const Header = () => {
                             exit={{ opacity: 0, y: 15, scale: 0.95 }}
                             className="absolute right-0 mt-3 w-80 bg-white rounded-3xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] border border-slate-100 overflow-hidden z-50"
                           >
-                            {/* Header */}
                             <div className="relative p-6 bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-500 overflow-hidden">
                               <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
                               <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
@@ -710,7 +880,6 @@ const Header = () => {
                               </div>
                             </div>
 
-                            {/* Stats */}
                             <div className="grid grid-cols-3 gap-px bg-slate-100">
                               {[
                                 { label: "Orders", value: "12" },
@@ -724,13 +893,11 @@ const Header = () => {
                               ))}
                             </div>
 
-                            {/* Menu */}
                             <div className="p-3 space-y-1">
                               <DropdownItem to="/my-orders" icon={CreditCard} label="My Orders" desc="Track purchases" color="violet" />
                               <DropdownItem to="/wishlist" icon={Heart} label="Wishlist" desc="Saved items" color="rose" />
                               <DropdownItem to="/manage-account" icon={Settings} label="Settings" desc="Account settings" color="slate" />
                               
-                              {/* ===================== NEW: Admin Panel (ONLY FOR ADMINS) ===================== */}
                               {user.role === "ADMIN" && (
                                 <>
                                   <div className="my-2 border-t border-slate-100" />
@@ -779,20 +946,22 @@ const Header = () => {
           <div className="container mx-auto px-4 lg:px-6">
             <nav className="flex items-center gap-1 py-2">
               <NavLink to="/" icon={Home} label="Home" />
+              
+              {/* ===================== CATEGORIES DROPDOWN (ALL CATEGORIES) ===================== */}
+              <CategoriesDropdown categories={categories} loading={categoriesLoading} />
+              
               <NavLink to="/all-products" icon={Box} label="Products" />
               <NavLink to="/hot-deals" icon={Zap} label="Deals" badge="HOT" />
               <NavLink to="/new-arrivals" icon={TrendingUp} label="New Arrivals" />
-              <NavLink to="/categories" icon={Tag} label="Categories" />
               {user?._id && <NavLink to="/my-orders" icon={CreditCard} label="My Orders" />}
             </nav>
           </div>
         </div>
       </motion.header>
 
-      {/* Spacer */}
       <div className="h-[110px] sm:h-[120px] lg:h-[145px]" />
 
-      {/* ===================== MOBILE MENU (ORIGINAL) ===================== */}
+      {/* ===================== MOBILE MENU (ALL CATEGORIES DISPLAYED) ===================== */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
@@ -808,7 +977,7 @@ const Header = () => {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="lg:hidden fixed top-0 left-0 w-[300px] h-full bg-white z-[80] overflow-hidden shadow-2xl"
+              className="lg:hidden fixed top-0 left-0 w-[320px] h-full bg-white z-[80] overflow-hidden shadow-2xl"
             >
               {/* Header */}
               <div className="relative p-5 bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-500 overflow-hidden">
@@ -839,9 +1008,57 @@ const Header = () => {
                 )}
               </div>
 
-              {/* Nav */}
-              <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100%-200px)]">
+              {/* Nav - Scrollable */}
+              <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100%-180px)] pb-20">
                 <MobileNavLink to="/" icon={Home} label="Home" onClick={() => setIsMobileMenuOpen(false)} />
+                
+                {/* ===================== ALL CATEGORIES SECTION (MOBILE) ===================== */}
+                {categories.length > 0 && (
+                  <>
+                    <div className="my-4 px-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">All Categories</p>
+                        <span className="text-[10px] text-slate-400 bg-slate-100 px-2 py-1 rounded-full">{categories.length}</span>
+                      </div>
+                      
+                      {/* Scrollable horizontal categories */}
+                      <div className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                        {categories.map((cat, idx) => (
+                          <Link
+                            key={idx}
+                            to={`/product-category/${cat?.category}`}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-violet-50 transition-all group snap-start w-[85px]"
+                          >
+                            <div className="w-14 h-14 rounded-xl bg-white shadow-sm p-2 flex items-center justify-center group-hover:shadow-md transition-all group-hover:scale-105">
+                              <img
+                                src={cat.productImage}
+                                alt={cat.category}
+                                className="w-full h-full object-contain"
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                }}
+                              />
+                            </div>
+                            <span className="text-[10px] font-medium text-slate-600 text-center capitalize line-clamp-2 leading-tight">
+                              {cat.category}
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                      
+                      <Link
+                        to="/categories"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="mt-3 flex items-center justify-center gap-2 py-3 text-sm font-semibold text-violet-600 hover:text-violet-700 bg-violet-50 hover:bg-violet-100 rounded-xl transition-colors"
+                      >
+                        View All Categories <ChevronRight size={16} />
+                      </Link>
+                    </div>
+                    <div className="my-3 border-t border-slate-100" />
+                  </>
+                )}
+                
                 <MobileNavLink to="/all-products" icon={Box} label="Products" onClick={() => setIsMobileMenuOpen(false)} />
                 <MobileNavLink to="/hot-deals" icon={Zap} label="Hot Deals" badge="NEW" onClick={() => setIsMobileMenuOpen(false)} />
                 <MobileNavLink to="/new-arrivals" icon={TrendingUp} label="New Arrivals" onClick={() => setIsMobileMenuOpen(false)} />
@@ -854,7 +1071,6 @@ const Header = () => {
                   </>
                 )}
                 
-                {/* ===================== NEW: Admin Panel in Mobile Menu ===================== */}
                 {user?.role === "ADMIN" && (
                   <>
                     <div className="my-4 border-t border-slate-100" />

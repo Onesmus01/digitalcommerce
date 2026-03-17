@@ -3,6 +3,7 @@ import displayKESCurrency from '@/helpers/displayCurrency.js'
 import { FaAngleLeft, FaAngleRight, FaHeart, FaStar, FaShoppingCart, FaBolt, FaFire, } from 'react-icons/fa'
 import { Link } from 'react-router-dom'
 import addToCart from '../helpers/addToCart'
+import { Sparkles } from "lucide-react";
 import Context from '@/context/index.js'
 import fetchCategoryWiseProduct from '@/helpers/fetchCategoryWiseProducts.js'
 
@@ -26,7 +27,6 @@ const CategoryWiseProductDisplay = ({ category, heading }) => {
     try {
       const categoryProduct = await fetchCategoryWiseProduct(category)
       setData(categoryProduct?.data || [])
-      console.log(categoryProduct)
     } catch (error) {
       console.error("Error fetching products:", error)
     } finally {
@@ -169,7 +169,7 @@ const CategoryWiseProductDisplay = ({ category, heading }) => {
                         {product?.discount > 0 && (
                           <span className="relative px-3 py-1.5 bg-gradient-to-r from-red-500 to-rose-600 text-white text-xs font-black rounded-lg shadow-lg shadow-red-500/30 flex items-center gap-1">
                             <FaBolt size={10} className="animate-pulse" />
-                            -{Math.round(((product.price - product.sellingPrice) / product.price) * 100)}%
+                            -{Math.round(((product.price - product.selling) / product.price) * 100)}%
                           </span>
                         )}
                         <span className="px-3 py-1.5 bg-white/90 backdrop-blur-md text-slate-700 text-xs font-bold rounded-lg shadow-md border border-white/50">
@@ -240,7 +240,7 @@ const CategoryWiseProductDisplay = ({ category, heading }) => {
                       {/* Price with Premium Styling */}
                       <div className="flex items-baseline gap-3 pt-1">
                         <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-rose-600">
-                          {displayKESCurrency(product?.sellingPrice)}
+                          {displayKESCurrency(product?.selling)}
                         </span>
                         <span className="text-sm text-slate-400 line-through font-medium">
                           {displayKESCurrency(product?.price)}
@@ -248,10 +248,10 @@ const CategoryWiseProductDisplay = ({ category, heading }) => {
                       </div>
 
                       {/* Savings Badge */}
-                      {product?.price > product?.sellingPrice && (
+                      {product?.price > product?.selling && (
                         <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700 text-xs font-bold rounded-full border border-emerald-200">
-                          <FaSparkles size={10} />
-                          Save {displayKESCurrency(product?.price - product?.sellingPrice)}
+                          <Sparkles size={10} />
+                          Save {displayKESCurrency(product?.price - product?.selling)}
                         </div>
                       )}
 
