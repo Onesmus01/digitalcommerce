@@ -17,6 +17,7 @@ import paymentRouter from "./routes/paymentRoute.js";
 import salesProgressRoute from "./routes/salesProgressRoute.js";
 import wishlistRouter from "./routes/wishlistRoutes.js";
 import subscribeRouter from "./routes/subscribeRoute.js";
+import hotDealRouter from "./routes/hotDealsRoute.js";
 
 dotenv.config();
 
@@ -56,6 +57,8 @@ app.use("/api/payment", paymentRouter);
 app.use("/api/sales-progress", salesProgressRoute);
 app.use("/api/wishlist", wishlistRouter);
 app.use("/api/subscribe", subscribeRouter);
+app.use("/api/hot-deals", hotDealRouter);
+
 
 
 // ---------------- SOCKET.IO ----------------
