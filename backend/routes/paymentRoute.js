@@ -12,6 +12,7 @@ import MpesaLog from '../models/mpesaLog.js';
 import transporter from '../config/nodemailer.js';
 import { getTotalRevenue } from '../controller/paymentController.js';
 import QRCode from 'qrcode';
+import isAdmin from '../middleware/adminAuth.js'
 
 dotenv.config();
 const paymentRouter = express.Router();

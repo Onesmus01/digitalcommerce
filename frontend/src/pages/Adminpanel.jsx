@@ -305,9 +305,9 @@ export default function AdminPanel() {
     { icon: FaShoppingCart, label: "Orders", to: "/admin-panel/orders" },
     { icon: FaPercent, label: "Promotions", to: "/admin-panel/promotions" },
     { icon: FaFire, label: "Hot Deals", to: "/admin-panel/hot-admin" },
-    { icon: FaDollarSign, label: "Revenue", to: "/admin-panel/revenue" },
+    { icon: FaDollarSign, label: "Revenue", to: "/admin-panel/admin-revenue" },
     { icon: FiTrendingUp, label: "Trending", to: "/admin-panel/trending-products" },
-    { icon: FaFileAlt, label: "Reports", to: "/admin-panel/reports" },
+    { icon: FaFileAlt, label: "Reports", to: "/admin-panel/admin-reports" },
   ];
 
   const getStatusColor = (status = "") => {

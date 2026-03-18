@@ -1,12 +1,16 @@
 import HotDeal from '../models/HotDealsModel.js';
 import Product from '../models/productModel.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 // ===================== HOT DEAL CONTROLLER =====================
 export const hotDealsController = {
 
+  // ✅ ADD HOT DEAL
   addHotDeal: async (req, res) => {
     try {
-      const { productId, discountPercent, dealType, duration } = req.body;
+      const { productId, discountPercent, dealType = 'percentage', duration = 24 } = req.body;
 
       if (!productId || !discountPercent) {
         return res.status(400).json({
@@ -16,7 +20,6 @@ export const hotDealsController = {
       }
 
       const product = await Product.findById(productId);
-
       if (!product) {
         return res.status(404).json({
           success: false,
@@ -33,16 +36,16 @@ export const hotDealsController = {
       if (existingDeal) {
         return res.status(400).json({
           success: false,
-          message: 'Product is already in hot deals'
+          message: 'Product already has an active hot deal'
         });
       }
 
-      const endTime = new Date(Date.now() + (duration || 24) * 60 * 60 * 1000);
+      const endTime = new Date(Date.now() + duration * 60 * 60 * 1000);
 
       const hotDeal = await HotDeal.create({
         productId,
         discountPercent,
-        dealType: dealType || 'percentage',
+        dealType,
         endTime,
         isActive: true,
         createdBy: req.user?._id
@@ -52,12 +55,12 @@ export const hotDealsController = {
 
       res.status(201).json({
         success: true,
-        message: 'Product added to hot deals successfully',
+        message: 'Hot deal created successfully',
         data: hotDeal
       });
 
     } catch (error) {
-      console.error('Error adding hot deal:', error);
+      console.error('ADD HOT DEAL ERROR:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to add hot deal',
@@ -66,6 +69,7 @@ export const hotDealsController = {
     }
   },
 
+  // ✅ GET ALL HOT DEALS
   getHotDeals: async (req, res) => {
     try {
       const { status, limit = 50 } = req.query;
@@ -73,10 +77,7 @@ export const hotDealsController = {
       let query = {};
 
       if (status === 'active') {
-        query = {
-          isActive: true,
-          endTime: { $gt: new Date() }
-        };
+        query = { isActive: true, endTime: { $gt: new Date() } };
       } else if (status === 'expired') {
         query = {
           $or: [
@@ -90,28 +91,24 @@ export const hotDealsController = {
         .populate('productId', 'productName price productImage category description')
         .populate('createdBy', 'name email')
         .sort({ createdAt: -1 })
-        .limit(parseInt(limit));
+        .limit(Number(limit));
 
-      const activeDeals = hotDeals.filter(
-        d => d.isActive && new Date(d.endTime) > new Date()
-      );
+      const now = new Date();
 
-      const expiredDeals = hotDeals.filter(
-        d => !d.isActive || new Date(d.endTime) <= new Date()
-      );
+      const stats = {
+        active: hotDeals.filter(d => d.isActive && new Date(d.endTime) > now).length,
+        expired: hotDeals.filter(d => !d.isActive || new Date(d.endTime) <= now).length
+      };
 
       res.status(200).json({
         success: true,
         count: hotDeals.length,
-        stats: {
-          active: activeDeals.length,
-          expired: expiredDeals.length
-        },
+        stats,
         data: hotDeals
       });
 
     } catch (error) {
-      console.error('Error fetching hot deals:', error);
+      console.error('GET HOT DEALS ERROR:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to fetch hot deals',
@@ -120,6 +117,7 @@ export const hotDealsController = {
     }
   },
 
+  // ✅ GET SINGLE HOT DEAL
   getHotDealById: async (req, res) => {
     try {
       const hotDeal = await HotDeal.findById(req.params.id)
@@ -139,7 +137,7 @@ export const hotDealsController = {
       });
 
     } catch (error) {
-      console.error('Error fetching hot deal:', error);
+      console.error('GET HOT DEAL ERROR:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to fetch hot deal',
@@ -148,12 +146,12 @@ export const hotDealsController = {
     }
   },
 
+  // ✅ UPDATE HOT DEAL
   updateHotDeal: async (req, res) => {
     try {
       const { discountPercent, isActive, duration } = req.body;
 
       const hotDeal = await HotDeal.findById(req.params.id);
-
       if (!hotDeal) {
         return res.status(404).json({
           success: false,
@@ -161,18 +159,12 @@ export const hotDealsController = {
         });
       }
 
-      if (discountPercent !== undefined) {
-        hotDeal.discountPercent = discountPercent;
-      }
-
-      if (isActive !== undefined) {
-        hotDeal.isActive = isActive;
-      }
+      if (discountPercent !== undefined) hotDeal.discountPercent = discountPercent;
+      if (isActive !== undefined) hotDeal.isActive = isActive;
 
       if (duration) {
-        const currentEnd = new Date(hotDeal.endTime);
         hotDeal.endTime = new Date(
-          currentEnd.getTime() + duration * 60 * 60 * 1000
+          new Date(hotDeal.endTime).getTime() + duration * 60 * 60 * 1000
         );
       }
 
@@ -188,7 +180,7 @@ export const hotDealsController = {
       });
 
     } catch (error) {
-      console.error('Error updating hot deal:', error);
+      console.error('UPDATE HOT DEAL ERROR:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to update hot deal',
@@ -197,6 +189,7 @@ export const hotDealsController = {
     }
   },
 
+  // ✅ DELETE (SOFT DELETE)
   deleteHotDeal: async (req, res) => {
     try {
       const hotDeal = await HotDeal.findById(req.params.id);
@@ -215,14 +208,49 @@ export const hotDealsController = {
 
       res.status(200).json({
         success: true,
-        message: 'Hot deal removed successfully'
+        message: 'Hot deal deactivated successfully'
       });
 
     } catch (error) {
-      console.error('Error deleting hot deal:', error);
+      console.error('DELETE HOT DEAL ERROR:', error);
       res.status(500).json({
         success: false,
-        message: 'Failed to remove hot deal',
+        message: 'Failed to delete hot deal',
+        error: error.message
+      });
+    }
+  },
+
+  // ✅ REACTIVATE HOT DEAL (FIXED 🔥)
+  reactivateHotDeal: async (req, res) => {
+    try {
+      const hotDeal = await HotDeal.findById(req.params.id);
+
+      if (!hotDeal) {
+        return res.status(404).json({
+          success: false,
+          message: 'Hot deal not found'
+        });
+      }
+
+      hotDeal.isActive = true;
+      hotDeal.endTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      hotDeal.updatedAt = Date.now();
+
+      await hotDeal.save();
+      await hotDeal.populate('productId');
+
+      res.status(200).json({
+        success: true,
+        message: 'Hot deal reactivated successfully',
+        data: hotDeal
+      });
+
+    } catch (error) {
+      console.error('REACTIVATE ERROR:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to reactivate hot deal',
         error: error.message
       });
     }
@@ -234,6 +262,7 @@ export const hotDealsController = {
 // ===================== PRODUCT SEARCH CONTROLLER =====================
 export const productSearchController = {
 
+  // ✅ SEARCH PRODUCTS
   searchProducts: async (req, res) => {
     try {
       const { q, limit = 20, category } = req.query;
@@ -241,7 +270,7 @@ export const productSearchController = {
       if (!q || q.trim().length < 2) {
         return res.status(400).json({
           success: false,
-          message: 'Search query must be at least 2 characters'
+          message: 'Search must be at least 2 characters'
         });
       }
 
@@ -262,18 +291,42 @@ export const productSearchController = {
         searchQuery.$and.push({ category });
       }
 
+      // exclude active hot deals
       const activeHotDeals = await HotDeal.find({
         isActive: true,
         endTime: { $gt: new Date() }
       }).distinct('productId');
 
-      searchQuery.$and.push({
-        _id: { $nin: activeHotDeals }
-      });
+      searchQuery.$and.push({ _id: { $nin: activeHotDeals } });
 
       const products = await Product.find(searchQuery)
         .select('productName price productImage category description brandName')
-        .limit(parseInt(limit))
+        .sort({ createdAt: -1 })
+        .limit(Number(limit));
+
+      res.status(200).json({
+        success: true,
+        count: products.length,
+        data: products
+      });
+
+    } catch (error) {
+      console.error('SEARCH ERROR:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to search products',
+        error: error.message
+      });
+    }
+  },
+
+  // ✅ GET PRODUCTS BY CATEGORY (ADDED 🔥)
+  getProductsByCategory: async (req, res) => {
+    try {
+      const { category } = req.params;
+
+      const products = await Product.find({ category })
+        .select('productName price productImage category description brandName')
         .sort({ createdAt: -1 });
 
       res.status(200).json({
@@ -283,10 +336,10 @@ export const productSearchController = {
       });
 
     } catch (error) {
-      console.error('Error searching products:', error);
+      console.error('CATEGORY ERROR:', error);
       res.status(500).json({
         success: false,
-        message: 'Failed to search products',
+        message: 'Failed to fetch category products',
         error: error.message
       });
     }

@@ -18,7 +18,8 @@ import salesProgressRoute from "./routes/salesProgressRoute.js";
 import wishlistRouter from "./routes/wishlistRoutes.js";
 import subscribeRouter from "./routes/subscribeRoute.js";
 import hotDealRouter from "./routes/hotDealsRoute.js";
-
+import revenueRouter from "./routes/revenueRoute.js";
+import reportsRouter from "./routes/reportsRoute.js";
 dotenv.config();
 
 
@@ -58,6 +59,8 @@ app.use("/api/sales-progress", salesProgressRoute);
 app.use("/api/wishlist", wishlistRouter);
 app.use("/api/subscribe", subscribeRouter);
 app.use("/api/hot-deals", hotDealRouter);
+app.use("/api/revenue", revenueRouter);
+app.use("/api/reports", reportsRouter);
 
 
 

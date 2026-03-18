@@ -40,6 +40,9 @@ import Products from "@/pages/Product.jsx";
 import AdminDashboard from "@/pages/AdminDashboard.jsx";
 import PromotionDashboard from "@/pages/PromotionDashboard.jsx";
 import HotDealsAdmin from "@/pages/HotDealsAdmin.jsx";
+import AdminRevenue from '@/pages/AdminRevenue.jsx';
+import AdminReportPage from "@/pages/AdminReportPage.jsx";
+
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -266,6 +269,9 @@ const App = () => {
               <Route path="trending-products" element={<TrendingProducts />} />
               <Route path={"promotions"} element={<PromotionDashboard />} />
               <Route path={"hot-admin"} element={<HotDealsAdmin />} />
+              <Route path={"admin-revenue"} element={<AdminRevenue />} />
+              <Route path={"admin-reports"} element={<AdminReportPage />} />
+
             </Route>
 
             {/* ---------------- Fallback ---------------- */}
