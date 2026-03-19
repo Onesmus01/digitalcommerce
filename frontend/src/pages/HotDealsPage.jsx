@@ -21,6 +21,7 @@ import fetchCategoryWiseProducts from "@/helpers/fetchCategoryWiseProducts.js";
 import displayKESCurrency from "@/helpers/displayCurrency.js";
 import addToCart from '@/helpers/addToCart.js';
 import { Context } from '@/context/ProductContext.jsx';
+import SEO from "@/components/Seo.jsx";
 
 // Countdown Timer
 const CountdownTimer = () => {
@@ -429,7 +430,12 @@ const HotDealsPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-rose-50 via-white to-orange-50">
-      {/* Subtle Background */}
+      <SEO 
+        title="Hot Deals | Best Discounts Online"
+        description="Discover the latest hot deals and discounts on electronics and more."
+        url="/hot-deals"
+      />
+            {/* Subtle Background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 left-0 w-64 sm:w-96 h-64 sm:h-96 bg-rose-200/30 rounded-full blur-[100px]" />
         <div className="absolute bottom-0 right-0 w-64 sm:w-[500px] h-64 sm:h-[500px] bg-orange-200/30 rounded-full blur-[100px]" />

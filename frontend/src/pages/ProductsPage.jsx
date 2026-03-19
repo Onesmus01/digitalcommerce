@@ -3,11 +3,18 @@ import HorizontalCardProduct from '@/components/HorizontalCardProduct.jsx'
 import VerticalCardProduct from '@/components/VerticalCardProduct.jsx'
 import VerticalProductStyle from '@/components/VerticalProductStyle.jsx'
 import NewArrivals from "@/components/NewArrivals";
+import SEO from '@/components/Seo.jsx';
 
 
 const ProductsPage = () => {
   return (
     <div>
+      <SEO 
+        title="All Products | Digital Commerce Platform"
+        description="Explore a wide range of products including electronics, appliances, and accessories. Shop online with real-time updates and exclusive offers."
+        url="/all-products"
+        image="https://yourwebsite.com/default-image.jpg"
+      />
       <HorizontalCardProduct category={"airpodes"} heading={"Top's Airpodes"}  />
       <NewArrivals category={"televisions"} heading={"New Arrivals "} />
       

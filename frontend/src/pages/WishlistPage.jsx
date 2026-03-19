@@ -22,6 +22,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Context } from '@/context/ProductContext.jsx';
 import { Link } from 'react-router-dom';
 import displayKESCurrency from "@/helpers/displayCurrency.js";
+import SEO from "@/components/Seo.jsx";
 
 // Confirmation Modal Component
 const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, itemCount, type = 'danger' }) => {
@@ -34,7 +35,9 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, itemCou
   };
 
   return (
+    
     <AnimatePresence>
+      
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -394,7 +397,14 @@ const WishlistPage = () => {
   }
 
   return (
+    <>
+    <SEO 
+        title="Wishlist | Your Saved Items"
+        description="View and manage your favorite products in your wishlist."
+        url="/wishlist"
+      />
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-white to-pink-50 font-sans text-slate-800 relative overflow-hidden pb-24">
+      
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-purple-300/30 rounded-full blur-[100px]" />
@@ -729,6 +739,7 @@ const WishlistPage = () => {
         onClearAll={handleClearAll}
       />
     </div>
+    </>
   );
 };
 

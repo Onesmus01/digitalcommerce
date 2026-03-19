@@ -229,6 +229,7 @@ const AdminHotDeals = () => {
   // ===================== RENDER =====================
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50">
+      
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-md border-b border-violet-100 sticky top-0 z-50">
         <div className="container mx-auto px-4 lg:px-8 py-4">

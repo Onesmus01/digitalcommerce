@@ -9,6 +9,7 @@ import VerticalCardProduct from '@/components/VerticalCardProduct.jsx';
 import CategroyWiseProductDisplay from '../components/CategoryWiseProductDisplay';
 import addToCart from '../helpers/addToCart';
 import {Context} from '@/context/ProductContext.jsx';
+import SEO from '@/components/Seo.jsx';
 
 const ProductDetails = () => {
   const [data,setData] = useState([])
@@ -90,6 +91,13 @@ const ProductDetails = () => {
   }
 
   return (
+    <>
+    <SEO 
+      title={data?.productName ? `${data.productName} | Buy Online` : 'Loading Product...'}
+      description={data?.description || 'Explore this amazing product online.'}
+      url={`/product/${id}`}
+      image={data?.productImage?.[0] || '/default-product-image.jpg'}
+    />
     <div className='container mx-auto p-4'>
 
       <div className='min-h-[200px] flex flex-col md:flex-row lg:flex-row gap-4'>
@@ -225,6 +233,7 @@ const ProductDetails = () => {
 
 
     </div>
+    </>
   )
 }
 

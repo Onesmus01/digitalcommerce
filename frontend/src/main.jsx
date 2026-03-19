@@ -7,8 +7,10 @@ import { Provider } from "react-redux";
 import { store } from "../store/store.js";
 import ProductProvider from "@/context/ProductContext.jsx";
 import { SocketProvider } from "@/context/SocketContext.jsx"; // ✅ IMPORT THIS
+import {HelmetProvider} from "react-helmet-async";
 
 createRoot(document.getElementById("root")).render(
+  <HelmetProvider>
     <BrowserRouter>
       <Provider store={store}>
         <ProductProvider>
@@ -18,4 +20,5 @@ createRoot(document.getElementById("root")).render(
         </ProductProvider>
       </Provider>
     </BrowserRouter>
+  </HelmetProvider> 
 );
