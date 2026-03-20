@@ -42,6 +42,7 @@ import PromotionDashboard from "@/pages/PromotionDashboard.jsx";
 import HotDealsAdmin from "@/pages/HotDealsAdmin.jsx";
 import AdminRevenue from '@/pages/AdminRevenue.jsx';
 import AdminReportPage from "@/pages/AdminReportPage.jsx";
+import AdminSettingsPage from "@/pages/AdminSettingsPage.jsx"
 
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
@@ -271,6 +272,7 @@ const App = () => {
               <Route path={"hot-admin"} element={<HotDealsAdmin />} />
               <Route path={"admin-revenue"} element={<AdminRevenue />} />
               <Route path={"admin-reports"} element={<AdminReportPage />} />
+              <Route path={"admin-settings"} element={<AdminSettingsPage />} />
 
             </Route>
 

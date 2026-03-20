@@ -591,9 +591,9 @@ export default function AdminPanel() {
                   exit={{ opacity: 0, x: -10 }}
                   className="text-sm font-medium"
                 >
-                  Settings
+                  <Link to={"admin-settings"}>Settings</Link>
                 </motion.span>
-              )}
+              )}  
             </AnimatePresence>
           </motion.button>
           
