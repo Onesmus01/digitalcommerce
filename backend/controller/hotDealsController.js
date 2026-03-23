@@ -1,4 +1,4 @@
-import HotDeal from '../models/HotDealsModel.js';
+import HotDeal from '../models/hotDealsModel.js';
 import Product from '../models/productModel.js';
 import dotenv from 'dotenv';
 

@@ -8,7 +8,6 @@ const sendNotification = async ({
   message,
   link
 }) => {
-
   const notification = await Notification.create({
     userId,
     type,

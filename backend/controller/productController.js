@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import Product from '../models/productModel.js';
 import isAdmin from '../helpers/permission.js';
 import Payment from '../models/paymentModel.js';
-import Order from '../models/OrderModel.js';
+import Order from '../models/orderModel.js';
 export const uploadProduct = async (req,res)=> {
     try {
         let {
