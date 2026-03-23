@@ -1,4 +1,4 @@
-import PersonalDetails from "../models/PersonalDetailsModel.js";
+import PersonalDetails from "../models/personalDetailsModel.js";
 
 // CREATE or UPDATE personal details
 export const upsertPersonalDetails = async (req, res) => {

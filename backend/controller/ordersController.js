@@ -1,4 +1,4 @@
-import Order from "../models/OrderModel.js";
+import Order from "../models/orderModel.js";
 import { getIO } from "../soket.js"; 
 import Product from "../models/productModel.js"
 
