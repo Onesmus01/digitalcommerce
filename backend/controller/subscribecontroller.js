@@ -402,7 +402,7 @@ const sendWelcomeEmail = async (email) => {
     return { success: false, error: error.message };
   }
 };
-
+//
 export const sendPromotionEmail = async (email, promotion) => {
   try {
     const { products, count } = await getProductsForEmail(3);
