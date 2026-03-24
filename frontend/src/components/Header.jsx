@@ -43,7 +43,7 @@ import Context from "@/context/index.js";
 import { io } from "socket.io-client";
 import { formatDistanceToNow } from "date-fns";
 
-const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080/api";
+const backendUrl=import.meta.env.VITE_BACKEND_URL || "http://localhost:8080/api";
 
 // ===================== NEW: Sound Effect =====================
 const playNotificationSound = (type) => {

@@ -23,17 +23,17 @@ const SkeletonCard = () => (
   <motion.div 
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
-    className="min-w-[280px] rounded-2xl bg-white border border-slate-100 overflow-hidden"
+    className="min-w-[calc(50%-8px)] sm:min-w-[200px] md:min-w-[240px] lg:min-w-[280px] rounded-2xl bg-white border border-slate-100 overflow-hidden"
   >
-    <div className="h-[220px] bg-gradient-to-br from-slate-100 to-slate-200 animate-pulse relative">
+    <div className="h-[140px] sm:h-[180px] md:h-[200px] lg:h-[220px] bg-gradient-to-br from-slate-100 to-slate-200 animate-pulse relative">
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
     </div>
-    <div className="p-4 space-y-3">
-      <div className="h-4 bg-slate-200 rounded-lg w-4/5" />
-      <div className="h-3 bg-slate-100 rounded-lg w-2/5" />
+    <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+      <div className="h-3 sm:h-4 bg-slate-200 rounded-lg w-4/5" />
+      <div className="h-2 sm:h-3 bg-slate-100 rounded-lg w-2/5" />
       <div className="flex justify-between items-center pt-2">
-        <div className="h-5 bg-slate-200 rounded-lg w-1/3" />
-        <div className="h-5 bg-slate-100 rounded-lg w-1/4" />
+        <div className="h-4 sm:h-5 bg-slate-200 rounded-lg w-1/3" />
+        <div className="h-4 sm:h-5 bg-slate-100 rounded-lg w-1/4" />
       </div>
     </div>
   </motion.div>
@@ -53,14 +53,14 @@ const ProductCard = ({ product, index, onAddToCart }) => {
       transition={{ delay: index * 0.1, duration: 0.5 }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group min-w-[280px] max-w-[280px] relative"
+      className="group min-w-[calc(50%-8px)] sm:min-w-[200px] md:min-w-[240px] lg:min-w-[280px]"
     >
       <Link 
         to={`product/${product._id}`}
         className="block bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-[0_20px_40px_rgba(0,0,0,0.12)] transition-all duration-500 relative"
       >
         {/* IMAGE CONTAINER */}
-        <div className="relative h-[220px] bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden">
+        <div className="relative h-[140px] sm:h-[180px] md:h-[200px] lg:h-[220px] bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden">
           {/* Background Pattern */}
           <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_50%_50%,rgba(99,102,241,0.1)_1px,transparent_1px)] bg-[size:20px_20px]" />
           
@@ -68,7 +68,7 @@ const ProductCard = ({ product, index, onAddToCart }) => {
           <motion.img
             src={product?.productImage?.[0]}
             alt={product?.productName}
-            className="h-full w-full object-contain p-4 relative z-10"
+            className="h-full w-full object-contain p-3 sm:p-4 relative z-10"
             animate={{ scale: isHovered ? 1.08 : 1, y: isHovered ? -5 : 0 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
           />
@@ -78,19 +78,19 @@ const ProductCard = ({ product, index, onAddToCart }) => {
             <motion.div 
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="absolute top-3 left-3 z-20"
+              className="absolute top-2 left-2 sm:top-3 sm:left-3 z-20"
             >
-              <div className="bg-gradient-to-r from-rose-500 to-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg shadow-rose-500/30 flex items-center gap-1">
-                <FaPercentage className="text-[10px]" />
-                {discount}% OFF
+              <div className="bg-gradient-to-r from-rose-500 to-red-600 text-white text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-lg shadow-rose-500/30 flex items-center gap-1">
+                <FaPercentage className="text-[8px] sm:text-[10px]" />
+                {discount}%
               </div>
             </motion.div>
           )}
           
           {/* Premium Badge */}
-          <div className="absolute top-3 right-3 z-20">
-            <div className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-lg flex items-center gap-1">
-              <FaFire className="text-[10px]" />
+          <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20">
+            <div className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg shadow-lg flex items-center gap-1">
+              <FaFire className="text-[8px] sm:text-[10px]" />
               HOT
             </div>
           </div>
@@ -102,7 +102,7 @@ const ProductCard = ({ product, index, onAddToCart }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 bg-black/5 backdrop-blur-[2px] z-10 flex items-center justify-center gap-3"
+                className="absolute inset-0 bg-black/5 backdrop-blur-[2px] z-10 flex items-center justify-center gap-2 sm:gap-3"
                 onClick={(e) => e.preventDefault()}
               >
                 <motion.button
@@ -111,9 +111,9 @@ const ProductCard = ({ product, index, onAddToCart }) => {
                   transition={{ delay: 0.1 }}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className="p-3 bg-white text-slate-700 rounded-full shadow-lg hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                  className="p-2 sm:p-3 bg-white text-slate-700 rounded-full shadow-lg hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
                 >
-                  <FaEye size={18} />
+                  <FaEye size={16} className="sm:w-[18px] sm:h-[18px]" />
                 </motion.button>
                 
                 <motion.button
@@ -126,11 +126,11 @@ const ProductCard = ({ product, index, onAddToCart }) => {
                     e.preventDefault();
                     setIsLiked(!isLiked);
                   }}
-                  className={`p-3 rounded-full shadow-lg transition-colors ${
+                  className={`p-2 sm:p-3 rounded-full shadow-lg transition-colors ${
                     isLiked ? 'bg-rose-500 text-white' : 'bg-white text-slate-700 hover:bg-rose-50 hover:text-rose-500'
                   }`}
                 >
-                  <FaHeart size={18} />
+                  <FaHeart size={16} className="sm:w-[18px] sm:h-[18px]" />
                 </motion.button>
               </motion.div>
             )}
@@ -138,47 +138,47 @@ const ProductCard = ({ product, index, onAddToCart }) => {
         </div>
 
         {/* CONTENT */}
-        <div className="p-4">
+        <div className="p-3 sm:p-4">
           {/* Category & Rating */}
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full uppercase tracking-wider">
+          <div className="flex justify-between items-center mb-1.5 sm:mb-2">
+            <span className="text-[9px] sm:text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full uppercase tracking-wider">
               {product?.category}
             </span>
             
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5 sm:gap-1">
               <div className="flex">
                 {[...Array(4)].map((_, i) => (
-                  <FaStar key={i} className="text-amber-400 text-[10px]" />
+                  <FaStar key={i} className="text-amber-400 text-[8px] sm:text-[10px]" />
                 ))}
-                <FaStarHalfAlt className="text-amber-400 text-[10px]" />
+                <FaStarHalfAlt className="text-amber-400 text-[8px] sm:text-[10px]" />
               </div>
-              <span className="text-xs font-medium text-slate-600 ml-1">4.5</span>
+              <span className="text-[9px] sm:text-xs font-medium text-slate-600 ml-0.5 sm:ml-1">4.5</span>
             </div>
           </div>
           
           {/* Product Name */}
-          <h3 className="font-bold text-slate-800 text-sm mb-1 line-clamp-1 group-hover:text-indigo-600 transition-colors">
+          <h3 className="font-bold text-slate-800 text-xs sm:text-sm mb-1 line-clamp-1 group-hover:text-indigo-600 transition-colors">
             {product?.productName}
           </h3>
           
           {/* Description */}
-          <p className="text-xs text-slate-500 line-clamp-2 mb-3 leading-relaxed">
+          <p className="hidden sm:block text-xs text-slate-500 line-clamp-2 mb-2 sm:mb-3 leading-relaxed">
             {product?.description}
           </p>
           
           {/* Price Section */}
-          <div className="flex items-end justify-between mb-3">
+          <div className="flex items-end justify-between mb-2 sm:mb-3">
             <div>
-              <p className="text-lg font-bold text-slate-800">
+              <p className="text-sm sm:text-lg font-bold text-slate-800">
                 {displayKESCurrency(product?.selling)}
               </p>
-              <p className="text-xs text-slate-400 line-through">
+              <p className="text-[10px] sm:text-xs text-slate-400 line-through">
                 {displayKESCurrency(product?.price)}
               </p>
             </div>
             
             {product?.selling < product?.price && (
-              <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">
+              <span className="hidden sm:inline-block text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">
                 Save {displayKESCurrency(product?.price - product?.selling)}
               </span>
             )}
@@ -193,10 +193,11 @@ const ProductCard = ({ product, index, onAddToCart }) => {
               e.stopPropagation();
               onAddToCart(e, product?._id);
             }}
-            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-semibold py-3 rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 transition-all duration-300 flex items-center justify-center gap-2 group/btn"
+            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs sm:text-sm font-semibold py-2 sm:py-3 rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 transition-all duration-300 flex items-center justify-center gap-2 group/btn"
           >
-            <FaShoppingCart className="group-hover/btn:animate-bounce" size={14} />
-            Add to Cart
+            <FaShoppingCart className="group-hover/btn:animate-bounce" size={12} />
+            <span className="hidden sm:inline">Add to Cart</span>
+            <span className="sm:hidden">Add</span>
           </motion.button>
         </div>
       </Link>
@@ -252,11 +253,11 @@ const VerticalCardProduct = ({ category, heading }) => {
   }, [data]);
 
   const scrollLeft = () => {
-    railRef.current.scrollBy({ left: -320, behavior: "smooth" });
+    railRef.current.scrollBy({ left: -280, behavior: "smooth" });
   };
 
   const scrollRight = () => {
-    railRef.current.scrollBy({ left: 320, behavior: "smooth" });
+    railRef.current.scrollBy({ left: 280, behavior: "smooth" });
   };
 
   return (
@@ -336,7 +337,7 @@ const VerticalCardProduct = ({ category, heading }) => {
           {/* PRODUCT RAIL */}
           <div
             ref={railRef}
-            className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-6 px-1"
+            className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-6 px-1"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {loading ? (
