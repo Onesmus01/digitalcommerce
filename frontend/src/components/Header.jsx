@@ -422,7 +422,6 @@ const Header = () => {
         setIsUserMenuOpen(false);
       }
       if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target) && isMobileMenuOpen) {
-        // Check if click is on the overlay
         if (e.target.classList.contains('mobile-overlay')) {
           setIsMobileMenuOpen(false);
         }
@@ -470,26 +469,26 @@ const Header = () => {
 
   return (
     <>
-      {/* Announcement Bar - Compact on mobile */}
+      {/* Announcement Bar */}
       <motion.div
         initial={{ y: -50 }}
         animate={{ y: 0 }}
-        className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-violet-600 via-purple-600 to-pink-500 text-white"
+        className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-violet-600 via-purple-600 to-pink-500 text-white h-[28px] sm:h-[32px] flex items-center"
       >
         <div className="container mx-auto px-3">
-          <div className="flex items-center justify-center gap-2 py-1.5 text-[10px] sm:text-xs">
-            <Sparkles size={12} className="text-yellow-300" />
-            <span className="font-medium">Free shipping on orders over $50!</span>
-            <span className="hidden sm:inline text-white/70">| Code: <span className="font-bold bg-white/20 px-1.5 rounded">FREESHIP</span></span>
+          <div className="flex items-center justify-center gap-2 text-[10px] sm:text-xs">
+            <Sparkles size={12} className="text-yellow-300 flex-shrink-0" />
+            <span className="font-medium truncate">Free shipping on orders over $50!</span>
+            <span className="hidden sm:inline text-white/70 flex-shrink-0">| Code: <span className="font-bold bg-white/20 px-1.5 rounded">FREESHIP</span></span>
           </div>
         </div>
       </motion.div>
 
-      {/* Main Header - Compact Design */}
+      {/* Main Header */}
       <motion.header
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className={`fixed top-7 sm:top-8 left-0 right-0 z-50 transition-all duration-300 ${
+        className={`fixed top-[28px] sm:top-[32px] left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled
             ? "bg-white/95 backdrop-blur-xl shadow-lg border-b border-slate-200/50"
             : "bg-white"
@@ -518,15 +517,15 @@ const Header = () => {
               </Link>
             </div>
 
-            {/* Center: Search - Hidden on mobile (shown below header instead) */}
-            <div className="hidden sm:block flex-1 max-w-xl mx-4">
+            {/* Center: Search - Desktop Only */}
+            <div className="hidden lg:block flex-1 max-w-xl mx-4">
               <form onSubmit={handleSearch} className="relative">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search products..."
-                  className="w-full pl-10 pr-12 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:border-violet-400 focus:bg-white focus:outline-none transition-all"
+                  className="w-full pl-10 pr-12 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:border-violet-400 focus:bg-white focus:outline-none transition-all"
                 />
                 <SearchIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 <button
@@ -639,31 +638,41 @@ const Header = () => {
         </div>
       </motion.header>
 
-      {/* Mobile Search Bar - Below Header */}
-      <div className="sm:hidden fixed top-[60px] left-0 right-0 z-40 bg-white border-b border-slate-100 px-3 py-2 shadow-sm">
-        <form onSubmit={handleSearch} className="relative">
+      {/* Mobile/Tablet Search Bar - Positioned below header */}
+      <div className="lg:hidden fixed top-[84px] sm:top-[96px] left-0 right-0 z-40 bg-white border-b border-slate-100 px-3 py-2 shadow-sm">
+        <form onSubmit={handleSearch} className="relative max-w-3xl mx-auto">
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search products..."
-            className="w-full pl-10 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:border-violet-400 focus:outline-none"
+            className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:border-violet-400 focus:bg-white focus:outline-none transition-all"
           />
-          <SearchIcon size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          {searchQuery && (
+          <SearchIcon size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          {searchQuery ? (
             <button
               type="button"
               onClick={() => setSearchQuery("")}
               className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600"
             >
-              <X size={14} />
+              <X size={16} />
+            </button>
+          ) : (
+            <button
+              type="submit"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-violet-500 hover:text-violet-600"
+            >
+              <SearchIcon size={18} />
             </button>
           )}
         </form>
       </div>
 
-      {/* Spacer for fixed header + mobile search */}
-      <div className="h-[105px] sm:h-[72px] lg:h-[120px]" />
+      {/* Spacer for fixed elements */}
+      {/* Mobile: announcement(28) + header(56) + search(60) = 144px */}
+      {/* Tablet: announcement(32) + header(64) + search(60) = 156px */}
+      {/* Desktop: announcement(32) + header(64) + nav(48) = 144px */}
+      <div className="h-[144px] sm:h-[156px] lg:h-[144px]" />
 
       {/* ===================== MOBILE MENU ===================== */}
       <AnimatePresence>
@@ -685,7 +694,7 @@ const Header = () => {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="lg:hidden fixed top-0 left-0 w-[280px] h-full bg-white z-[80] overflow-hidden shadow-2xl flex flex-col"
+              className="lg:hidden fixed top-0 left-0 w-[280px] sm:w-[320px] h-full bg-white z-[80] overflow-hidden shadow-2xl flex flex-col"
             >
               {/* Header with Close Button */}
               <div className="relative p-4 bg-gradient-to-br from-violet-600 to-fuchsia-500 flex-shrink-0">
@@ -705,7 +714,7 @@ const Header = () => {
                     <UserAvatar user={user} size="lg" />
                     <div className="text-white">
                       <p className="font-bold text-sm">{user.name || "User"}</p>
-                      <p className="text-xs text-white/80 truncate w-40">{user.email}</p>
+                      <p className="text-xs text-white/80 truncate w-40 sm:w-48">{user.email}</p>
                     </div>
                   </div>
                 ) : (
@@ -729,7 +738,7 @@ const Header = () => {
                   <QuickAction icon={ShoppingCart} label="Cart" to="/cart" onClick={() => setIsMobileMenuOpen(false)} />
                 </div>
 
-                {/* Categories - COLUMN LAYOUT (As Requested) */}
+                {/* Categories - COLUMN LAYOUT */}
                 {categories.length > 0 && (
                   <div className="p-3">
                     <div className="flex items-center justify-between mb-3">
