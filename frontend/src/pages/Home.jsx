@@ -42,19 +42,21 @@ const Home = () => {
       {/* <Header /> */}
       <CategoryList />
       <BannerProduct />
-      <ColumnProducts category={"speakers"} heading={"Decorated Seasonal Offers"} />
+      <ColumnProducts category={"earphones"} heading={"Decorated Seasonal Offers"} />
 
       <MultiCategoryConveyor categories={categories} />
+      <ColumnProducts category={"camera"} heading={"High contrast visionaries"} />
+
 
       <HorizontalCardProduct category={"airpodes"} heading={"Top Airpods"} />
       <NewArrivals category={"televisions"} heading={"New Arrivals"} />
+
 
       <HorizontalCardProduct category={"watches"} heading={"Popular Watches"} />
 
       <VerticalCardProduct category={"mobiles"} heading={"Mobiles"} />
       <VerticalCardProduct category={"mouse"} heading={"Computer Mouse"} />
       <VerticalCardProduct category={"televisions"} heading={"Televisions (All Sizes Available)"} />
-      <VerticalCardProduct category={"camera"} heading={"Digital Cameras"} />
       <VerticalCardProduct category={"earphones"} heading={"Wired Earphones"} />
       <VerticalCardProduct category={"speakers"} heading={"Bluetooth Speakers"} />
       <VerticalCardProduct category={"refrigerators"} heading={"Refrigerators"} />
