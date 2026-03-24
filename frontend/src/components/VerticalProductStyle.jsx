@@ -1,27 +1,24 @@
-import React, { useState, useEffect, useRef,useContext } from "react";
-import { FaAngleLeft, FaAngleRight, FaStar, FaStarHalfAlt } from "react-icons/fa";
+import React, { useState, useEffect, useContext } from "react";
+import { FaStar, FaStarHalfAlt, FaShoppingCart } from "react-icons/fa";
 import fetchCategoryWiseProducts from "@/helpers/fetchCategoryWiseProducts.js";
 import displayKESCurrency from "@/helpers/displayCurrency.js";
 import addToCart from '@/helpers/addToCart.js'
-import {Context} from '@/context/ProductContext.jsx'
-import {Link} from 'react-router-dom'
-
+import { Context } from '@/context/ProductContext.jsx'
+import { Link } from 'react-router-dom'
 
 const VerticalCardProduct = ({ category, heading }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const railRef = useRef(null);
   
-  const {fetchCountCart} = useContext(Context)
+  const { fetchCountCart } = useContext(Context)
   const skeletons = new Array(6).fill(null);
 
-   
-
-    const handleAddToCart = async(e,id)=>{
-       await addToCart(e,id)
-       fetchCountCart()
-    }
-
+  const handleAddToCart = async (e, id) => {
+    e.preventDefault()
+    e.stopPropagation()
+    await addToCart(e, id)
+    fetchCountCart()
+  }
 
   const fetchData = async () => {
     try {
@@ -37,136 +34,102 @@ const VerticalCardProduct = ({ category, heading }) => {
 
   useEffect(() => {
     fetchData();
-  }, []);
-
-  const scrollLeft = () => {
-    railRef.current.scrollBy({ left: -300, behavior: "smooth" });
-  };
-
-  const scrollRight = () => {
-    railRef.current.scrollBy({ left: 300, behavior: "smooth" });
-  };
+  }, [category]);
 
   return (
-    <section className="container bg-gray-100 mx-auto px-4 my-8 relative">
-      {/* HEADER */}
-      <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-lg font-bold text-darkColor">{heading}</h2>
-        <span className="text-sm text-lightColor hover:text-red-500 cursor-pointer">
-          View all
-        </span>
-      </div>
+    <section className="bg-gray-50 py-4 sm:py-6">
+      <div className="container mx-auto px-2 sm:px-4">
+        {/* Compact Header */}
+        <div className="mb-3 sm:mb-4 flex items-center justify-between">
+          <h2 className="text-sm sm:text-lg font-bold text-slate-800">{heading}</h2>
+          <span className="text-xs sm:text-sm text-slate-500 hover:text-red-600 cursor-pointer font-medium">
+            View all →
+          </span>
+        </div>
 
-      {/* SCROLL BUTTONS */}
-      <button
-        onClick={scrollLeft}
-        className="absolute left-1 top-1/2 -translate-y-1/2 z-10
-        bg-white text-red-500 p-2 rounded-full shadow-lg hover:scale-110"
-      >
-        <FaAngleLeft />
-      </button>
-
-      <button
-        onClick={scrollRight}
-        className="absolute right-1 top-1/2 -translate-y-1/2 z-10
-        bg-white text-red-500 p-2 rounded-full shadow-lg hover:scale-110"
-      >
-        <FaAngleRight />
-      </button>
-
-      {/* PRODUCT RAIL */}
-      <div
-        ref={railRef}
-        className="flex gap-6 overflow-x-scroll scrollbar-none scroll-smooth pb-4"
-      >
-        {/* SKELETON */}
-        {loading &&
-          skeletons.map((_, i) => (
-            <div
-              key={i}
-              className="min-w-[260px] rounded-2xl bg-white border animate-pulse"
-            >
-              <div className="h-[200px] bg-slate-200" />
-              <div className="p-4 space-y-3">
-                <div className="h-4 bg-slate-300 rounded w-4/5" />
-                <div className="h-3 bg-slate-200 rounded w-2/5" />
-                <div className="h-5 bg-slate-300 rounded w-3/5" />
+        {/* Responsive Grid - Small Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
+          
+          {/* Skeleton Loading */}
+          {loading &&
+            skeletons.map((_, i) => (
+              <div
+                key={i}
+                className="bg-white rounded-lg sm:rounded-xl border border-slate-100 overflow-hidden animate-pulse"
+              >
+                <div className="aspect-square bg-slate-200" />
+                <div className="p-2 sm:p-3 space-y-2">
+                  <div className="h-3 bg-slate-300 rounded w-3/4" />
+                  <div className="h-2 bg-slate-200 rounded w-1/2" />
+                  <div className="h-4 bg-slate-300 rounded w-2/3" />
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
 
-        {/* PRODUCTS */}
-        {!loading &&
-          data.map((product) => (
-            <Link to={`product/${product._id}`}
-              key={product._id}
-              className="group min-w-[260px] max-w-[260px]
-              bg-white border  overflow-hidden
-              hover:shadow-xl transition-all relative"
-            >
-              {/* IMAGE */}
-              <div className="relative h-[200px] border border-b-blue-300 flex items-center justify-center">
-                <img
-                  src={product?.productImage?.[0]}
-                  alt={product?.productName}
-                  className="h-44 w-44 object-contain group-hover:scale-110 transition"
-                />
+          {/* Product Cards - Compact */}
+          {!loading &&
+            data.map((product) => (
+              <Link 
+                to={`product/${product._id}`}
+                key={product._id}
+                className="group bg-white border border-slate-100 rounded-lg sm:rounded-xl overflow-hidden hover:shadow-md transition-all duration-300"
+              >
+                {/* Image Container - Square aspect */}
+                <div className="relative aspect-square bg-slate-50 flex items-center justify-center p-2 sm:p-3">
+                  <img
+                    src={product?.productImage?.[0]}
+                    alt={product?.productName}
+                    className="h-full w-full object-contain group-hover:scale-105 transition-transform duration-300"
+                  />
+                  
+                  {/* Premium Badge - Compact */}
+                  <div className="absolute top-1 left-1 sm:top-2 sm:left-2">
+                    <div className="bg-red-500 text-white text-[8px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded">
+                      HOT
+                    </div>
+                  </div>
+                </div>
 
-                {/* 🔥 PREMIUM RIBBON WITH DOUBLE V */}
-                <div className="absolute top-0 left-0">
-                  <div className="relative bg-gray-400 text-white text-[10px] font-bold w-9 py-8">
-                    <span className="rotate-90 inline-block tracking-widest">
-                      PREMIUM
+                {/* Content - Tight padding */}
+                <div className="p-2 sm:p-3 space-y-1 sm:space-y-1.5">
+                  {/* Title - Single line */}
+                  <h3 className="text-[11px] sm:text-sm font-semibold text-slate-800 line-clamp-1 leading-tight">
+                    {product?.productName}
+                  </h3>
+
+                  {/* Category & Rating */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] sm:text-xs text-slate-500 capitalize">
+                      {product?.category}
                     </span>
-                    <div className="absolute -bottom-3 left-0 w-0 h-0 border-r-[14px] border-r-transparent border-t-[12px] border-t-red-600" />
-                    <div className="absolute -bottom-3 right-0 w-0 h-0 border-l-[14px] border-l-transparent border-t-[12px] border-t-red-600" />
+                    <div className="flex items-center gap-0.5">
+                      <FaStar className="text-amber-400 text-[8px] sm:text-[10px]" />
+                      <span className="text-[9px] sm:text-xs text-slate-600">4.5</span>
+                    </div>
                   </div>
-                </div>
-              </div>
 
-              {/* CONTENT */}
-              <div className="p-3 flex flex-col gap-1">
-                <p className="text-sm font-semibold truncate">
-                  {product?.productName}
-                </p>
-
-                <div className="flex justify-between items-center">
-                  <p className="text-xs text-black capitalize">
-                    {product?.category}
-                  </p>
-
-                  <div className="flex items-center gap-1">
-                    {[...Array(4)].map((_, i) => (
-                      <FaStar key={i} className="text-yellow-500 text-xs" />
-                    ))}
-                    <FaStarHalfAlt className="text-yellow-500 text-xs" />
-                    <span className="text-xs font-medium">4.5</span>
+                  {/* Price */}
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <span className="text-xs sm:text-sm font-bold text-red-600">
+                      {displayKESCurrency(product?.selling)}
+                    </span>
+                    <span className="text-[9px] sm:text-xs text-slate-400 line-through hidden sm:inline">
+                      {displayKESCurrency(product?.price)}
+                    </span>
                   </div>
+
+                  {/* Add Button - Icon on mobile, text on desktop */}
+                  <button
+                    onClick={(e) => handleAddToCart(e, product?._id)}
+                    className="w-full mt-1 bg-red-600 hover:bg-red-700 text-white text-[10px] sm:text-xs font-semibold py-1.5 sm:py-2 rounded-md flex items-center justify-center gap-1 transition-colors active:scale-95"
+                  >
+                    <FaShoppingCart size={10} className="sm:w-3 sm:h-3" />
+                    <span className="hidden sm:inline">Add</span>
+                  </button>
                 </div>
-
-                <p className="text-xs text-black line-clamp-1">
-                  {product?.description}
-                </p>
-
-                <div className="flex gap-2 text-sm">
-                  <p className="line-through text-gray-400 font-bold">
-                    {displayKESCurrency(product?.price)}
-                  </p>
-                  <p className="font-bold text-red-600">
-                    {displayKESCurrency(product?.selling)}
-                  </p>
-                </div>
-
-                <button
-                  className="mt-2 mb-3 mx-auto w-1/2 bg-red-600 text-white
-                  text-sm py-1 rounded-full hover:bg-red-500 transition"
-                  onClick={(e)=>handleAddToCart(e,product?._id)}
-                >
-                  Add to Cart
-                </button>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            ))}
+        </div>
       </div>
     </section>
   );

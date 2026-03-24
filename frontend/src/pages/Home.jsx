@@ -50,10 +50,9 @@ const Home = () => {
 
       <HorizontalCardProduct category={"airpodes"} heading={"Top Airpods"} />
       <NewArrivals category={"televisions"} heading={"New Arrivals"} />
-
+      <VerticalProductStyle category={"televisions"} heading={"Latest Best Deals "} />
 
       <HorizontalCardProduct category={"watches"} heading={"Popular Watches"} />
-
       <VerticalCardProduct category={"mobiles"} heading={"Mobiles"} />
       <VerticalCardProduct category={"mouse"} heading={"Computer Mouse"} />
       <VerticalCardProduct category={"televisions"} heading={"Televisions (All Sizes Available)"} />
@@ -62,7 +61,6 @@ const Home = () => {
       <VerticalCardProduct category={"refrigerators"} heading={"Refrigerators"} />
       <VerticalCardProduct category={"trimmers"} heading={"Trimmers"} />
 
-      <VerticalProductStyle category={"televisions"} heading={"Laptops - Best Deals"} />
     </div>
   )
 }
