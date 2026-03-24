@@ -80,9 +80,15 @@ const BannerProduct = () => {
   }
 
   return (
-    <div className="container mx-auto px-4">
+    <div className="container mx-auto px-2 sm:px-3 lg:px-4">
       <div
-        className="group relative h-72 w-full overflow-hidden bg-neutral-100 md:h-[500px]"
+        className="group relative w-full overflow-hidden bg-neutral-100 rounded-lg sm:rounded-xl lg:rounded-2xl
+          h-40           /* Mobile: 160px - thinner */
+          sm:h-48        /* Small devices: 192px */
+          md:h-56        /* Medium devices: 224px - thinner */
+          lg:h-[450px]   /* Large devices: 450px */
+          xl:h-[500px]   /* Extra large: 500px */
+        "
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -100,36 +106,37 @@ const BannerProduct = () => {
                 src={img}
                 alt=""
                 className="h-full w-full object-cover"
+                loading={index === 0 ? "eager" : "lazy"}
               />
             </div>
           ))}
         </div>
 
-        {/* Arrows - Minimal */}
+        {/* Arrows - Smaller on mobile */}
         <button
           onClick={prevImage}
-          className="absolute left-4 top-1/2 -translate-y-1/2 p-3 text-white/70 transition-all duration-300 hover:text-white opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0"
+          className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-2 sm:p-3 text-white/70 transition-all duration-300 hover:text-white opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0"
         >
-          <FaAngleLeft className="text-3xl drop-shadow-lg" />
+          <FaAngleLeft className="text-xl sm:text-2xl lg:text-3xl drop-shadow-lg" />
         </button>
 
         <button
           onClick={nextImage}
-          className="absolute right-4 top-1/2 -translate-y-1/2 p-3 text-white/70 transition-all duration-300 hover:text-white opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0"
+          className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-2 sm:p-3 text-white/70 transition-all duration-300 hover:text-white opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0"
         >
-          <FaAngleRight className="text-3xl drop-shadow-lg" />
+          <FaAngleRight className="text-xl sm:text-2xl lg:text-3xl drop-shadow-lg" />
         </button>
 
-        {/* Progress Line */}
-        <div className="absolute bottom-0 left-0 h-0.5 w-full bg-black/10">
+        {/* Progress Line - Thinner on mobile */}
+        <div className="absolute bottom-0 left-0 h-0.5 sm:h-1 w-full bg-black/10">
           <div
             className="h-full bg-white/90 transition-none"
             style={{ width: `${progress}%` }}
           />
         </div>
 
-        {/* Dots */}
-        <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
+        {/* Dots - Smaller on mobile */}
+        <div className="absolute bottom-2 sm:bottom-4 left-1/2 flex -translate-x-1/2 gap-1.5 sm:gap-2">
           {images.map((_, index) => (
             <button
               key={index}
@@ -137,7 +144,11 @@ const BannerProduct = () => {
                 setCurrentImage(index)
                 setProgress(0)
               }}
-              className={`h-1.5 transition-all duration-300 ${currentImage === index ? 'w-6 bg-white' : 'w-1.5 bg-white/40 hover:bg-white/60'}`}
+              className={`h-1 sm:h-1.5 transition-all duration-300 rounded-full ${
+                currentImage === index 
+                  ? 'w-4 sm:w-6 bg-white' 
+                  : 'w-1 sm:w-1.5 bg-white/40 hover:bg-white/60'
+              }`}
             />
           ))}
         </div>
