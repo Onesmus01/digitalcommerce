@@ -8,6 +8,7 @@ import MultiCategoryConveyor from '@/components/MultiCategoryConveyor.jsx'
 import VerticalProductStyle from '@/components/VerticalProductStyle.jsx'
 import NewArrivals from "@/components/NewArrivals";
 import { Helmet } from 'react-helmet-async';
+import ColumnProducts from '@/components/ColumnProducts.jsx'
 
 const categories = ["televisions", "refrigerators", "watches"];
 
@@ -41,6 +42,7 @@ const Home = () => {
       {/* <Header /> */}
       <CategoryList />
       <BannerProduct />
+      <ColumnProducts category={"speakers"} heading={"Decorated Seasonal Offers"} />
 
       <MultiCategoryConveyor categories={categories} />
 

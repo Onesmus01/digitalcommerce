@@ -372,3 +372,4 @@ const VerticalCardProduct = ({ category, heading }) => {
 };
 
 export default VerticalCardProduct;
+//make the products to be in columns instead of rows now broo...make them small fror small devices now...responsiveness
