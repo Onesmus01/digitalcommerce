@@ -45,7 +45,7 @@ import AdminReportPage from "@/pages/AdminReportPage.jsx";
 import AdminSettingsPage from "@/pages/AdminSettingsPage.jsx"
 
 
-const backendUrl = import.meta.env.VITE_BACKEND_URL;
+const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080/api";
 
 // ------------------- Protected Routes -------------------
 const PrivateRoute = ({ user, children }) => {
