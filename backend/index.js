@@ -50,6 +50,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 
+app.get("/", (req, res) => {
+  res.send("Welcome to the E-commerce API");
+});
+
 // ---------------- API ROUTES ----------------
 app.use("/api/user", userRouter);
 app.use("/api/product", productRouter);
