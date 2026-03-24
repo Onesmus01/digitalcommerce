@@ -20,14 +20,14 @@ import { Link } from 'react-router-dom';
 
 // Colorful Skeleton Loader
 const SkeletonCard = () => (
-  <div className="flex-shrink-0 w-[260px] sm:w-[280px] rounded-2xl bg-white border-2 border-indigo-100 overflow-hidden shadow-lg shadow-indigo-100/50">
-    <div className="h-[200px] bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 animate-pulse" />
-    <div className="p-4 space-y-3">
-      <div className="h-3 bg-indigo-200 rounded w-1/3" />
-      <div className="h-4 bg-indigo-300 rounded w-3/4" />
+  <div className="flex-shrink-0 w-[calc(50%-8px)] sm:w-[200px] md:w-[240px] lg:w-[280px] rounded-xl sm:rounded-2xl bg-white border-2 border-indigo-100 overflow-hidden shadow-lg shadow-indigo-100/50">
+    <div className="h-[140px] sm:h-[180px] md:h-[200px] bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 animate-pulse" />
+    <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+      <div className="h-2 sm:h-3 bg-indigo-200 rounded w-1/3" />
+      <div className="h-3 sm:h-4 bg-indigo-300 rounded w-3/4" />
       <div className="flex justify-between pt-2">
-        <div className="h-5 bg-indigo-200 rounded w-1/3" />
-        <div className="h-8 bg-indigo-100 rounded-full w-8" />
+        <div className="h-4 sm:h-5 bg-indigo-200 rounded w-1/3" />
+        <div className="h-6 sm:h-8 bg-indigo-100 rounded-full w-6 sm:w-8" />
       </div>
     </div>
   </div>
@@ -79,11 +79,11 @@ const ProductCard = ({ product, index, onAddToCart }) => {
       initial={{ opacity: 0, y: 30, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay: index * 0.08, duration: 0.5, type: "spring" }}
-      className="flex-shrink-0 w-[260px] sm:w-[280px] group"
+      className="flex-shrink-0 w-[calc(50%-8px)] sm:w-[200px] md:w-[240px] lg:w-[280px] group"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className={`bg-white rounded-2xl border-2 ${isHovered ? 'border-transparent' : 'border-slate-100'} overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 relative`}>
+      <div className={`bg-white rounded-xl sm:rounded-2xl border-2 ${isHovered ? 'border-transparent' : 'border-slate-100'} overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 relative`}>
         {/* Animated Gradient Border on Hover */}
         <AnimatePresence>
           {isHovered && (
@@ -91,27 +91,27 @@ const ProductCard = ({ product, index, onAddToCart }) => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className={`absolute inset-0 bg-gradient-to-r ${color.primary} rounded-2xl -z-10 blur-sm`} 
+              className={`absolute inset-0 bg-gradient-to-r ${color.primary} rounded-xl sm:rounded-2xl -z-10 blur-sm`} 
             />
           )}
         </AnimatePresence>
 
         {/* Image Container with Gradient Background */}
-        <div className={`relative h-[200px] ${color.bg} overflow-hidden`}>
+        <div className={`relative h-[140px] sm:h-[180px] md:h-[200px] ${color.bg} overflow-hidden`}>
           {/* Animated Background Pattern */}
           <div className="absolute inset-0 opacity-30">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.8)_0%,transparent_50%)]" />
             <motion.div 
               animate={{ rotate: 360 }}
               transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              className="absolute -right-10 -top-10 w-40 h-40 bg-white/20 rounded-full blur-2xl"
+              className="absolute -right-10 -top-10 w-32 sm:w-40 h-32 sm:h-40 bg-white/20 rounded-full blur-2xl"
             />
           </div>
 
           <motion.img
             src={product?.productImage?.[0]}
             alt={product?.productName}
-            className="w-full h-full object-contain p-4 relative z-10 drop-shadow-lg"
+            className="w-full h-full object-contain p-3 sm:p-4 relative z-10 drop-shadow-lg"
             animate={{ 
               scale: isHovered ? 1.1 : 1, 
               rotate: isHovered ? 2 : 0,
@@ -121,13 +121,13 @@ const ProductCard = ({ product, index, onAddToCart }) => {
           />
           
           {/* Floating Badges */}
-          <div className="absolute top-3 left-3 flex flex-col gap-2 z-20">
+          <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col gap-1 sm:gap-2 z-20">
             {discount > 0 && (
               <motion.span 
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
-                className={`bg-gradient-to-r ${color.primary} text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1`}>
-                <FaFire size={10} className="animate-pulse" />
+                className={`bg-gradient-to-r ${color.primary} text-white text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-lg flex items-center gap-1`}>
+                <FaFire size={8} className="sm:w-[10px] sm:h-[10px] animate-pulse" />
                 -{discount}%
               </motion.span>
             )}
@@ -135,8 +135,8 @@ const ProductCard = ({ product, index, onAddToCart }) => {
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.1 }}
-              className="bg-white text-slate-800 text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1 border border-slate-100">
-              <FaBolt size={10} className="text-amber-500" />
+              className="bg-white text-slate-800 text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-lg flex items-center gap-1 border border-slate-100">
+              <FaBolt size={8} className="sm:w-[10px] sm:h-[10px] text-amber-500" />
               NEW
             </motion.span>
           </div>
@@ -147,7 +147,7 @@ const ProductCard = ({ product, index, onAddToCart }) => {
             whileTap={{ scale: 0.8 }}
             onClick={handleWishlistClick}
             disabled={isAddingToWishlist}
-            className={`absolute top-3 right-3 p-2.5 rounded-full shadow-lg transition-all z-20 ${
+            className={`absolute top-2 right-2 sm:top-3 sm:right-3 p-2 sm:p-2.5 rounded-full shadow-lg transition-all z-20 ${
               isLiked 
                 ? 'bg-gradient-to-r from-rose-500 to-pink-600 text-white' 
                 : 'bg-white text-slate-400 hover:text-rose-500'
@@ -162,10 +162,10 @@ const ProductCard = ({ product, index, onAddToCart }) => {
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                 >
-                  <FaHeart size={14} className="opacity-50" />
+                  <FaHeart size={12} className="sm:w-[14px] sm:h-[14px] opacity-50" />
                 </motion.div>
               ) : (
-                <FaHeart size={14} />
+                <FaHeart size={12} className="sm:w-[14px] sm:h-[14px]" />
               )}
             </motion.div>
           </motion.button>
@@ -177,14 +177,14 @@ const ProductCard = ({ product, index, onAddToCart }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className={`absolute inset-0 bg-gradient-to-t ${color.primary} opacity-90 flex items-center justify-center gap-3 z-10`}
+                className={`absolute inset-0 bg-gradient-to-t ${color.primary} opacity-90 flex items-center justify-center gap-2 sm:gap-3 z-10`}
               >
                 <motion.button 
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.1 }}
-                  className="p-3 bg-white rounded-full text-slate-800 shadow-xl hover:scale-110 transition-transform">
-                  <FaEye size={18} />
+                  className="p-2 sm:p-3 bg-white rounded-full text-slate-800 shadow-xl hover:scale-110 transition-transform">
+                  <FaEye size={16} className="sm:w-[18px] sm:h-[18px]" />
                 </motion.button>
               </motion.div>
             )}
@@ -192,33 +192,33 @@ const ProductCard = ({ product, index, onAddToCart }) => {
         </div>
 
         {/* Content with Color Accents */}
-        <div className="p-4 relative">
+        <div className="p-3 sm:p-4 relative">
           {/* Category Tag with Color */}
-          <div className="flex items-center gap-2 mb-2">
-            <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gradient-to-r ${color.primary} text-white`}>
+          <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+            <span className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-gradient-to-r ${color.primary} text-white`}>
               {product?.category}
             </span>
             <div className="flex items-center gap-0.5">
               {[...Array(5)].map((_, i) => (
-                <FaStar key={i} className="text-amber-400 text-[10px]" />
+                <FaStar key={i} className="text-amber-400 text-[8px] sm:text-[10px]" />
               ))}
-              <span className="text-[10px] text-slate-500 ml-1 font-bold">4.9</span>
+              <span className="text-[9px] sm:text-[10px] text-slate-500 ml-0.5 sm:ml-1 font-bold">4.9</span>
             </div>
           </div>
           
           {/* Name with Gradient Hover */}
-          <h3 className={`font-bold text-slate-800 text-sm mb-2 line-clamp-1 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r ${color.primary} transition-all duration-300`}>
+          <h3 className={`font-bold text-slate-800 text-xs sm:text-sm mb-1.5 sm:mb-2 line-clamp-1 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r ${color.primary} transition-all duration-300`}>
             {product?.productName}
           </h3>
 
           {/* Price Section with Color */}
           <div className="flex items-center justify-between">
             <div>
-              <p className={`text-xl font-black bg-gradient-to-r ${color.primary} bg-clip-text text-transparent`}>
+              <p className={`text-base sm:text-xl font-black bg-gradient-to-r ${color.primary} bg-clip-text text-transparent`}>
                 {displayKESCurrency(product?.selling)}
               </p>
               {product?.selling < product?.price && (
-                <p className="text-xs text-slate-400 line-through font-medium">
+                <p className="text-[10px] sm:text-xs text-slate-400 line-through font-medium">
                   {displayKESCurrency(product?.price)}
                 </p>
               )}
@@ -229,8 +229,8 @@ const ProductCard = ({ product, index, onAddToCart }) => {
               whileHover={{ scale: 1.1, rotate: 5 }}
               whileTap={{ scale: 0.9 }}
               onClick={(e) => onAddToCart(e, product?._id)}
-              className={`p-3 bg-gradient-to-r ${color.primary} text-white rounded-xl shadow-lg shadow-${color.accent}-500/30 hover:shadow-xl transition-all`}>
-              <FaShoppingCart size={16} />
+              className={`p-2 sm:p-3 bg-gradient-to-r ${color.primary} text-white rounded-lg sm:rounded-xl shadow-lg shadow-${color.accent}-500/30 hover:shadow-xl transition-all`}>
+              <FaShoppingCart size={14} className="sm:w-[16px] sm:h-[16px]" />
             </motion.button>
           </div>
         </div>
@@ -289,7 +289,7 @@ const NewArrivals = ({ category = "new", heading = "New Arrivals" }) => {
 
   const scroll = (direction) => {
     if (railRef.current) {
-      const scrollAmount = 300;
+      const scrollAmount = 280;
       railRef.current.scrollBy({ 
         left: direction === 'left' ? -scrollAmount : scrollAmount, 
         behavior: 'smooth' 
@@ -298,79 +298,79 @@ const NewArrivals = ({ category = "new", heading = "New Arrivals" }) => {
   };
 
   return (
-    <section className="py-16 bg-gradient-to-b from-indigo-50 via-white to-pink-50 relative overflow-hidden">
+    <section className="py-10 sm:py-16 bg-gradient-to-b from-indigo-50 via-white to-pink-50 relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 pointer-events-none">
         <motion.div 
           animate={{ x: [0, 50, 0], y: [0, 30, 0] }}
           transition={{ duration: 10, repeat: Infinity }}
-          className="absolute top-20 left-10 w-72 h-72 bg-purple-300/30 rounded-full blur-[100px]" 
+          className="absolute top-20 left-10 w-48 sm:w-72 h-48 sm:h-72 bg-purple-300/30 rounded-full blur-[80px] sm:blur-[100px]" 
         />
         <motion.div 
           animate={{ x: [0, -30, 0], y: [0, 50, 0] }}
           transition={{ duration: 15, repeat: Infinity }}
-          className="absolute bottom-20 right-10 w-96 h-96 bg-pink-300/30 rounded-full blur-[100px]" 
+          className="absolute bottom-20 right-10 w-64 sm:w-96 h-64 sm:h-96 bg-pink-300/30 rounded-full blur-[80px] sm:blur-[100px]" 
         />
         <motion.div 
           animate={{ scale: [1, 1.2, 1] }}
           transition={{ duration: 8, repeat: Infinity }}
-          className="absolute top-1/2 left-1/2 w-64 h-64 bg-orange-300/20 rounded-full blur-[80px]" 
+          className="absolute top-1/2 left-1/2 w-48 sm:w-64 h-48 sm:h-64 bg-orange-300/20 rounded-full blur-[60px] sm:blur-[80px]" 
         />
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="container mx-auto px-3 sm:px-6 lg:px-8 relative z-10">
         {/* Colorful Header */}
-        <div className="flex items-end justify-between mb-10">
+        <div className="flex items-end justify-between mb-6 sm:mb-10">
           <div>
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-3 mb-3"
+              className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3"
             >
-              <span className="w-12 h-1 bg-gradient-to-r from-violet-500 to-pink-500 rounded-full" />
+              <span className="w-8 sm:w-12 h-1 bg-gradient-to-r from-violet-500 to-pink-500 rounded-full" />
               <motion.span 
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
-                className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-pink-600 text-xs font-black uppercase tracking-[0.3em]">
+                className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-pink-600 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] sm:tracking-[0.3em]">
                 ✨ Fresh Drops
               </motion.span>
-              <span className="w-12 h-1 bg-gradient-to-l from-violet-500 to-pink-500 rounded-full" />
+              <span className="w-8 sm:w-12 h-1 bg-gradient-to-l from-violet-500 to-pink-500 rounded-full" />
             </motion.div>
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              className="text-4xl sm:text-5xl font-black text-slate-900 leading-tight">
+              className="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-900 leading-tight">
               {heading}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-pink-600 to-orange-500">.</span>
             </motion.h2>
-            <p className="text-slate-500 mt-2 max-w-md">Discover the latest trends with vibrant colors and exclusive deals!</p>
+            <p className="text-slate-500 mt-1 sm:mt-2 max-w-md text-sm sm:text-base">Discover the latest trends with vibrant colors and exclusive deals!</p>
           </div>
 
           {/* Colorful Navigation Buttons */}
-          <div className="flex gap-3">
+          <div className="hidden sm:flex gap-3">
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => scroll('left')}
               disabled={!canScrollLeft}
-              className={`p-4 rounded-full shadow-lg transition-all ${
+              className={`p-3 sm:p-4 rounded-full shadow-lg transition-all ${
                 canScrollLeft 
                   ? 'bg-white text-violet-600 shadow-violet-200 hover:shadow-violet-300 hover:bg-gradient-to-r hover:from-violet-500 hover:to-purple-600 hover:text-white' 
                   : 'bg-slate-100 text-slate-300 cursor-not-allowed'
               }`}>
-              <FaChevronLeft size={18} />
+              <FaChevronLeft size={16} className="sm:w-[18px] sm:h-[18px]" />
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => scroll('right')}
               disabled={!canScrollRight}
-              className={`p-4 rounded-full shadow-lg transition-all ${
+              className={`p-3 sm:p-4 rounded-full shadow-lg transition-all ${
                 canScrollRight 
                   ? 'bg-gradient-to-r from-violet-600 to-pink-600 text-white shadow-pink-200 hover:shadow-pink-300' 
                   : 'bg-slate-100 text-slate-300 cursor-not-allowed'
               }`}>
-              <FaChevronRight size={18} />
+              <FaChevronRight size={16} className="sm:w-[18px] sm:h-[18px]" />
             </motion.button>
           </div>
         </div>
@@ -379,7 +379,7 @@ const NewArrivals = ({ category = "new", heading = "New Arrivals" }) => {
         <div className="relative">
           <div
             ref={railRef}
-            className="flex gap-6 overflow-x-auto scrollbar-hide pb-6 px-1"
+            className="flex gap-3 sm:gap-6 overflow-x-auto scrollbar-hide pb-4 sm:pb-6 px-1"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {loading ? (
@@ -396,28 +396,28 @@ const NewArrivals = ({ category = "new", heading = "New Arrivals" }) => {
                 />
               ))
             ) : (
-              <div className="w-full py-20 text-center">
+              <div className="w-full py-12 sm:py-20 text-center">
                 <motion.div
                   animate={{ rotate: [0, 10, -10, 0] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
-                  <FaBolt className="mx-auto text-5xl text-amber-400 mb-4" />
+                  <FaBolt className="mx-auto text-4xl sm:text-5xl text-amber-400 mb-3 sm:mb-4" />
                 </motion.div>
-                <p className="text-slate-400 font-medium">New arrivals coming soon!</p>
+                <p className="text-slate-400 font-medium text-sm sm:text-base">New arrivals coming soon!</p>
               </div>
             )}
           </div>
 
           {/* Gradient Fade Edges */}
-          <div className="absolute right-0 top-0 bottom-6 w-32 bg-gradient-to-l from-indigo-50 to-transparent pointer-events-none" />
-          <div className="absolute left-0 top-0 bottom-6 w-8 bg-gradient-to-r from-indigo-50 to-transparent pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-4 sm:bottom-6 w-20 sm:w-32 bg-gradient-to-l from-indigo-50 to-transparent pointer-events-none" />
+          <div className="absolute left-0 top-0 bottom-4 sm:bottom-6 w-4 sm:w-8 bg-gradient-to-r from-indigo-50 to-transparent pointer-events-none" />
         </div>
 
         {/* Colorful CTA */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          className="mt-10 text-center">
+          className="mt-6 sm:mt-10 text-center">
           
         </motion.div>
       </div>
