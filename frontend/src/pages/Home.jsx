@@ -17,12 +17,12 @@ const Home = () => {
     <div>
       <Helmet>
         {/* Primary SEO */}
-        <title>Home | Digital Commerce Platform</title>
+        <title>Digital Commerce Platform</title>
         <meta 
           name="description" 
           content="Explore a wide range of products including electronics, appliances, and accessories. Enjoy seamless online shopping with real-time updates." 
         />
-        <link rel="canonical" href="https://localhost:5173" />
+        <link rel="canonical" href="https://digitalcommerce-whua.onrender.com" />
 
         {/* Open Graph (Facebook, Instagram, WhatsApp) */}
         <meta property="og:title" content="Digital Commerce Platform" />

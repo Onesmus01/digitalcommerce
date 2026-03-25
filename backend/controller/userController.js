@@ -42,11 +42,11 @@ export const signIn = async (req, res) => {
     });
 
     res.cookie("token", token, {
-      httpOnly: true,
-      secure: true,      // dev only
-      sameSite: "None",    // 🔥 important
-      maxAge: 2 * 24 * 60 * 60 * 1000,
-    });
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+    maxAge: 2 * 24 * 60 * 60 * 1000,
+  });
 
     return res.status(200).json({
       success: true,
@@ -92,19 +92,21 @@ export const signUp = async (req,res) => {
 
 export const logout = async (req, res) => {
   try {
-    // Clear the cookie named "token"
     res.clearCookie("token", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // optional
-      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
     });
 
-    res.json({ success: true, message: "Logged out successfully", data: [] });
+    res.json({
+      success: true,
+      message: "Logged out successfully",
+      data: [],
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
 export const getAllUsers = async(req,res)=> {
     try {
         const users =await User.find().select("-password")

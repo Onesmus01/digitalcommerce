@@ -115,6 +115,7 @@ const App = () => {
       });
       const data = await res.json();
       if (res.ok) dispatch(setUserDetails(data.data));
+      console.log("Fetched user details:", data.data);
     } catch (err) {
       console.error("Failed to fetch user details:", err.message);
     }

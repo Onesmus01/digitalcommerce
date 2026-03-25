@@ -6,7 +6,7 @@ import { Link, useNavigate } from 'react-router-dom'
 
 export const Context = createContext(null);
 
-let backendUrl = import.meta.env.VITE_BACKEND_URL || "https://digitalcommerce-whua.onrender.com/api"
+let backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080/api"
 
 const ProductContext = ({ children }) => {
   const navigate = useNavigate()

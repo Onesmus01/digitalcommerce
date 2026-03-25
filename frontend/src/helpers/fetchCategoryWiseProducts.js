@@ -1,5 +1,5 @@
 
-let backendUrl = import.meta.env.VITE_BACKEND_URL
+let backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080/api"
 const fetchCategoryWiseProducts = async(category)=> {
     const response = await fetch(`${backendUrl}/product/category-product`,{
         method: "POST",
