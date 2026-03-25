@@ -4,13 +4,13 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
-  root: './frontend', // <-- important if frontend is in a subfolder
+  root: '.', // current folder, since index.html is here
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './frontend/src'),
+      '@': path.resolve(__dirname, './src'),
     },
   },
   build: {
-    outDir: 'dist', // Vite will create frontend/dist
+    outDir: 'dist', // frontend/dist
   },
 });
