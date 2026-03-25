@@ -8,7 +8,7 @@ import { toast } from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import Context from '@/context/index.js'
 
-let backendUrl = import.meta.env.VITE_BACKEND_URL
+let backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080/api"
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false)

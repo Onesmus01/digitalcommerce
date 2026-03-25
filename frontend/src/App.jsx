@@ -107,19 +107,30 @@ const App = () => {
   }, [user]);
 
   // ---------------- FETCH USER DETAILS ----------------
+  // 
   const fetchUserDetails = async () => {
-    try {
-      const res = await fetch(`${backendUrl}/user/user-details`, {
-        method: "GET",
-        credentials: "include",
-      });
-      const data = await res.json();
-      if (res.ok) dispatch(setUserDetails(data.data));
-      console.log("Fetched user details:", data.data);
-    } catch (err) {
-      console.error("Failed to fetch user details:", err.message);
+  try {
+    console.log("Fetching from:", `${backendUrl}/user/user-details`); // Debug URL
+    
+    const res = await fetch(`${backendUrl}/user/user-details`, {
+      method: "GET",
+      credentials: "include",
+    });
+    
+    console.log("Response status:", res.status); // Debug status
+    
+    if (!res.ok) {
+      console.error("Response not OK:", await res.text()); // See error message
+      return;
     }
-  };
+    
+    const data = await res.json();
+    if (data.data) dispatch(setUserDetails(data.data));
+    
+  } catch (err) {
+    console.error("Network error:", err.message);
+  }
+};
 
   useEffect(() => {
     fetchUserDetails();

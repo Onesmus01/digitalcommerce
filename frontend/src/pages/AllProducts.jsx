@@ -6,7 +6,6 @@ import {
   FiTrash2, 
   FiGrid, 
   FiList, 
-  FiUpload, 
   FiSearch,
   FiFilter,
   FiPlus,
@@ -14,7 +13,6 @@ import {
   FiDollarSign,
   FiTag,
   FiLayers,
-  FiMoreVertical,
   FiChevronDown,
   FiTrendingUp,
   FiBox
@@ -75,9 +73,10 @@ const TableRow = ({ product, index, onEdit, onDelete }) => (
     <td className="p-4">
       <div className="relative">
         <img
-          src={product.productImage?.[0]}
+          src={product.productImage?.[0] || '/placeholder.png'}
           alt={product.productName}
           className="w-14 h-14 rounded-xl object-cover shadow-md group-hover:shadow-lg transition-shadow duration-300"
+          onError={(e) => e.target.src = '/placeholder.png'}
         />
         <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center">
           <span className="text-[10px] text-white font-bold">{product.productImage?.length || 1}</span>
@@ -108,8 +107,8 @@ const TableRow = ({ product, index, onEdit, onDelete }) => (
 
     <td className="p-4">
       <div className="flex flex-col">
-        <span className="font-bold text-slate-800">KES {Number(product.price).toLocaleString()}</span>
-        <span className="text-xs text-slate-400 line-through">KES {Number(product.selling).toLocaleString()}</span>
+        <span className="font-bold text-slate-800">KES {Number(product.selling).toLocaleString()}</span>
+        <span className="text-xs text-slate-400 line-through">KES {Number(product.price).toLocaleString()}</span>
       </div>
     </td>
 
@@ -154,7 +153,6 @@ const AllProducts = () => {
   const [viewMode, setViewMode] = useState('card');
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
-
   const [openUploadProduct, setOpenUploadProduct] = useState(false);
   const [openEditProduct, setOpenEditProduct] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -177,7 +175,9 @@ const AllProducts = () => {
     }
   };
 
-  useEffect(() => { fetchAllProducts(); }, []);
+  useEffect(() => { 
+    fetchAllProducts(); 
+  }, []);
 
   // FILTERED PRODUCTS
   const filteredProducts = products.filter(product => {
@@ -197,10 +197,34 @@ const AllProducts = () => {
   };
 
   // DELETE HANDLER
-  const handleDelete = (id) => { 
-    toast.info(`Delete product ${id}`);
-  };
+  const handleDelete = async (productId) => {
+  if (!window.confirm("Do you want to delete this Product?")) {
+    return;
+  }
 
+  try {
+    const response = await fetch(`${backendUrl}/product/delete-product/${productId}`, {
+      method: "DELETE",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json"
+      }
+      // Remove body, or keep empty - DELETE requests usually don't have bodies
+    });
+
+    const responseData = await response.json();
+    
+    if (response.ok) {
+      setProducts(prev => prev.filter(p => p._id !== productId));
+      toast.success(responseData.message || "Product deleted successfully"); // Note: backend sends 'message', not 'success'
+    } else {
+      toast.error(responseData.message || "Failed to delete product"); // Note: backend sends 'message'
+    }
+  } catch (error) {
+    console.error("Delete error:", error);
+    toast.error("Network error while deleting");
+  }
+};
   // STATS
   const totalProducts = products.length;
   const totalValue = products.reduce((sum, p) => sum + (Number(p.price) || 0), 0);
@@ -208,7 +232,6 @@ const AllProducts = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 p-4 sm:p-6">
-
       {/* HEADER SECTION */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
