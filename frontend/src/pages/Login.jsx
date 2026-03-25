@@ -32,39 +32,65 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
   e.preventDefault();
+
   try {
-    const response = await fetch(`${backendUrl}/user/signin`, {
+    // 1️⃣ Send login request
+    const res = await fetch(`${backendUrl}/user/signin`, {
       method: "POST",
-      credentials: "include", // For cookie (localhost)
-      headers: {
-        "Content-Type": "application/json"
-      },
+      credentials: "include", // allows cookies from backend
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         email: data.email,
-        password: data.password
-      })
+        password: data.password,
+      }),
     });
 
-    const responseData = await response.json();
-    
-    if (response.ok) {
-      // Store token in localStorage for production (header method)
-      if (responseData.token) {
-        localStorage.setItem('token', responseData.token);
-      }
-      
-      toast.success(responseData.message || "Login success");
-      navigate('/');
-      fetchUserDetails();  // Will try cookie first, fallback to header
-      fetchCountCart();
-    } else {
-      toast.error(responseData.message || "Login Failed");
+    const responseData = await res.json();
+    console.log("Login response:", responseData);
+
+    if (!res.ok) {
+      toast.error(responseData.message || "Login failed!");
+      return;
     }
+
+    // 2️⃣ Save token if backend returns it
+    if (responseData.token) {
+      localStorage.setItem("token", responseData.token);
+      console.log("✅ Token saved to localStorage");
+    } else {
+      console.warn("⚠️ No token received from backend");
+    }
+
+    toast.success(responseData.message || "Login successful!");
+
+    // 3️⃣ Fetch user details with token & cookies
+    const token = localStorage.getItem("token");
+    if (token) {
+      const userRes = await fetch(`${backendUrl}/user/user-details`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const userData = await userRes.json();
+      console.log("User details:", userData);
+
+      // You can dispatch/set user details in context here
+      if (userData.data) {
+        fetchUserDetails(); // or your context dispatch
+      }
+    }
+
+    // 4️⃣ Navigate to home after login
+    navigate("/");
+
   } catch (error) {
-    toast.error(error.message || "something went wrong");
+    console.error("Login error:", error);
+    toast.error(error.message || "Something went wrong!");
   }
 };
-
   return (
     <section 
       id='login' 

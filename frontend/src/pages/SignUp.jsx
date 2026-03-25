@@ -53,7 +53,8 @@ const SignUp = () => {
         method: "POST",
         credentials: "include",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('token') || ''}` // Include token if available
         },
         body: JSON.stringify({
           name: data.name,

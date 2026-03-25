@@ -108,36 +108,38 @@ const App = () => {
 
   // ---------------- FETCH USER DETAILS ----------------
   // 
-  const fetchUserDetails = async () => {
+const fetchUserDetails = async () => {
   try {
+    const token = localStorage.getItem("token") || ""; // always a string
+
     console.log("Fetching from:", `${backendUrl}/user/user-details`);
-    
-    const token = localStorage.getItem('token'); // Get token from localStorage
-    
+    console.log("Sending token:", token);
+
     const res = await fetch(`${backendUrl}/user/user-details`, {
       method: "GET",
-      credentials: "include",
+      credentials: "include", // send cookies
       headers: {
         "Content-Type": "application/json",
-        ...(token && { "Authorization": `Bearer ${token}` }) // Add Bearer token if exists
-      }
+        Authorization: `Bearer ${token}`, // always present
+      },
     });
-    
+
     console.log("Response status:", res.status);
-    
+
     if (!res.ok) {
-      console.error("Response not OK:", await res.text());
+      const errText = await res.text();
+      console.error("Response not OK:", errText);
       return;
     }
-    
+
     const data = await res.json();
     if (data.data) dispatch(setUserDetails(data.data));
-    
+    console.log("User details fetched:", data.data);
+
   } catch (err) {
     console.error("Network error:", err.message);
   }
 };
-
 useEffect(() => {
   fetchUserDetails();
 }, []);
