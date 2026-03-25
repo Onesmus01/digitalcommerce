@@ -338,29 +338,34 @@ export default function MyOrdersPage() {
   }, []);
 
   const fetchOrders = async () => {
-    try {
-      setLoading(true);
-      setError("");
+  try {
+    setLoading(true);
+    setError("");
 
-      const res = await fetch(`${backendUrl}/order/my-orders`, {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+    const token = localStorage.getItem('token'); // Get token first
+    
+    const res = await fetch(`${backendUrl}/order/my-orders`, {
+      method: "GET",
+      credentials: "include", // Cookie fallback
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }) // Only add if token exists
+      },
+    });
 
-      if (!res.ok) throw new Error("Failed to fetch orders");
-
-      const data = await res.json();
-      setOrders(data.orders || []);
-    } catch (err) {
-      setError(err.message || "Something went wrong");
-    } finally {
-      setLoading(false);
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || "Failed to fetch orders");
     }
-  };
+
+    const data = await res.json();
+    setOrders(data.orders || []);
+  } catch (err) {
+    setError(err.message || "Something went wrong");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const cancelOrder = async (id) => {
     try {

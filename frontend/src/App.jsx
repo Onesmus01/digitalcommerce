@@ -110,17 +110,23 @@ const App = () => {
   // 
   const fetchUserDetails = async () => {
   try {
-    console.log("Fetching from:", `${backendUrl}/user/user-details`); // Debug URL
+    console.log("Fetching from:", `${backendUrl}/user/user-details`);
+    
+    const token = localStorage.getItem('token'); // Get token from localStorage
     
     const res = await fetch(`${backendUrl}/user/user-details`, {
       method: "GET",
       credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { "Authorization": `Bearer ${token}` }) // Add Bearer token if exists
+      }
     });
     
-    console.log("Response status:", res.status); // Debug status
+    console.log("Response status:", res.status);
     
     if (!res.ok) {
-      console.error("Response not OK:", await res.text()); // See error message
+      console.error("Response not OK:", await res.text());
       return;
     }
     
@@ -132,10 +138,9 @@ const App = () => {
   }
 };
 
-  useEffect(() => {
-    fetchUserDetails();
-  }, []);
-
+useEffect(() => {
+  fetchUserDetails();
+}, []);
   // ---------------- SOCKET.IO CONNECTION ----------------
   useEffect(() => {
     if (!user?._id) {

@@ -31,33 +31,39 @@ const Login = () => {
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    try {
-      const response = await fetch(`${backendUrl}/user/signin`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          email: data.email,
-          password: data.password
-        })
+  e.preventDefault();
+  try {
+    const response = await fetch(`${backendUrl}/user/signin`, {
+      method: "POST",
+      credentials: "include", // For cookie (localhost)
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email: data.email,
+        password: data.password
       })
+    });
 
-      const responseData = await response.json()
-      if (response.ok) {
-        toast.success(responseData.message || "Login success")
-        navigate('/')
-        fetchUserDetails()
-        fetchCountCart()
-      } else {
-        toast.error(responseData.message || "Login Failed")
+    const responseData = await response.json();
+    
+    if (response.ok) {
+      // Store token in localStorage for production (header method)
+      if (responseData.token) {
+        localStorage.setItem('token', responseData.token);
       }
-    } catch (error) {
-      toast.error(error.message || "something went wrong")
+      
+      toast.success(responseData.message || "Login success");
+      navigate('/');
+      fetchUserDetails();  // Will try cookie first, fallback to header
+      fetchCountCart();
+    } else {
+      toast.error(responseData.message || "Login Failed");
     }
+  } catch (error) {
+    toast.error(error.message || "something went wrong");
   }
+};
 
   return (
     <section 
