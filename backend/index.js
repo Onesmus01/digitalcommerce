@@ -35,7 +35,6 @@ const server = http.createServer(app);
 
 // ---------------- CORS ----------------
 const allowedOrigins = [
-  "http://localhost:5173",
   "https://digitalcommerce-whua.onrender.com"
 ];
 
@@ -50,7 +49,7 @@ app.use(cors({
     }
   },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "DELETE","PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
 
@@ -78,7 +77,6 @@ app.use("/api/hot-deals", hotDealRouter);
 app.use("/api/revenue", revenueRouter);
 app.use("/api/reports", reportsRouter);
 app.use("/api/settings", settingsRouter);
-
 
 
 // ---------------- SOCKET.IO ----------------
