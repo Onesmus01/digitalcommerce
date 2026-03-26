@@ -82,7 +82,7 @@ const BannerProduct = () => {
   return (
     <div className="container mx-auto px-2 sm:px-3 lg:px-4">
       <div
-        className="group relative w-full overflow-hidden bg-neutral-100 
+        className="group relative w-full overflow-hidden bg-neutral-100 rounded-lg sm:rounded-xl lg:rounded-2xl
           h-40           /* Mobile: 160px - thinner */
           sm:h-48        /* Small devices: 192px */
           md:h-56        /* Medium devices: 224px - thinner */
