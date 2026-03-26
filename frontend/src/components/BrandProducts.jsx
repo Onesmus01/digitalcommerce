@@ -15,12 +15,12 @@ const brands = [
 
 const BrandProducts = () => {
   return (
-    <section className="container mx-auto px-2 rounded-lg sm:px-3 lg:px-4 sm:py-4 bg-gradient-to-br from-slate-900 via-slate-800 to-black">
+    <section className="w-full py-4 sm:py-6 ">
       {/* Container with padding like BannerProduct */}
-      <div className="container w-full mx-auto px-2 sm:px-3 lg:px-4">
+      <div className="container mx-auto px-2 sm:px-3 lg:px-4">
         
         {/* Inner container with rounded corners like banner */}
-        <div className="bg-slate-800/50 backdrop-blur-sm rounded-lg sm:rounded-xl lg:rounded-2xl p-3 sm:p-4 lg:p-6 border border-slate-700/50">
+        <div className=" bg-gradient-to-br from-slate-900 via-slate-800 to-black backdrop-blur-sm rounded-lg sm:rounded-xl lg:rounded-2xl p-3 sm:p-4 lg:p-6 border border-slate-700/50">
           
           {/* Compact Header */}
           <motion.div
