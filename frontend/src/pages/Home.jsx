@@ -9,7 +9,7 @@ import VerticalProductStyle from '@/components/VerticalProductStyle.jsx'
 import NewArrivals from "@/components/NewArrivals";
 import { Helmet } from 'react-helmet-async';
 import ColumnProducts from '@/components/ColumnProducts.jsx'
-
+import BrandProducts from '@/components/BrandProducts.jsx'
 const categories = ["televisions", "refrigerators", "watches"];
 
 const Home = () => {
@@ -42,6 +42,7 @@ const Home = () => {
       {/* <Header /> */}
       <CategoryList />
       <BannerProduct />
+      <BrandProducts />
       <ColumnProducts category={"earphones"} heading={"Decorated Seasonal Offers"} />
 
       <MultiCategoryConveyor categories={categories} />
