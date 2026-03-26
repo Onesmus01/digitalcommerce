@@ -117,10 +117,11 @@ const ProductContext = ({ children }) => {
   }
 
   useEffect(() => {
-    if (user?._id) {
-      fetchCountCart();
-    }
-  }, [user])
+  const token = localStorage.getItem("token");
+  if (user?._id && token) {
+    fetchCountCart();
+  }
+}, [user?._id]);
 
   // ✅ FIXED: AddWishlist is now a regular async function
   const AddWishlist = useCallback(async (productId) => {
