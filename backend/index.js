@@ -5,10 +5,8 @@ import http from "http";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
 import cookie from "cookie";
-
 import connectDb from "./config/db.js";
 import { initSocket } from "./soket.js";
-
 import userRouter from "./routes/userRoute.js";
 import productRouter from "./routes/productRoutes.js";
 import orderRouter from "./routes/orderRoutes.js";
@@ -27,15 +25,15 @@ dotenv.config();
 // ---------------- DATABASE ----------------
 connectDb();
 
-
 // ---------------- EXPRESS APP ----------------
 const app = express();
 const server = http.createServer(app);
 
-
 // ---------------- CORS ----------------
 const allowedOrigins = [
-  "https://digitalcommerce-whua.onrender.com"
+  "https://digitalcommerce-whua.onrender.com",
+  "http://localhost:5173",
+
 ];
 
 app.use(cors({
@@ -58,7 +56,6 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-
 
 app.get("/", (req, res) => {
   res.send("Welcome to the E-commerce API");
