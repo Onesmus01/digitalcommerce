@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import fetchCategoryWiseProducts from "@/helpers/fetchCategoryWiseProducts.js";
 import displayKESCurrency from "@/helpers/displayCurrency.js";
 import addToCart from '@/helpers/addToCart.js';
-import { Context } from '@/context/ProductContext.jsx';
+import Context from "@/context/index.js";
 import { Link } from "react-router-dom";
 
 const MultiCategoryConveyor = ({ 

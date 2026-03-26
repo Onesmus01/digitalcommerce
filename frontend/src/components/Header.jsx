@@ -190,7 +190,7 @@ const NotificationBell = ({ user }) => {
       const res = await fetch(`${backendUrl}/order/user-notifications`, {
         method: 'GET',
         credentials: 'include',
-        headers: getAuthHeaders(), // 🔥 Added auth headers
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
       if (data.success) {
@@ -207,7 +207,7 @@ const NotificationBell = ({ user }) => {
       await fetch(`${backendUrl}/order/notifications/${notificationId}/read`, { 
         method: 'PUT',
         credentials: 'include',
-        headers: getAuthHeaders(), // 🔥 Added auth headers
+        headers: getAuthHeaders(),
       });
       setNotifications(prev => prev.map(n => n._id === notificationId ? { ...n, read: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
@@ -221,7 +221,7 @@ const NotificationBell = ({ user }) => {
       await fetch(`${backendUrl}/order/notifications/${user._id}/read-all`, { 
         method: 'PUT',
         credentials: 'include',
-        headers: getAuthHeaders(), // 🔥 Added auth headers
+        headers: getAuthHeaders(),
       });
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
@@ -397,6 +397,10 @@ const Header = () => {
   const userMenuRef = useRef();
   const mobileMenuRef = useRef();
 
+  // 🔥 DEBUG: Check cart count on every render
+  console.log("🔥 Header render - cartProductCount:", context?.cartProductCount);
+  console.log("🔥 Header render - user._id:", user?._id);
+
   // Fetch Categories
   const fetchCategories = async () => {
     try {
@@ -404,7 +408,7 @@ const Header = () => {
       const response = await fetch(`${backendUrl}/product/get-product-category`, {
         method: 'GET',
         credentials: 'include',
-        headers: getAuthHeaders(), // 🔥 Added auth headers
+        headers: getAuthHeaders(),
       });
       const responseData = await response.json();
       if (responseData.success) {
@@ -464,11 +468,11 @@ const Header = () => {
       const res = await fetch(`${backendUrl}/user/logout`, {
         method: "POST",
         credentials: "include",
-        headers: getAuthHeaders(), // 🔥 Using helper for auth headers
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
       if (res.ok) {
-        localStorage.removeItem("token"); // 🔥 Clear token on logout
+        localStorage.removeItem("token");
         dispatch(setUserDetails(null));
         toast.success(data.message || "Logged out successfully");
         navigate("/login");
@@ -577,7 +581,8 @@ const Header = () => {
                 className="relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-violet-50 text-violet-600 hover:bg-violet-100 transition-colors"
               >
                 <ShoppingCart size={18} />
-                {user?._id && context.cartProductCount > 0 && (
+                {/* 🔥 FIXED: Removed user?._id check, only check cart count */}
+                {context?.cartProductCount > 0 && (
                   <CartBadge count={context.cartProductCount} />
                 )}
               </motion.button>
@@ -691,9 +696,6 @@ const Header = () => {
       </div>
 
       {/* Spacer for fixed elements */}
-      {/* Mobile: announcement(28) + header(56) + search(60) = 144px */}
-      {/* Tablet: announcement(32) + header(64) + search(60) = 156px */}
-      {/* Desktop: announcement(32) + header(64) + nav(48) = 144px */}
       <div className="h-[144px] sm:h-[156px] lg:h-[144px]" />
 
       {/* ===================== MOBILE MENU ===================== */}
@@ -992,4 +994,4 @@ const MobileNavLink = ({ to, icon: Icon, label, onClick, badge, highlight }) => 
   );
 };
 
-export default Header;
+export default Header

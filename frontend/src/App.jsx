@@ -81,26 +81,39 @@ const App = () => {
 
   // ---------------- FETCH CART COUNT ----------------
   const fetchCountCart = async () => {
-    if (!user?._id) return;
-    try {
-      setLoading(true);
-      const response = await fetch(`${backendUrl}/user/count-cart-products`, {
-        method: "GET",
-        credentials: "include",
-      });
-      const responseData = await response.json();
-      if (response.ok) {
-        setCartProductCount(responseData.data || 0);
-      } else {
-        toast.error(responseData.message);
-      }
-    } catch (error) {
-      toast.error(error.message || "Something went wrong");
+  if (!user?._id) return;
+  
+  const token = localStorage.getItem("token");
+  if (!token) {
+    setCartProductCount(0);
+    return;
+  }
+  
+  try {
+    setLoading(true);
+    const response = await fetch(`${backendUrl}/user/count-cart-products`, {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,  // 🔥 ADD THIS LINE
+      },
+    });
+    
+    const responseData = await response.json();
+    
+    if (response.ok) {
+      setCartProductCount(responseData.data || 0);
+      console.log("✅ Cart count fetched:", responseData.data);
+    } else {
       setCartProductCount(0);
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (error) {
+    setCartProductCount(0);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchCountCart();
