@@ -21,7 +21,7 @@ const Cart = () => {
   const [isUpdating, setIsUpdating] = useState(null);
   const navigate = useNavigate();
 
-  const { backendUrl, fetchUserAddToCart } = useContext(Context);
+  const { backendUrl, fetchUserAddToCart,getAuthHeaders } = useContext(Context);
 
   /* ================= FETCH CART ================= */
   const fetchData = async () => {
@@ -32,7 +32,7 @@ const Cart = () => {
         {
           method: "GET",
           credentials: "include",
-          headers: { "content-type": "application/json" },
+          headers: getAuthHeaders() // 🔥 Use auth headers from context,
         }
       );
 
@@ -60,7 +60,7 @@ const Cart = () => {
         {
           method: "POST",
           credentials: "include",
-          headers: { "content-type": "application/json" },
+          headers: getAuthHeaders(),
           body: JSON.stringify({ _id, quantity }),
         }
       );
@@ -90,7 +90,7 @@ const Cart = () => {
         {
           method: "POST",
           credentials: "include",
-          headers: { "content-type": "application/json" },
+          headers: getAuthHeaders(),
           body: JSON.stringify({ _id }),
         }
       );

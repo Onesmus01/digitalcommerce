@@ -43,6 +43,15 @@ import { formatDistanceToNow } from "date-fns";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080/api";
 
+// 🔥 HELPER: Get auth headers with token
+const getAuthHeaders = () => {
+  const token = localStorage.getItem("token");
+  return {
+    "Content-Type": "application/json",
+    ...(token && { Authorization: `Bearer ${token}` }),
+  };
+};
+
 // Sound Effect
 const playNotificationSound = (type) => {
   const sounds = {
@@ -50,7 +59,7 @@ const playNotificationSound = (type) => {
     order_update: 'https://assets.mixkit.co/active_storage/sfx/2868/2868-preview.mp3',
     default: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'
   };
-  
+
   const audio = new Audio(sounds[type] || sounds.default);
   audio.volume = 0.4;
   audio.play().catch(err => console.log('Audio play failed:', err));
@@ -180,7 +189,8 @@ const NotificationBell = ({ user }) => {
     try {
       const res = await fetch(`${backendUrl}/order/user-notifications`, {
         method: 'GET',
-        credentials: 'include'
+        credentials: 'include',
+        headers: getAuthHeaders(), // 🔥 Added auth headers
       });
       const data = await res.json();
       if (data.success) {
@@ -194,7 +204,11 @@ const NotificationBell = ({ user }) => {
 
   const markAsRead = async (notificationId) => {
     try {
-      await fetch(`${backendUrl}/order/notifications/${notificationId}/read`, { method: 'PUT' });
+      await fetch(`${backendUrl}/order/notifications/${notificationId}/read`, { 
+        method: 'PUT',
+        credentials: 'include',
+        headers: getAuthHeaders(), // 🔥 Added auth headers
+      });
       setNotifications(prev => prev.map(n => n._id === notificationId ? { ...n, read: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
@@ -204,7 +218,11 @@ const NotificationBell = ({ user }) => {
 
   const markAllAsRead = async () => {
     try {
-      await fetch(`${backendUrl}/order/notifications/${user._id}/read-all`, { method: 'PUT' });
+      await fetch(`${backendUrl}/order/notifications/${user._id}/read-all`, { 
+        method: 'PUT',
+        credentials: 'include',
+        headers: getAuthHeaders(), // 🔥 Added auth headers
+      });
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
     } catch (error) {
@@ -372,10 +390,10 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  
+
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
-  
+
   const userMenuRef = useRef();
   const mobileMenuRef = useRef();
 
@@ -386,6 +404,7 @@ const Header = () => {
       const response = await fetch(`${backendUrl}/product/get-product-category`, {
         method: 'GET',
         credentials: 'include',
+        headers: getAuthHeaders(), // 🔥 Added auth headers
       });
       const responseData = await response.json();
       if (responseData.success) {
@@ -438,19 +457,18 @@ const Header = () => {
       setSearchQuery("");
     }
   };
+
   const handleLogout = async () => {
     try {
-      const token = localStorage.getItem("token");  // ✅ Fresh token every time
+      const token = localStorage.getItem("token");
       const res = await fetch(`${backendUrl}/user/logout`, {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),  // ✅ Only if token exists
-        },
+        headers: getAuthHeaders(), // 🔥 Using helper for auth headers
       });
       const data = await res.json();
       if (res.ok) {
+        localStorage.removeItem("token"); // 🔥 Clear token on logout
         dispatch(setUserDetails(null));
         toast.success(data.message || "Logged out successfully");
         navigate("/login");
@@ -500,7 +518,7 @@ const Header = () => {
       >
         <div className="container mx-auto px-3 sm:px-4">
           <div className="flex items-center justify-between h-14 sm:h-16 gap-2">
-            
+
             {/* Left: Menu & Logo */}
             <div className="flex items-center gap-2 sm:gap-3">
               <motion.button
@@ -690,7 +708,7 @@ const Header = () => {
               onClick={() => setIsMobileMenuOpen(false)}
               className="mobile-overlay lg:hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[70]"
             />
-            
+
             {/* Menu Panel */}
             <motion.div
               ref={mobileMenuRef}
@@ -712,7 +730,7 @@ const Header = () => {
                     <X size={20} />
                   </motion.button>
                 </div>
-                
+
                 {user?._id ? (
                   <div className="flex items-center gap-3">
                     <UserAvatar user={user} size="lg" />
@@ -749,7 +767,7 @@ const Header = () => {
                       <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Categories</h3>
                       <span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded-full text-slate-500">{categories.length}</span>
                     </div>
-                    
+
                     {/* 2 Column Grid Layout */}
                     <div className="grid grid-cols-2 gap-2">
                       {categories.map((cat, idx) => (
@@ -773,7 +791,7 @@ const Header = () => {
                         </Link>
                       ))}
                     </div>
-                    
+
                     <Link
                       to="/categories"
                       onClick={() => setIsMobileMenuOpen(false)}
@@ -795,7 +813,7 @@ const Header = () => {
                       <MobileNavLink to="/manage-account" icon={Settings} label="Settings" onClick={() => setIsMobileMenuOpen(false)} />
                     </>
                   )}
-                  
+
                   {user?.role === "ADMIN" && (
                     <MobileNavLink to="/admin-panel" icon={Sparkles} label="Admin Panel" highlight onClick={() => setIsMobileMenuOpen(false)} />
                   )}

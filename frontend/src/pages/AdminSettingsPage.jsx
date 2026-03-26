@@ -821,7 +821,7 @@ const BackupSettings = ({ settings, updateSettings, handleBackup, handleClearCac
 // ===================== MAIN PAGE =====================
 
 const AdminSettingsPage = () => {
-  const { backendUrl } = useContext(Context);
+  const { backendUrl, getAuthHeaders } = useContext(Context);
   const [activeTab, setActiveTab] = useState('general');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -847,10 +847,7 @@ const AdminSettingsPage = () => {
       const token = document.cookie.split('token=')[1]?.split(';')[0];
       const response = await fetch(`${backendUrl}/settings`, {
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        }
+        headers: getAuthHeaders()
       });
 
       if (response.ok) {
@@ -893,10 +890,7 @@ const AdminSettingsPage = () => {
       const response = await fetch(`${backendUrl}/settings`, {
         method: 'PUT',
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(sectionData)
       });
       
@@ -938,9 +932,7 @@ const AdminSettingsPage = () => {
       const response = await fetch(`${backendUrl}/settings/upload`, {
         method: 'POST',
         credentials: 'include',
-        headers: {
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
+        headers: getAuthHeaders(),
         body: formData
       });
 
@@ -969,10 +961,7 @@ const AdminSettingsPage = () => {
       const response = await fetch(`${backendUrl}/settings/change-password`, {
         method: 'POST',
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ currentPassword, newPassword })
       });
 
@@ -1002,9 +991,7 @@ const AdminSettingsPage = () => {
       const token = document.cookie.split('token=')[1]?.split(';')[0];
       const response = await fetch(`${backendUrl}/settings/backup?type=${type}`, {
         credentials: 'include',
-        headers: {
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        }
+          headers: getAuthHeaders()
       });
 
       if (response.ok) {
@@ -1041,10 +1028,7 @@ const AdminSettingsPage = () => {
       const response = await fetch(`${backendUrl}/settings/clear-cache`, {
         method: 'POST',
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
+          headers:getAuthHeaders(),
         body: JSON.stringify({ type })
       });
 
@@ -1072,10 +1056,7 @@ const AdminSettingsPage = () => {
       const response = await fetch(`${backendUrl}/settings/test-notification`, {
         method: 'POST',
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
+          headers: getAuthHeaders(),
         body: JSON.stringify({ type })
       });
 

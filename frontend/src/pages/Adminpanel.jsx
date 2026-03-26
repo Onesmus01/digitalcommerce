@@ -29,7 +29,7 @@ const socketUrl = import.meta.env.VITE_SOCKET_URL || "http://localhost:8080";
 
 export default function AdminPanel() {
   const location = useLocation();
-  const { backendUrl, setUserDetails } = useContext(Context);
+  const { backendUrl, setUserDetails, getAuthHeaders } = useContext(Context);
 
   const socketRef = useRef(null);
   const reconnectAttempts = useRef(0);
@@ -68,6 +68,7 @@ export default function AdminPanel() {
       const res = await fetch(`${backendUrl}/user/user-details`, {
         method: "GET",
         credentials: "include",
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
@@ -86,6 +87,7 @@ export default function AdminPanel() {
     try {
       const res = await fetch(`${backendUrl}/order/notifications`, {
         credentials: "include",
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
@@ -288,6 +290,7 @@ export default function AdminPanel() {
         await fetch(`${backendUrl}/order/notifications/read`, {
           method: "PUT",
           credentials: "include",
+          headers: getAuthHeaders(),
         });
         setUnreadCount(0);
         setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));

@@ -26,7 +26,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function AdminDashboardOrders() {
-  const { backendUrl } = useContext(Context);
+  const { backendUrl, getAuthHeaders } = useContext(Context);
   const [orders, setOrders] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,7 +38,12 @@ export default function AdminDashboardOrders() {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${backendUrl}/order/all-orders`, { credentials: "include" });
+      const res = await fetch(`${backendUrl}/order/all-orders`, { 
+        credentials: "include",
+        headers: getAuthHeaders(),
+       },
+        
+      );
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to fetch orders");
       setOrders(data.orders || []);
@@ -53,7 +58,10 @@ export default function AdminDashboardOrders() {
   // Fetch users
   const fetchUsers = async () => {
     try {
-      const res = await fetch(`${backendUrl}/user/total-users`, { credentials: "include" });
+      const res = await fetch(`${backendUrl}/user/total-users`, { 
+        credentials: "include",
+        headers: getAuthHeaders()
+       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to fetch users");
       setUsers(data.data || []);
@@ -131,7 +139,7 @@ export default function AdminDashboardOrders() {
     try {
       const res = await fetch(`${backendUrl}/order/update-status/${orderId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         credentials: "include",
         body: JSON.stringify({ status: newStatus }),
       });

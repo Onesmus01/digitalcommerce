@@ -7,13 +7,14 @@ import { Link } from "react-router-dom";
 
 const TrendingProducts = () => {
   const [products, setProducts] = useState([]);
-  const { backendUrl } = useContext(Context);
+  const { backendUrl, getAuthHeaders } = useContext(Context);
 
   const getTrendingProducts = async () => {
     try {
       const res = await fetch(`${backendUrl}/wishlist/most-loved`,{
         method: 'GET',
-        credentials: "include"
+        credentials: "include",
+        headers: getAuthHeaders()
       });
       const data = await res.json();
       if (data.success) {

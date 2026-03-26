@@ -93,7 +93,7 @@ const BroadcastItem = ({ broadcast, index }) => (
 );
 
 const PromotionDashboard = () => {
-  const { toast, backendUrl } = useContext(Context);
+  const { toast, backendUrl, getAuthHeaders } = useContext(Context);
   
   // Promotion Settings State
   const [promoEnabled, setPromoEnabled] = useState(true);
@@ -131,7 +131,8 @@ const PromotionDashboard = () => {
   const fetchStats = async () => {
     try {
       const res = await fetch(`${backendUrl}/subscribe/stats`, {
-        credentials: 'include'
+        credentials: 'include',
+        headers: getAuthHeaders()
       });
       const data = await res.json();
       if (data.success) {
@@ -184,7 +185,7 @@ const PromotionDashboard = () => {
       const res = await fetch(`${backendUrl}/subscribe/broadcast`, {
         method: 'POST',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(formData)
       });
 

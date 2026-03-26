@@ -31,7 +31,7 @@ import displayKESCurrency from "@/helpers/displayCurrency.js";
 // GET    /api/products/search        - Search products
 
 const AdminHotDeals = () => {
-  const { backendUrl, toast } = useContext(Context);
+  const { backendUrl, toast, getAuthHeaders } = useContext(Context);
   const navigate = useNavigate();
   
   // ===================== STATE =====================
@@ -57,7 +57,8 @@ const AdminHotDeals = () => {
     try {
       setLoading(true);
       const res = await fetch(`${backendUrl}/hot-deals`, {
-        credentials: 'include'
+        credentials: 'include',
+        headers: getAuthHeaders()
       });
       const data = await res.json();
       if (data.success) {
@@ -81,7 +82,8 @@ const AdminHotDeals = () => {
     try {
       setIsSearching(true);
       const res = await fetch(`${backendUrl}/product/search?q=${encodeURIComponent(query)}`, {
-        credentials: 'include'
+        credentials: 'include',
+        headers: getAuthHeaders()
       });
       const data = await res.json();
       if (data.success) {
@@ -132,8 +134,8 @@ const AdminHotDeals = () => {
 
       const res = await fetch(`${backendUrl}/hot-deals`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
+        headers: getAuthHeaders(),
         body: JSON.stringify(dealData)
       });
 
@@ -164,7 +166,7 @@ const AdminHotDeals = () => {
     try {
       const res = await fetch(`${backendUrl}/hot-deals/${dealId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         credentials: 'include',
         body: JSON.stringify(updates)
       });
@@ -190,7 +192,9 @@ const AdminHotDeals = () => {
     try {
       const res = await fetch(`${backendUrl}/hot-deals/${dealId}`, {
         method: 'DELETE',
-        credentials: 'include'
+        credentials: 'include',
+        headers: getAuthHeaders()
+
       });
 
       const data = await res.json();

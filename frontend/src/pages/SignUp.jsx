@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState,useContext} from "react";
 import user from "/images/user.png";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebookF } from "react-icons/fa";
@@ -7,12 +7,15 @@ import { Link } from "react-router-dom";
 import ImageToBase64 from "@/helpers/ImageToBase64.jsx";
 import { toast } from 'react-hot-toast'
 import { useNavigate } from "react-router-dom";
+import { Context } from '@/context/ProductContext.jsx';
 
-let backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080/api";
+
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const {backendUrl, getAuthHeaders }= useContext(Context);
+
 
   const navigate = useNavigate()
 
@@ -52,10 +55,7 @@ const SignUp = () => {
       const res = await fetch(`${backendUrl}/user/signup`, {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem('token') || ''}` // Include token if available
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           name: data.name,
           email: data.email,

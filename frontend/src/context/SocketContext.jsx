@@ -27,7 +27,6 @@ export const SocketProvider = ({ children }) => {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    // Disconnect socket if user logs out
     if (!user) {
       if (socketRef.current) {
         socketRef.current.disconnect();
@@ -37,12 +36,19 @@ export const SocketProvider = ({ children }) => {
       return;
     }
 
-    // Only connect once per user
     if (socketRef.current) return;
+
+    // 🔥 Get token from localStorage
+    const token = localStorage.getItem("token");
 
     const socket = io(SOCKET_URL, {
       withCredentials: true,
-      autoConnect: true, // let Socket.IO handle reconnection automatically
+      autoConnect: true,
+      auth: {
+        token: token, // 🔥 Send token via auth option
+      },
+      // OR use query (if auth doesn't work with your backend)
+      // query: { token: token }
     });
 
     socketRef.current = socket;
@@ -74,7 +80,7 @@ export const SocketProvider = ({ children }) => {
     });
 
     return () => {
-      // ⚠️ Do NOT disconnect here unless user becomes null
+      // Don't disconnect on re-renders, only on user logout
     };
   }, [user, navigate]);
 

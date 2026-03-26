@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect,useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import displayKESCurrency from "@/helpers/displayCurrency.js";
+import { Context } from "@/context/ProductContext.jsx";
+
 import { 
   FaCcVisa, 
   FaCcMastercard, 
@@ -212,8 +214,8 @@ const CheckoutPage = () => {
     postalCode: "",
   });
 
-  const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080/api";
-
+   const { backendUrl, getAuthHeaders } = useContext(Context);
+ 
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 640);
@@ -228,6 +230,7 @@ const CheckoutPage = () => {
       const res = await fetch(`${backendUrl}/user/view-cart-product`, {
         method: "GET",
         credentials: "include",
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
       if (data.success) {
@@ -318,7 +321,7 @@ const CheckoutPage = () => {
       const personalRes = await fetch(`${backendUrl}/personal-details/add-personal-details`, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify(payload),
       });
 
@@ -342,7 +345,7 @@ const CheckoutPage = () => {
       const orderRes = await fetch(`${backendUrl}/order/create`, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           items,
           shippingAddress: shippingAddressId,

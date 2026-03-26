@@ -8,6 +8,15 @@ export const Context = createContext(null);
 
 let backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080/api"
 
+// 🔥 HELPER: Get auth headers with token
+const getAuthHeaders = () => {
+  const token = localStorage.getItem("token");
+  return {
+    "Content-Type": "application/json",
+    ...(token && { Authorization: `Bearer ${token}` }),
+  };
+};
+
 const ProductContext = ({ children }) => {
   const navigate = useNavigate()
   const user = useSelector(state => state?.user?.user)
@@ -32,6 +41,7 @@ const ProductContext = ({ children }) => {
       const responseData = await fetch(`${backendUrl}/user/all-users`, {
         method: "GET",
         credentials: "include",
+        headers: getAuthHeaders(), // 🔥 Added auth headers
       })
       const response = await responseData.json()
       if (responseData.ok) {
@@ -55,9 +65,7 @@ const ProductContext = ({ children }) => {
       const responseData = await fetch(`${backendUrl}/user/update-user`, {
         method: "PUT",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: getAuthHeaders(), // 🔥 Added auth headers
         body: JSON.stringify({
           userId: id,
           role,
@@ -80,18 +88,27 @@ const ProductContext = ({ children }) => {
   const fetchCountCart = async () => {
     try {
       setLoading(true)
+      const token = localStorage.getItem("token");
+    console.log("🔥 fetchCountCart - token exists:", !!token); 
+
       const response = await fetch(`${backendUrl}/user/count-cart-products`, {
         method: "GET",
-        credentials: "include"
+        // credentials: "include",
+        headers: getAuthHeaders(), // 🔥 Added auth headers
       })
 
       const responseData = await response.json()
       if (response.ok) {
-        setCartProductCount(responseData.data || 0)
+        setCartProductCount(Number(responseData.data) || 0)
+        console.log("🔥 fetchCountCart - cart count:", responseData.data);  // Debug
       } else {
+          console.log("🔥 fetchCountCart - response status:", response.status);  // Debug
+
         toast.error(responseData.message)
       }
     } catch (error) {
+        console.error("🔥 fetchCountCart - catch error:", error);  // Debug
+
       toast.error(error.message || "Something went wrong")
       setCartProductCount(0)
     } finally {
@@ -111,9 +128,7 @@ const ProductContext = ({ children }) => {
       const res = await fetch(`${backendUrl}/wishlist/add`, {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: getAuthHeaders(), // 🔥 Added auth headers
         body: JSON.stringify({
           productId: productId
         })
@@ -145,9 +160,7 @@ const ProductContext = ({ children }) => {
       const res = await fetch(`${backendUrl}/wishlist/get`, {
         method: "GET",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json"
-        }
+        headers: getAuthHeaders(), // 🔥 Added auth headers
       });
 
       const data = await res.json();
@@ -176,7 +189,7 @@ const ProductContext = ({ children }) => {
 
         setWishlistItems(transformedItems);
         setWishlistCount(transformedItems.length);
-        
+
         return { success: true, data: transformedItems };
       } else {
         toast.error(data.message || "Failed to fetch wishlist");
@@ -196,9 +209,7 @@ const ProductContext = ({ children }) => {
       const res = await fetch(`${backendUrl}/wishlist/remove`, {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: getAuthHeaders(), // 🔥 Added auth headers
         body: JSON.stringify({ productId })
       });
 
@@ -226,9 +237,7 @@ const ProductContext = ({ children }) => {
       const res = await fetch(`${backendUrl}/wishlist/check/${productId}`, {
         method: "GET",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json"
-        }
+        headers: getAuthHeaders(), // 🔥 Added auth headers
       });
 
       const data = await res.json();
@@ -245,9 +254,7 @@ const ProductContext = ({ children }) => {
       const res = await fetch(`${backendUrl}/wishlist/clear`, {
         method: "DELETE",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json"
-        }
+        headers: getAuthHeaders(), // 🔥 Added auth headers
       });
 
       const data = await res.json();
@@ -272,7 +279,7 @@ const ProductContext = ({ children }) => {
     try {
       // If backend has bulk endpoint:
       // const res = await fetch(`${backendUrl}/wishlist/bulk-remove`, {...});
-      
+
       // Otherwise remove one by one
       await Promise.all(productIds.map(id => RemoveWishlist(id)));
       toast.success(`${productIds.length} items removed`);
@@ -316,7 +323,9 @@ const ProductContext = ({ children }) => {
     GetWishlist,
     CheckWishlistStatus,
     ClearWishlist,
-    BulkRemoveWishlist
+    
+    BulkRemoveWishlist,
+    getAuthHeaders, // 🔥 Expose auth headers function for direct use in fetch calls
   }
 
   return (

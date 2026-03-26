@@ -329,7 +329,7 @@ export default function MyOrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const { backendUrl } = useContext(Context);
+  const { backendUrl, getAuthHeaders } = useContext(Context);
 
   const token = localStorage.getItem("token");
 

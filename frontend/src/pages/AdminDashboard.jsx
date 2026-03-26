@@ -305,7 +305,7 @@ export default function AdminDashboard() {
   const [selectedTimeRange, setSelectedTimeRange] = useState("7d");
   const [showFilters, setShowFilters] = useState(false);
 
-  const { backendUrl, toast, user } = useContext(Context);
+  const { backendUrl, toast, user,getAuthHeaders } = useContext(Context);
 
   const ORDERS_PER_PAGE = 5;
 
@@ -340,7 +340,7 @@ export default function AdminDashboard() {
       const res = await fetch(`${backendUrl}/sales-progress/sales-progress`, {
         method: "GET",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
       });
 
       if (!res.ok) throw new Error("Failed to fetch progress");
@@ -390,7 +390,7 @@ export default function AdminDashboard() {
       const res = await fetch(`${backendUrl}/sales-progress/ai-prediction`, {
         method: "GET",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
       });
       
       // If AI endpoint doesn't exist, try alternative endpoints
@@ -399,6 +399,7 @@ export default function AdminDashboard() {
         const fallbackRes = await fetch(`${backendUrl}/analytics/prediction`, {
           method: "GET",
           credentials: "include",
+          headers: getAuthHeaders(),
         });
         
         if (!fallbackRes.ok) throw new Error("Prediction endpoint not available");
@@ -444,6 +445,7 @@ export default function AdminDashboard() {
       const response = await fetch(`${backendUrl}/order/recent-orders`, {
         method: "GET",
         credentials: "include",
+        headers: getAuthHeaders(),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Failed to fetch recent orders");
@@ -459,7 +461,10 @@ export default function AdminDashboard() {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${backendUrl}/order/all-orders`, { credentials: "include" });
+      const res = await fetch(`${backendUrl}/order/all-orders`, { 
+        credentials: "include" , 
+        headers: getAuthHeaders() 
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to fetch orders");
       setOrders(data.orders || []);
@@ -476,6 +481,7 @@ export default function AdminDashboard() {
       const res = await fetch(`${backendUrl}/product/total-products`, {
         method: "GET",
         credentials: "include",
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to fetch total products");
@@ -494,6 +500,7 @@ export default function AdminDashboard() {
       const res = await fetch(`${backendUrl}/payment/total-revenue`, {
         method: "GET",
         credentials: "include",
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to fetch revenue");
@@ -511,6 +518,7 @@ export default function AdminDashboard() {
     try {
       const res = await fetch(`${backendUrl}/user/total-users`, {
         credentials: "include",
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to fetch users");
@@ -529,6 +537,7 @@ export default function AdminDashboard() {
       const res = await fetch(`${backendUrl}/order/total-orders`, {
         method: "GET",
         credentials: "include",
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to fetch total orders");
@@ -548,7 +557,7 @@ export default function AdminDashboard() {
       const res = await fetch(`${backendUrl}/product/top-products`, {
         method: "GET",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to fetch top products");

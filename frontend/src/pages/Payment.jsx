@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback,useContext } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { Context } from "../context/ProductContext.jsx";
 import displayKESCurrency from "@/helpers/displayCurrency.js";
 import { 
   FaCcVisa, 
@@ -133,7 +134,7 @@ const PaymentPage = () => {
   const location = useLocation();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
 
-  const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080/api";
+  const { backendUrl, getAuthHeaders } = useContext(Context);
 
   const {
     orderId,
@@ -260,6 +261,7 @@ const PaymentPage = () => {
           { 
             credentials: "include",
             headers: {
+              ...getAuthHeaders(),
               'Cache-Control': 'no-cache',
               'Pragma': 'no-cache'
             }
@@ -343,7 +345,7 @@ const PaymentPage = () => {
         
         fetch(`${backendUrl}/payment/mpesa/status/${txIdRef.current}?_cb=${Date.now()}`, {
           credentials: "include",
-          headers: { 'Cache-Control': 'no-cache' }
+          headers: {...getAuthHeaders(), 'Cache-Control': 'no-cache' }
         })
         .then(res => res.json())
         .then(data => {
@@ -406,7 +408,7 @@ const PaymentPage = () => {
       const res = await fetch(`${backendUrl}/payment/mpesa/pay`, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers:getAuthHeaders(),
         body: JSON.stringify({
           phone,
           amount: totalAmount,

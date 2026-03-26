@@ -16,6 +16,7 @@ const Login = () => {
     email: "",
     password: "",
   })
+  const [isLoading, setIsLoading] = useState(false)
 
   const navigate = useNavigate()
   const { fetchUserDetails, fetchCountCart } = useContext(Context)
@@ -31,66 +32,62 @@ const Login = () => {
   }
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
+    setIsLoading(true);
 
-  try {
-    // 1️⃣ Send login request
-    const res = await fetch(`${backendUrl}/user/signin`, {
-      method: "POST",
-      credentials: "include", // allows cookies from backend
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: data.email,
-        password: data.password,
-      }),
-    });
-
-    const responseData = await res.json();
-    console.log("Login response:", responseData);
-
-    if (!res.ok) {
-      toast.error(responseData.message || "Login failed!");
-      return;
-    }
-
-    // 2️⃣ Save token if backend returns it
-    if (responseData.token) {
-      localStorage.setItem("token", responseData.token);
-      console.log("✅ Token saved to localStorage");
-    } else {
-      console.warn("⚠️ No token received from backend");
-    }
-
-    toast.success(responseData.message || "Login successful!");
-
-    // 3️⃣ Fetch user details with token & cookies
-    const token = localStorage.getItem("token");
-    if (token) {
-      const userRes = await fetch(`${backendUrl}/user/user-details`, {
-        method: "GET",
+    try {
+      // 1️⃣ Send login request
+      const res = await fetch(`${backendUrl}/user/signin`, {
+        method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+        }),
       });
-      const userData = await userRes.json();
-      console.log("User details:", userData);
 
-      // You can dispatch/set user details in context here
-      if (userData.data) {
-        fetchUserDetails(); // or your context dispatch
+      const responseData = await res.json();
+      console.log("Login response:", responseData);
+
+      if (!res.ok) {
+        toast.error(responseData.message || "Login failed!");
+        return;
       }
+
+      // 2️⃣ Save token to localStorage
+      if (responseData.token) {
+        localStorage.setItem("token", responseData.token);
+        console.log("✅ Token saved to localStorage");
+      } else {
+        console.warn("⚠️ No token received from backend");
+        toast.error("Authentication error: No token received");
+        return;
+      }
+
+      toast.success(responseData.message || "Login successful!");
+
+      // 3️⃣ 🔥 CRITICAL: Fetch user details FIRST (sets user in Redux)
+      console.log("Fetching user details...");
+      await fetchUserDetails();
+      console.log("✅ User details fetched");
+
+      // 4️⃣ 🔥 CRITICAL: Then fetch cart count (needs user._id from Redux)
+      console.log("Fetching cart count...");
+      await fetchCountCart();
+      console.log("✅ Cart count fetched");
+
+      // 5️⃣ Navigate to home
+      navigate("/");
+
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error(error.message || "Something went wrong!");
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    // 4️⃣ Navigate to home after login
-    navigate("/");
-
-  } catch (error) {
-    console.error("Login error:", error);
-    toast.error(error.message || "Something went wrong!");
-  }
-};
   return (
     <section 
       id='login' 
@@ -99,7 +96,7 @@ const Login = () => {
       <div className="w-full max-w-md mx-auto">
         {/* Login Card - Responsive padding */}
         <div className="bg-white p-5 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl shadow-md sm:shadow-lg">
-          
+
           {/* User Image - Smaller on mobile */}
           <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 mx-auto mb-4 sm:mb-6">
             <img 
@@ -169,9 +166,10 @@ const Login = () => {
             {/* Login Button - Better touch target on mobile */}
             <button
               type="submit"
-              className="w-full py-3 sm:py-2.5 bg-blue-600 text-white font-semibold rounded-full hover:bg-blue-700 active:bg-blue-800 transition-colors mt-2 text-sm sm:text-base shadow-md active:transform active:scale-[0.98]"
+              disabled={isLoading}
+              className="w-full py-3 sm:py-2.5 bg-blue-600 text-white font-semibold rounded-full hover:bg-blue-700 active:bg-blue-800 transition-colors mt-2 text-sm sm:text-base shadow-md active:transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Login
+              {isLoading ? "Logging in..." : "Login"}
             </button>
           </form>
 

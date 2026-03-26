@@ -871,7 +871,7 @@ const FinancialReport = ({ data, loading }) => {
 // ===================== MAIN PAGE =====================
 
 const AdminReportPage = () => {
-  const { backendUrl } = useContext(Context);
+  const { backendUrl, getAuthHeaders } = useContext(Context);
   
   const [activeReport, setActiveReport] = useState('sales');
   const [timeRange, setTimeRange] = useState('month');
@@ -927,7 +927,7 @@ const AdminReportPage = () => {
     try {
       const { start, end } = getDateRange();
       const token = document.cookie.split('token=')[1]?.split(';')[0];
-      const headers = { 'Content-Type': 'application/json' };
+      const headers = getAuthHeaders();
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
       const params = new URLSearchParams({

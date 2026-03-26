@@ -650,7 +650,7 @@ const RecentTransactions = ({ data, loading }) => {
 // ===================== MAIN PAGE COMPONENT =====================
 
 const RevenueDashboard = () => {
-  const { backendUrl } = useContext(Context);
+  const { backendUrl, getAuthHeaders } = useContext(Context);
   
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -666,9 +666,7 @@ const RevenueDashboard = () => {
     if (showRefreshing) setRefreshing(true);
     
     try {
-      const headers = {
-        'Content-Type': 'application/json',
-      };
+      const headers =  getAuthHeaders() ;
 
       // Add auth token if available
       const token = document.cookie.split('token=')[1]?.split(';')[0];
@@ -774,9 +772,7 @@ const RevenueDashboard = () => {
   const handleTargetUpdate = async (key, newGoal) => {
     try {
       const token = document.cookie.split('token=')[1]?.split(';')[0];
-      const headers = {
-        'Content-Type': 'application/json',
-      };
+      const headers = getAuthHeaders();
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
       const response = await fetch(`${backendUrl}/revenue/update-targets`, {

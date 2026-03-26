@@ -17,7 +17,7 @@ const ProductDetails = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [isWishlisted, setIsWishlisted] = useState(false)
 
-  const { toast, backendUrl } = useContext(Context)
+  const { toast, backendUrl, getAuthHeaders } = useContext(Context)
   const { fetchUserAddToCart } = useContext(Context)
   const navigate = useNavigate()
 

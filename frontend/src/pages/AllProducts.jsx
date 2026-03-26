@@ -146,7 +146,7 @@ const TableRow = ({ product, index, onEdit, onDelete }) => (
 );
 
 const AllProducts = () => {
-  const { toast, backendUrl } = useContext(Context);
+  const { toast, backendUrl, getAuthHeaders } = useContext(Context);
 
   // STATE
   const [products, setProducts] = useState([]);
@@ -163,6 +163,7 @@ const AllProducts = () => {
       const res = await fetch(`${backendUrl}/product/all-products`, {
         method: 'GET',
         credentials: 'include',
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
       if (res.ok) {
@@ -206,9 +207,7 @@ const AllProducts = () => {
     const response = await fetch(`${backendUrl}/product/delete-product/${productId}`, {
       method: "DELETE",
       credentials: "include",
-      headers: {
-        "Content-Type": "application/json"
-      }
+      headers: getAuthHeaders()
       // Remove body, or keep empty - DELETE requests usually don't have bodies
     });
 
