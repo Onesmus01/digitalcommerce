@@ -438,12 +438,16 @@ const Header = () => {
       setSearchQuery("");
     }
   };
-
   const handleLogout = async () => {
     try {
+      const token = localStorage.getItem("token");  // ✅ Fresh token every time
       const res = await fetch(`${backendUrl}/user/logout`, {
         method: "POST",
         credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),  // ✅ Only if token exists
+        },
       });
       const data = await res.json();
       if (res.ok) {
