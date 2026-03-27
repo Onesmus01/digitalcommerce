@@ -409,13 +409,21 @@ export const clearCart = async (req, res) => {
       userId: currentUserId,
     });
 
-    // 3️⃣ Respond - 200 with info (or 204 No Content)
+    // ✅ Move log BEFORE return
+    console.log(
+      "Cart cleared for user:",
+      currentUserId,
+      "Deleted items:",
+      result.deletedCount
+    );
+
+    // 3️⃣ Respond
     return res.status(200).json({
       success: true,
       message: "Cart cleared successfully",
       deletedCount: result.deletedCount,
     });
-    console.log("Cart cleared for user:", currentUserId, "Deleted items:", result.deletedCount);
+
   } catch (error) {
     console.error("Clear cart error:", error);
     return res.status(500).json({
