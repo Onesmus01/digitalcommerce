@@ -160,19 +160,20 @@ const Footer = () => {
                 <div className="p-2 rounded-lg bg-white/5 group-hover:bg-red-500/20 transition-colors">
                   <FaMapMarkerAlt className="w-4 h-4 text-red-500" />
                 </div>
-                <span className="text-sm">San Francisco, CA 94102</span>
+                <span className="text-sm">Nairobi, Kenya 00100</span>
               </div>
               <div className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors group cursor-pointer">
                 <div className="p-2 rounded-lg bg-white/5 group-hover:bg-red-500/20 transition-colors">
                   <FaPhone className="w-4 h-4 text-red-500" />
                 </div>
-                <span className="text-sm">+1 (555) 123-4567</span>
+                <span className="text-sm">+254 759755575</span>
               </div>
               <div className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors group cursor-pointer">
                 <div className="p-2 rounded-lg bg-white/5 group-hover:bg-red-500/20 transition-colors">
                   <FaEnvelope className="w-4 h-4 text-red-500" />
                 </div>
                 <span className="text-sm">hello@digitalcommerce.com</span>
+                <span className="text-sm">onesmuswambua747@gmail.com</span>
               </div>
             </div>
 
