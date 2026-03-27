@@ -83,9 +83,8 @@ const ProductContext = ({ children }) => {
     }
   };
 
-  // 🔥 FIXED: fetchCountCart - removed loading check, wrapped in useCallback
-  
-  const fetchCountCart = async () => {
+  // 🔥 FIXED: fetchCountCart - uses /count-cart-products endpoint
+  const fetchCountCart = useCallback(async () => {
     if (!user?._id) return;
     
     const token = localStorage.getItem("token");
@@ -99,10 +98,7 @@ const ProductContext = ({ children }) => {
       const response = await fetch(`${backendUrl}/user/count-cart-products`, {
         method: "GET",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,  // 🔥 ADD THIS LINE
-        },
+        headers: getAuthHeaders(),
       });
       
       const responseData = await response.json();
@@ -118,13 +114,9 @@ const ProductContext = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
-  
-    useEffect(() => {
-      fetchCountCart();
-    }, [user]);
+  }, [user?._id]); // 🔥 Added dependency
 
-  // 🔥 NEW: fetchUserAddToCart - fetches cart and updates count
+  // 🔥 FIXED: fetchUserAddToCart - fetches full cart and calculates count
   const fetchUserAddToCart = useCallback(async () => {
     const token = localStorage.getItem("token");
     
@@ -153,21 +145,23 @@ const ProductContext = ({ children }) => {
       console.error("❌ fetchUserAddToCart error:", error);
       setCartProductCount(0);
     }
-  }, []);
+  }, [backendUrl]);
 
-  // 🔥 FIXED: useEffect - trigger when token or user changes
+  // 🔥 FIXED: Initial cart load when user changes
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) {
+    if (token && user?._id) {
       fetchCountCart();
+    } else {
+      setCartProductCount(0);
     }
   }, [user?._id, fetchCountCart]);
 
-  // 🔥 NEW: Listen for storage changes (login from other tabs)
+  // 🔥 Listen for storage changes (login from other tabs)
   useEffect(() => {
     const handleStorageChange = () => {
       const token = localStorage.getItem("token");
-      if (token) {
+      if (token && user?._id) {
         fetchCountCart();
       } else {
         setCartProductCount(0);
@@ -176,8 +170,9 @@ const ProductContext = ({ children }) => {
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, [fetchCountCart]);
+  }, [user?._id, fetchCountCart]);
 
+  // Wishlist functions remain the same...
   const AddWishlist = useCallback(async (productId) => {
     try {
       const res = await fetch(`${backendUrl}/wishlist/add`, {

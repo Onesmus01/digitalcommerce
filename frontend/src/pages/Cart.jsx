@@ -105,8 +105,7 @@ const Cart = () => {
       if (result.success) {
         // Remove from local state quietly - NO loading, NO fetchData()
         setData(prev => prev.filter(item => item._id !== _id));
-        fetchUserAddToCart(); // Just update cart count
-        fetchCountCart()
+        await fetchUserAddToCart(); // Just update cart count
       }
     } catch (error) {
       console.error("Delete error:", error);
@@ -127,8 +126,7 @@ const Cart = () => {
     const result = await res.json();
     if (result.success) {
       setData([]);
-      fetchUserAddToCart();
-      fetchCountCart()
+       await fetchUserAddToCart();
       setShowClearConfirm(false);
     }
   } catch (error) {
