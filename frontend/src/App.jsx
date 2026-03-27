@@ -36,6 +36,7 @@ import ScrollToTop from "@/components/ScrollToTop.jsx";
 import PageTransitionWrapper from "@/components/PageTransitionWrapper.jsx";
 import PageLoader from "@/components/PageLoader.jsx";
 import usePageLoader from "@/hooks/usePageLoader.jsx";
+import BackButton from "@/components/BackButton.jsx"
 
 // Admin pages
 import AdminPanel from "@/pages/Adminpanel.jsx";
@@ -257,6 +258,8 @@ const App = () => {
             Online admins: {onlineAdmins}
           </div>
         )}
+
+        <BackButton />
       </div>
     </Context.Provider>
   );

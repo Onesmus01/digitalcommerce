@@ -14,9 +14,9 @@ import {
   FaExclamationCircle,
   FaFire,
   FaBolt,
-  FaEye,
   FaCheck,
-  FaExclamationTriangle
+  FaExclamationTriangle,
+  FaArrowLeft
 } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Context } from '@/context/ProductContext.jsx';
@@ -24,75 +24,66 @@ import { Link } from 'react-router-dom';
 import displayKESCurrency from "@/helpers/displayCurrency.js";
 import SEO from "@/components/Seo.jsx";
 
-// Confirmation Modal Component
+// Compact Confirmation Modal
 const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, itemCount, type = 'danger' }) => {
   if (!isOpen) return null;
 
   const colors = {
-    danger: 'from-red-500 to-rose-600',
-    warning: 'from-amber-500 to-orange-600',
-    info: 'from-blue-500 to-cyan-600'
+    danger: 'bg-rose-500',
+    warning: 'bg-amber-500',
+    info: 'bg-blue-500'
   };
 
   return (
-    
     <AnimatePresence>
-      
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3"
         onClick={onClose}
       >
         <motion.div
-          initial={{ scale: 0.9, opacity: 0, y: 20 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.9, opacity: 0, y: 20 }}
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden"
+          className="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden"
         >
-          {/* Header */}
-          <div className={`bg-gradient-to-r ${colors[type]} p-6 text-white`}>
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                <FaExclamationTriangle className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold">{title}</h3>
-                <p className="text-white/80 text-sm">This action cannot be undone</p>
-              </div>
+          <div className={`${colors[type]} p-4 text-white`}>
+            <div className="flex items-center gap-2">
+              <FaExclamationTriangle className="w-5 h-5" />
+              <h3 className="text-lg font-bold">{title}</h3>
             </div>
           </div>
 
-          {/* Body */}
-          <div className="p-6">
-            <p className="text-slate-600 mb-6 leading-relaxed">{message}</p>
+          <div className="p-4">
+            <p className="text-slate-600 text-sm mb-4">{message}</p>
             
             {itemCount > 0 && (
-              <div className="bg-slate-50 rounded-xl p-4 mb-6 flex items-center gap-3">
-                <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center">
-                  <FaHeart className="w-5 h-5 text-violet-600" />
+              <div className="bg-slate-50 rounded-lg p-3 mb-4 flex items-center gap-2">
+                <div className="w-8 h-8 bg-violet-100 rounded-lg flex items-center justify-center">
+                  <FaHeart className="w-4 h-4 text-violet-600" />
                 </div>
                 <div>
-                  <p className="font-bold text-slate-800">{itemCount} items</p>
-                  <p className="text-sm text-slate-500">Will be removed from your wishlist</p>
+                  <p className="font-bold text-slate-800 text-sm">{itemCount} items</p>
+                  <p className="text-xs text-slate-500">Will be removed</p>
                 </div>
               </div>
             )}
 
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <button
                 onClick={onClose}
-                className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-colors"
+                className="flex-1 px-3 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-semibold text-sm"
               >
                 Cancel
               </button>
               <button
                 onClick={onConfirm}
-                className={`flex-1 px-4 py-3 bg-gradient-to-r ${colors[type]} text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all`}
+                className={`flex-1 px-3 py-2.5 ${colors[type]} text-white rounded-xl font-semibold text-sm`}
               >
-                Yes, Clear All
+                Confirm
               </button>
             </div>
           </div>
@@ -102,93 +93,54 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, itemCou
   );
 };
 
-// Empty State Component
+// Compact Empty State
 const EmptyState = ({ onExplore }) => (
   <motion.div 
-    initial={{ opacity: 0, scale: 0.95 }}
-    animate={{ opacity: 1, scale: 1 }}
-    className="text-center py-16 px-4"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    className="text-center py-10 px-4"
   >
-    <div className="relative inline-block mb-8">
-      <div className="w-32 h-32 bg-gradient-to-br from-violet-100 to-pink-100 rounded-full flex items-center justify-center">
-        <FaHeart className="w-16 h-16 text-violet-300" />
-      </div>
-      <motion.div
-        animate={{ scale: [1, 1.2, 1] }}
-        transition={{ duration: 2, repeat: Infinity }}
-        className="absolute -top-2 -right-2 w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center"
-      >
-        <span className="text-white text-lg">+</span>
-      </motion.div>
+    <div className="w-20 h-20 bg-gradient-to-br from-violet-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <FaHeart className="w-10 h-10 text-violet-300" />
     </div>
-    
-    <h3 className="text-3xl font-black text-slate-800 mb-3">Your wishlist is empty</h3>
-    <p className="text-slate-500 mb-8 max-w-md mx-auto text-lg">
-      Discover amazing products and save your favorites here for later
-    </p>
-    
-    <motion.button 
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+    <h3 className="text-lg font-bold text-slate-800 mb-2">Wishlist is empty</h3>
+    <p className="text-slate-500 text-sm mb-4">Save your favorite products</p>
+    <button 
       onClick={onExplore}
-      className="px-8 py-4 bg-gradient-to-r from-violet-600 to-pink-600 text-white rounded-2xl font-bold shadow-lg shadow-pink-200 hover:shadow-xl transition-all flex items-center gap-2 mx-auto"
+      className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold text-sm"
     >
-      <FaShoppingCart className="w-5 h-5" />
-      Explore Products
-    </motion.button>
+      Explore
+    </button>
   </motion.div>
 );
 
-// Bulk Actions Bar
+// Compact Bulk Actions Bar
 const BulkActionsBar = ({ selectedCount, totalCount, onSelectAll, onClearSelection, onDeleteSelected, onClearAll }) => {
   if (selectedCount === 0) return null;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40 bg-white rounded-2xl shadow-2xl border border-violet-100 p-2 flex items-center gap-2 max-w-2xl w-[90%] mx-auto"
+      initial={{ y: 100 }}
+      animate={{ y: 0 }}
+      exit={{ y: 100 }}
+      className="fixed bottom-4 left-4 right-4 z-40 bg-white rounded-xl shadow-2xl border border-slate-200 p-2 flex items-center gap-2"
     >
-      <div className="flex items-center gap-3 px-4 py-2 bg-violet-50 rounded-xl">
-        <div className="w-8 h-8 bg-gradient-to-r from-violet-500 to-pink-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-          {selectedCount}
-        </div>
-        <span className="font-bold text-slate-700">items selected</span>
+      <div className="flex items-center gap-2 px-2 py-1 bg-violet-50 rounded-lg">
+        <span className="text-xs font-bold text-violet-700">{selectedCount}</span>
+        <span className="text-xs text-slate-600">selected</span>
       </div>
-
-      <div className="h-8 w-px bg-slate-200 mx-2" />
-
-      <button
-        onClick={onSelectAll}
-        className="px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-xl font-medium transition-colors flex items-center gap-2"
-      >
-        <FaCheck className="w-4 h-4" />
-        {selectedCount === totalCount ? 'Deselect All' : 'Select All'}
-      </button>
-
-      <button
-        onClick={onClearSelection}
-        className="px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-xl font-medium transition-colors"
-      >
-        Cancel
-      </button>
 
       <div className="flex-1" />
 
-      <button
-        onClick={onDeleteSelected}
-        className="px-4 py-2 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl font-bold shadow-lg shadow-rose-200 hover:shadow-xl transition-all flex items-center gap-2"
-      >
-        <FaTrash className="w-4 h-4" />
-        Delete
+      <button onClick={onClearSelection} className="p-2 text-slate-500 hover:bg-slate-50 rounded-lg">
+        <FaTimes size={14} />
       </button>
 
-      <button
-        onClick={onClearAll}
-        className="px-4 py-2 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition-colors flex items-center gap-2"
-      >
-        <FaTrash className="w-4 h-4" />
+      <button onClick={onDeleteSelected} className="p-2 bg-rose-500 text-white rounded-lg">
+        <FaTrash size={14} />
+      </button>
+
+      <button onClick={onClearAll} className="px-3 py-2 bg-slate-800 text-white text-xs font-semibold rounded-lg">
         Clear All
       </button>
     </motion.div>
@@ -218,13 +170,12 @@ const WishlistPage = () => {
   const [selectedItems, setSelectedItems] = useState([]);
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
-  const [isGridView, setIsGridView] = useState(true);
-  const [cartCount, setCartCount] = useState(0);
   const [showClearModal, setShowClearModal] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
-  // Transform context data
+  // Transform data
   useEffect(() => {
-    if (contextWishlistItems && contextWishlistItems.length > 0) {
+    if (contextWishlistItems?.length > 0) {
       const transformed = contextWishlistItems.map((item, index) => ({
         id: item.id || item._id || item.productId?._id,
         name: item.name || item.productName || item.productId?.productName,
@@ -232,14 +183,10 @@ const WishlistPage = () => {
         price: item.price || item.selling || item.productId?.selling || 0,
         originalPrice: item.originalPrice || item.price || item.productId?.price || 0,
         rating: item.rating || item.productId?.rating || 4.5,
-        reviews: item.reviews || item.productId?.reviews || 0,
         image: item.image || item.productImage?.[0] || item.productId?.productImage?.[0],
-        category: item.category || item.productId?.category,
+        category: item.category || item.productId?.category || 'Other',
         inStock: item.inStock !== false && item.productId?.inStock !== false,
-        addedDate: item.addedDate || item.addedAt || new Date().toISOString(),
         discount: item.discount || Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100) || 0,
-        isNew: item.isNew || false,
-        wishlistId: item.wishlistId || item._id,
         colorIndex: index % 6,
         rawData: item
       }));
@@ -250,21 +197,16 @@ const WishlistPage = () => {
   }, [contextWishlistItems]);
 
   useEffect(() => {
-    setCartCount(cartProductCount || 0);
-  }, [cartProductCount]);
-
-  useEffect(() => {
     loadWishlist();
   }, []);
 
   const loadWishlist = async () => {
     try {
       setLoading(true);
-      setError(null);
       await GetWishlist();
     } catch (err) {
-      setError(err.message || 'Failed to load wishlist');
-      showToast('Failed to load wishlist', 'error');
+      setError(err.message);
+      showToast('Failed to load', 'error');
     } finally {
       setLoading(false);
     }
@@ -273,37 +215,35 @@ const WishlistPage = () => {
   const showToast = (message, type = 'success') => {
     setNotificationMessage({ text: message, type });
     setShowNotification(true);
-    setTimeout(() => setShowNotification(false), 3000);
+    setTimeout(() => setShowNotification(false), 2000);
   };
 
   const removeFromWishlist = async (productId) => {
     try {
       await RemoveWishlist(productId);
       setSelectedItems(prev => prev.filter(id => id !== productId));
-      showToast('Removed from wishlist');
+      showToast('Removed');
     } catch (err) {
-      showToast(err.message || 'Failed to remove', 'error');
+      showToast('Failed to remove', 'error');
     }
   };
 
-  const handleClearAll = () => {
-    setShowClearModal(true);
-  };
+  const handleClearAll = () => setShowClearModal(true);
 
   const confirmClearAll = async () => {
     try {
       await ClearWishlist();
       setSelectedItems([]);
       setShowClearModal(false);
-      showToast('Wishlist cleared successfully');
+      showToast('Cleared');
     } catch (err) {
-      showToast(err.message || 'Failed to clear', 'error');
+      showToast('Failed', 'error');
     }
   };
 
   const moveToCart = async (item) => {
     if (!item.inStock) {
-      showToast('Item is out of stock', 'error');
+      showToast('Out of stock', 'error');
       return;
     }
     
@@ -317,11 +257,10 @@ const WishlistPage = () => {
       
       if (res.ok) {
         await fetchCountCart();
-        setCartCount(prev => prev + 1);
-        showToast(`${item.name} added to cart!`);
+        showToast('Added to cart');
       }
     } catch (err) {
-      showToast('Failed to add to cart', 'error');
+      showToast('Failed', 'error');
     }
   };
 
@@ -339,29 +278,17 @@ const WishlistPage = () => {
     }
   };
 
-  const clearSelection = () => {
-    setSelectedItems([]);
-  };
+  const clearSelection = () => setSelectedItems([]);
 
   const deleteSelected = async () => {
     try {
       await Promise.all(selectedItems.map(id => RemoveWishlist(id)));
-      showToast(`${selectedItems.length} items removed`);
+      showToast(`${selectedItems.length} removed`);
       setSelectedItems([]);
     } catch (err) {
-      showToast('Failed to remove some items', 'error');
+      showToast('Failed', 'error');
     }
   };
-
-  // Color palette
-  const colors = [
-    { primary: 'from-violet-500 to-purple-600', bg: 'bg-violet-50', text: 'text-violet-600', border: 'border-violet-200', light: 'bg-violet-100' },
-    { primary: 'from-pink-500 to-rose-600', bg: 'bg-rose-50', text: 'text-rose-600', border: 'border-rose-200', light: 'bg-rose-100' },
-    { primary: 'from-orange-400 to-red-500', bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-200', light: 'bg-orange-100' },
-    { primary: 'from-cyan-400 to-blue-500', bg: 'bg-cyan-50', text: 'text-cyan-600', border: 'border-cyan-200', light: 'bg-cyan-100' },
-    { primary: 'from-emerald-400 to-teal-500', bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-200', light: 'bg-emerald-100' },
-    { primary: 'from-amber-400 to-orange-500', bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-200', light: 'bg-amber-100' },
-  ];
 
   const categories = ['All', ...new Set(wishlistItems.map(item => item.category).filter(Boolean))];
   
@@ -373,372 +300,291 @@ const WishlistPage = () => {
         case 'priceLow': return (a.price || 0) - (b.price || 0);
         case 'priceHigh': return (b.price || 0) - (a.price || 0);
         case 'rating': return (b.rating || 0) - (a.rating || 0);
-        case 'dateAdded': return new Date(b.addedDate || 0) - new Date(a.addedDate || 0);
         default: return 0;
       }
     });
 
   const totalValue = wishlistItems.reduce((sum, item) => sum + (item.price || 0), 0);
-  const totalSavings = wishlistItems.reduce((sum, item) => sum + ((item.originalPrice || 0) - (item.price || 0)), 0);
 
   if (loading || contextLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-white to-pink-50 flex items-center justify-center relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-purple-300/30 rounded-full blur-[100px]" />
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-pink-300/30 rounded-full blur-[100px]" />
-        </div>
-        <div className="flex flex-col items-center gap-4 relative z-10">
-          <FaSpinner className="w-12 h-12 text-violet-600 animate-spin" />
-          <p className="text-slate-600 font-medium">Loading your wishlist...</p>
-        </div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <FaSpinner className="w-8 h-8 text-indigo-600 animate-spin" />
       </div>
     );
   }
 
   return (
     <>
-    <SEO 
-        title="Wishlist | Your Saved Items"
-        description="View and manage your favorite products in your wishlist."
-        url="/wishlist"
-      />
-    <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-white to-pink-50 font-sans text-slate-800 relative overflow-hidden pb-24">
-      
-      {/* Background */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-purple-300/30 rounded-full blur-[100px]" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-pink-300/30 rounded-full blur-[100px]" />
-      </div>
-
-      {/* Notification */}
-      <AnimatePresence>
-        {showNotification && (
-          <motion.div 
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -50 }}
-            className={`fixed top-6 right-6 z-50 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 ${notificationMessage.type === 'error' ? 'bg-red-600' : 'bg-slate-900'} text-white`}
-          >
-            <div className={`w-2 h-2 rounded-full animate-pulse ${notificationMessage.type === 'error' ? 'bg-red-300' : 'bg-green-400'}`} />
-            <span className="font-medium">{notificationMessage.text}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Clear All Modal */}
-      <ConfirmationModal
-        isOpen={showClearModal}
-        onClose={() => setShowClearModal(false)}
-        onConfirm={confirmClearAll}
-        title="Clear Entire Wishlist?"
-        message="Are you sure you want to remove all items from your wishlist? This action is permanent and cannot be undone."
-        itemCount={wishlistItems.length}
-        type="danger"
-      />
-
-      {/* Header */}
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-white/80 border-b border-white/20 shadow-sm relative">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+      <SEO title="Wishlist" description="Your saved items" url="/wishlist" />
+      <div className="min-h-screen bg-slate-50 pb-20">
+        
+        {/* Compact Header */}
+        <div className="sticky top-0 z-30 bg-white border-b border-slate-200 px-3 py-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-violet-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <FaHeart className="w-6 h-6 text-white" />
-              </div>
+            <div className="flex items-center gap-2">
+              <button onClick={() => navigate(-1)} className="p-1.5 hover:bg-slate-100 rounded-lg">
+                <FaArrowLeft size={16} className="text-slate-600" />
+              </button>
               <div>
-                <h1 className="text-2xl font-black text-slate-900">
-                  My Wishlist
-                  <span className="text-pink-500">.</span>
-                </h1>
-                <p className="text-sm text-slate-500 font-medium">
-                  {wishlistCount || wishlistItems.length} {wishlistItems.length === 1 ? 'item' : 'items'} saved
-                </p>
+                <h1 className="font-bold text-slate-800 text-sm">Wishlist</h1>
+                <p className="text-[10px] text-slate-500">{wishlistItems.length} items</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <button className="p-3 bg-white rounded-xl shadow-md text-slate-600 hover:text-violet-600 transition-colors relative">
-                <FaBell className="w-5 h-5" />
-                <span className="absolute top-2 right-2 w-2 h-2 bg-pink-500 rounded-full" />
-              </button>
-              <button className="p-3 bg-white rounded-xl shadow-md text-slate-600 hover:text-violet-600 transition-colors">
-                <FaShareAlt className="w-5 h-5" />
-              </button>
+            <div className="flex items-center gap-1">
               <button 
                 onClick={() => navigate('/cart')}
-                className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors"
+                className="flex items-center gap-1 px-2 py-1.5 bg-slate-900 text-white text-xs font-semibold rounded-lg"
               >
-                <FaShoppingCart className="w-4 h-4" />
-                {cartCount}
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="relative max-w-7xl mx-auto px-6 py-8 z-10">
-        {/* Section Header */}
-        <div className="mb-8 flex items-center gap-3">
-          <span className="w-8 h-1 bg-gradient-to-r from-violet-500 to-pink-500 rounded-full" />
-          <span className="text-violet-600 text-xs font-black uppercase tracking-widest">Your Collection</span>
-        </div>
-
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-3 text-red-700">
-            <FaExclamationCircle className="w-5 h-5" />
-            <span>{error}</span>
-            <button onClick={loadWishlist} className="ml-auto text-sm font-bold px-3 py-1 bg-red-100 rounded-lg hover:bg-red-200">
-              Retry
-            </button>
-          </div>
-        )}
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white rounded-2xl p-5 border border-violet-100 shadow-md">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center">
-                <FaHeart className="w-6 h-6 text-violet-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-black text-slate-900">{wishlistItems.length}</p>
-                <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Saved Items</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-5 border border-pink-100 shadow-md">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-pink-100 rounded-xl flex items-center justify-center">
-                <FaShoppingCart className="w-6 h-6 text-pink-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-black text-slate-900">{displayKESCurrency(totalValue)}</p>
-                <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Value</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-5 border border-emerald-100 shadow-md">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
-                <FaStar className="w-6 h-6 text-emerald-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-black text-emerald-600">-{displayKESCurrency(totalSavings)}</p>
-                <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">You Save</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Controls */}
-        <div className="bg-white rounded-2xl p-4 mb-6 border border-slate-100 shadow-md flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="relative">
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search items..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl w-56 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 text-sm"
-              />
-            </div>
-
-            <div className="relative">
-              <select
-                value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
-                className="pl-4 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-violet-400 text-sm font-medium appearance-none"
-              >
-                {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-              </select>
-              <FaChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
-            </div>
-
-            <div className="relative">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="pl-4 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-violet-400 text-sm font-medium appearance-none"
-              >
-                <option value="dateAdded">Newest First</option>
-                <option value="priceLow">Price: Low to High</option>
-                <option value="priceHigh">Price: High to Low</option>
-                <option value="rating">Top Rated</option>
-              </select>
-              <FaChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {wishlistItems.length > 0 && !selectedItems.length && (
-              <button
-                onClick={handleClearAll}
-                className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl font-medium text-sm transition-colors flex items-center gap-2"
-              >
-                <FaTrash className="w-4 h-4" />
-                Clear All
-              </button>
-            )}
-            
-            <div className="flex bg-slate-100 rounded-lg p-1">
-              <button
-                onClick={() => setIsGridView(true)}
-                className={`p-2 rounded-md transition-all ${isGridView ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'}`}
-              >
-                <div className="grid grid-cols-2 gap-0.5 w-3.5 h-3.5">
-                  <div className="bg-current rounded-sm" />
-                  <div className="bg-current rounded-sm" />
-                  <div className="bg-current rounded-sm" />
-                  <div className="bg-current rounded-sm" />
-                </div>
-              </button>
-              <button
-                onClick={() => setIsGridView(false)}
-                className={`p-2 rounded-md transition-all ${!isGridView ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'}`}
-              >
-                <div className="flex flex-col gap-0.5 w-3.5 h-3.5 justify-center">
-                  <div className="h-0.5 bg-current rounded-full" />
-                  <div className="h-0.5 bg-current rounded-full" />
-                  <div className="h-0.5 bg-current rounded-full" />
-                </div>
+                <FaShoppingCart size={12} />
+                {cartProductCount || 0}
               </button>
             </div>
           </div>
         </div>
 
-        {/* Items Grid - NORMAL CARDS (no zoom) */}
+        {/* Notification */}
+        <AnimatePresence>
+          {showNotification && (
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className={`fixed top-16 left-4 right-4 z-50 px-3 py-2 rounded-lg text-white text-sm font-medium text-center ${notificationMessage.type === 'error' ? 'bg-rose-500' : 'bg-slate-900'}`}
+            >
+              {notificationMessage.text}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Clear Modal */}
+        <ConfirmationModal
+          isOpen={showClearModal}
+          onClose={() => setShowClearModal(false)}
+          onConfirm={confirmClearAll}
+          title="Clear Wishlist?"
+          message="Remove all items?"
+          itemCount={wishlistItems.length}
+          type="danger"
+        />
+
+        {/* Compact Stats */}
+        <div className="grid grid-cols-2 gap-2 p-2">
+          <div className="bg-white rounded-xl p-2.5 border border-slate-100">
+            <p className="text-lg font-bold text-slate-900">{wishlistItems.length}</p>
+            <p className="text-[10px] text-slate-500">Items</p>
+          </div>
+          <div className="bg-white rounded-xl p-2.5 border border-slate-100">
+            <p className="text-lg font-bold text-indigo-600">{displayKESCurrency(totalValue)}</p>
+            <p className="text-[10px] text-slate-500">Total</p>
+          </div>
+        </div>
+
+        {/* Compact Controls */}
+        <div className="px-2 pb-2 flex gap-2">
+          <div className="flex-1 relative">
+            <FaSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-8 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-indigo-500"
+            />
+          </div>
+          
+          <button
+            onClick={() => setShowFilters(true)}
+            className="flex items-center gap-1 px-3 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-lg"
+          >
+            <FaFilter size={10} />
+            Filter
+          </button>
+        </div>
+
+        {/* 3-Column Grid - Compact Cards */}
         {filteredItems.length === 0 ? (
           <EmptyState onExplore={() => navigate('/products')} />
         ) : (
-          <div className={`grid gap-4 ${isGridView ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'}`}>
-            {filteredItems.map((item, index) => {
-              const color = colors[item.colorIndex || 0];
+          <div className="grid grid-cols-3 gap-1.5 px-1.5">
+            {filteredItems.map((item) => {
               const isSelected = selectedItems.includes(item.id);
               
               return (
-                <div
+                <motion.div
                   key={item.id}
-                  className={`group bg-white rounded-2xl border-2 ${isSelected ? color.border : 'border-slate-100'} shadow-sm hover:shadow-md transition-all overflow-hidden relative`}
+                  layout
+                  className={`bg-white rounded-lg border ${isSelected ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-slate-100'} overflow-hidden shadow-sm`}
                 >
-                  {/* Selection Indicator */}
-                  {isSelected && (
-                    <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${color.primary}`} />
-                  )}
-
                   {/* Image */}
-                  <div className={`relative h-48 ${color.bg} overflow-hidden`}>
+                  <div className="relative aspect-square bg-slate-50 overflow-hidden">
                     <img
                       src={item.image}
                       alt={item.name}
-                      className="w-full h-full object-contain p-4"
+                      className="w-full h-full object-contain p-1.5"
+                      loading="lazy"
                     />
                     
                     {/* Badges */}
-                    <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-                      {item.discount > 0 && (
-                        <span className={`${color.light} ${color.text} text-xs font-bold px-2 py-1 rounded-lg flex items-center gap-1`}>
-                          <FaFire size={8} />
-                          -{item.discount}%
-                        </span>
-                      )}
-                      {item.isNew && (
-                        <span className="bg-slate-900 text-white text-xs font-bold px-2 py-1 rounded-lg flex items-center gap-1">
-                          <FaBolt size={8} />
-                          NEW
-                        </span>
-                      )}
-                      {!item.inStock && (
-                        <span className="bg-slate-500 text-white text-xs font-bold px-2 py-1 rounded-lg">
-                          OUT OF STOCK
-                        </span>
-                      )}
-                    </div>
+                    {item.discount > 0 && (
+                      <div className="absolute top-1 left-1 bg-rose-500 text-white text-[7px] font-bold px-1 py-0.5 rounded">
+                        -{item.discount}%
+                      </div>
+                    )}
+                    
+                    {!item.inStock && (
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                        <span className="text-white text-[8px] font-bold bg-black/60 px-1.5 py-0.5 rounded">Out</span>
+                      </div>
+                    )}
 
-                    {/* Selection Checkbox */}
+                    {/* Selection */}
                     <button
                       onClick={() => toggleSelectItem(item.id)}
-                      className={`absolute top-3 right-3 w-7 h-7 rounded-lg flex items-center justify-center transition-all border-2 ${isSelected ? `bg-gradient-to-r ${color.primary} border-transparent text-white` : 'bg-white/90 border-slate-200 text-slate-400 hover:border-violet-400'}`}
+                      className={`absolute top-1 right-1 w-5 h-5 rounded flex items-center justify-center ${isSelected ? 'bg-indigo-600 text-white' : 'bg-white/90 text-slate-400 border border-slate-200'}`}
                     >
-                      {isSelected ? <FaCheck className="w-3.5 h-3.5" /> : <div className="w-3.5 h-3.5" />}
+                      {isSelected && <FaCheck size={10} />}
                     </button>
 
-                    {/* Hover Actions */}
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity flex justify-center gap-2">
+                    {/* Quick Actions */}
+                    <div className="absolute bottom-1 left-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => removeFromWishlist(item.id)}
-                        className="p-2 bg-white rounded-lg text-rose-500 hover:bg-rose-50 transition-colors"
-                        title="Remove"
+                        className="flex-1 py-1 bg-rose-500 text-white rounded text-[8px] font-medium"
                       >
-                        <FaTrash className="w-4 h-4" />
+                        <FaTrash size={8} className="mx-auto" />
                       </button>
                       <button
                         onClick={() => moveToCart(item)}
                         disabled={!item.inStock}
-                        className={`p-2 rounded-lg transition-colors ${item.inStock ? 'bg-white text-slate-900 hover:bg-violet-50' : 'bg-slate-300 text-slate-500 cursor-not-allowed'}`}
-                        title={item.inStock ? 'Add to Cart' : 'Out of Stock'}
+                        className={`flex-1 py-1 rounded text-[8px] font-medium ${item.inStock ? 'bg-indigo-600 text-white' : 'bg-slate-300 text-slate-500'}`}
                       >
-                        <FaShoppingCart className="w-4 h-4" />
+                        <FaShoppingCart size={8} className="mx-auto" />
                       </button>
                     </div>
                   </div>
 
                   {/* Content */}
-                  <div className="p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`text-[10px] font-bold uppercase tracking-wider ${color.text} bg-opacity-20 ${color.bg} px-2 py-0.5 rounded`}>
-                        {item.category}
-                      </span>
-                      <div className="flex items-center gap-0.5">
-                        <FaStar className="text-amber-400 text-[10px]" />
-                        <span className="text-[10px] text-slate-500 font-bold">{item.rating}</span>
-                      </div>
-                    </div>
-
-                    <h3 className="font-bold text-slate-800 text-sm mb-3 line-clamp-2 leading-snug min-h-[2.5rem]">
+                  <div className="p-1.5">
+                    <p className="text-[8px] text-indigo-600 font-medium truncate mb-0.5">{item.category}</p>
+                    <h3 className="font-semibold text-slate-800 text-[9px] leading-tight line-clamp-2 min-h-[18px] mb-1">
                       {item.name}
                     </h3>
+                    
+                    <div className="flex items-center gap-0.5 mb-1">
+                      <FaStar className="text-amber-400 text-[7px]" />
+                      <span className="text-[8px] text-slate-500">{item.rating}</span>
+                    </div>
 
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-lg font-black text-slate-900">
-                          {displayKESCurrency(item.price)}
-                        </p>
-                        {item.originalPrice > item.price && (
-                          <p className="text-xs text-slate-400 line-through">
-                            {displayKESCurrency(item.originalPrice)}
-                          </p>
-                        )}
-                      </div>
-                      
-                      <button
-                        onClick={() => moveToCart(item)}
-                        disabled={!item.inStock}
-                        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${item.inStock ? `bg-gradient-to-r ${color.primary} text-white shadow-md hover:shadow-lg` : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}
-                      >
-                        {item.inStock ? 'Add to Cart' : 'Unavailable'}
-                      </button>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-xs font-bold text-slate-900">
+                        {displayKESCurrency(item.price)}
+                      </span>
+                      {item.originalPrice > item.price && (
+                        <span className="text-[7px] text-slate-400 line-through">
+                          {displayKESCurrency(item.originalPrice)}
+                        </span>
+                      )}
                     </div>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>
         )}
-      </main>
 
-      {/* Floating Bulk Actions */}
-      <BulkActionsBar
-        selectedCount={selectedItems.length}
-        totalCount={filteredItems.length}
-        onSelectAll={selectAll}
-        onClearSelection={clearSelection}
-        onDeleteSelected={deleteSelected}
-        onClearAll={handleClearAll}
-      />
-    </div>
+        {/* Filter Bottom Sheet */}
+        <AnimatePresence>
+          {showFilters && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowFilters(false)}
+                className="fixed inset-0 bg-black/50 z-40"
+              />
+              <motion.div
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-50 overflow-hidden max-h-[70vh]"
+              >
+                <div className="flex justify-center pt-2 pb-1">
+                  <div className="w-8 h-1 bg-slate-300 rounded-full" />
+                </div>
+                
+                <div className="px-4 py-2 border-b border-slate-100 flex items-center justify-between">
+                  <h3 className="font-bold text-slate-800">Filters</h3>
+                  <button onClick={() => setShowFilters(false)} className="p-1.5 hover:bg-slate-100 rounded-full">
+                    <FaTimes size={16} className="text-slate-500" />
+                  </button>
+                </div>
+
+                <div className="p-4 overflow-y-auto max-h-[50vh]">
+                  {/* Sort */}
+                  <div className="mb-4">
+                    <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">Sort By</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { val: 'dateAdded', label: 'Newest' },
+                        { val: 'priceLow', label: 'Price ↑' },
+                        { val: 'priceHigh', label: 'Price ↓' },
+                        { val: 'rating', label: 'Rating' }
+                      ].map(opt => (
+                        <button
+                          key={opt.val}
+                          onClick={() => setSortBy(opt.val)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium ${sortBy === opt.val ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'}`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Categories */}
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">Categories</h4>
+                    <div className="flex flex-wrap gap-1.5">
+                      {categories.map(cat => (
+                        <button
+                          key={cat}
+                          onClick={() => setFilterCategory(cat)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium ${filterCategory === cat ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'}`}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-3 border-t border-slate-100 bg-white">
+                  <button
+                    onClick={() => setShowFilters(false)}
+                    className="w-full py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl"
+                  >
+                    Show {filteredItems.length} Items
+                  </button>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
+        {/* Bulk Actions */}
+        <BulkActionsBar
+          selectedCount={selectedItems.length}
+          totalCount={filteredItems.length}
+          onSelectAll={selectAll}
+          onClearSelection={clearSelection}
+          onDeleteSelected={deleteSelected}
+          onClearAll={handleClearAll}
+        />
+      </div>
     </>
   );
 };

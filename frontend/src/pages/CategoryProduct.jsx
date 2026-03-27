@@ -3,191 +3,127 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Context } from "@/context/ProductContext.jsx";
 import { 
   FaStar, 
-  FaStarHalfAlt, 
   FaHeart, 
-  FaEye, 
   FaShoppingCart,
   FaFire,
   FaPercentage,
   FaFilter,
-  FaSortAmountDown,
-  FaLayerGroup
+  FaTimes,
+  FaChevronDown
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import displayKESCurrency from "@/helpers/displayCurrency.js";
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router-dom';
 
-// Product Card for pre-fetched data
+// Ultra-compact Product Card - 3 per row
 const ProductCard = ({ product, index, onAddToCart }) => {
-  const [isHovered, setIsHovered] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
-  
   const discount = Math.round(((product?.price - product?.selling) / product?.price) * 100);
   
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05, duration: 0.4 }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className="group relative"
+      transition={{ delay: index * 0.02, duration: 0.2 }}
+      className="group relative bg-white rounded-lg border border-slate-100 overflow-hidden shadow-sm active:scale-[0.98] transition-transform"
     >
-      <Link 
-        to={`/product/${product._id}`}
-        className="block bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-[0_20px_40px_rgba(0,0,0,0.12)] transition-all duration-500"
-      >
-        {/* IMAGE CONTAINER */}
-        <div className="relative h-[200px] bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden">
-          <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_50%_50%,rgba(99,102,241,0.1)_1px,transparent_1px)] bg-[size:20px_20px]" />
-          
-          <motion.img
+      <Link to={`/product/${product._id}`} className="block">
+        {/* Image - Square, compact */}
+        <div className="relative aspect-square bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden">
+          <img
             src={product?.productImage?.[0]}
             alt={product?.productName}
-            className="h-full w-full object-contain p-4 relative z-10"
-            animate={{ scale: isHovered ? 1.08 : 1, y: isHovered ? -5 : 0 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="w-full h-full object-contain p-1.5"
+            loading="lazy"
           />
           
-          {/* Discount Badge */}
+          {/* Discount Badge - Micro */}
           {discount > 0 && (
-            <motion.div 
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className="absolute top-3 left-3 z-20"
-            >
-              <div className="bg-gradient-to-r from-rose-500 to-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg shadow-rose-500/30 flex items-center gap-1">
-                <FaPercentage className="text-[10px]" />
-                {discount}% OFF
-              </div>
-            </motion.div>
+            <div className="absolute top-1 left-1 bg-rose-500 text-white text-[8px] font-bold px-1 py-0.5 rounded">
+              -{discount}%
+            </div>
           )}
           
-          {/* Premium Badge */}
-          <div className="absolute top-3 right-3 z-20">
-            <div className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-lg flex items-center gap-1">
-              <FaFire className="text-[10px]" />
-              HOT
+          {/* Fire Badge - Micro */}
+          <div className="absolute top-1 right-1">
+            <div className="bg-amber-400 text-white p-0.5 rounded-sm">
+              <FaFire size={7} />
             </div>
           </div>
           
-          {/* Quick Actions Overlay */}
-          <AnimatePresence>
-            {isHovered && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-0 bg-black/5 backdrop-blur-[2px] z-10 flex items-center justify-center gap-3"
-                onClick={(e) => e.preventDefault()}
-              >
-                <motion.button
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.1 }}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="p-3 bg-white text-slate-700 rounded-full shadow-lg hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
-                >
-                  <FaEye size={18} />
-                </motion.button>
-                
-                <motion.button
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.15 }}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setIsLiked(!isLiked);
-                  }}
-                  className={`p-3 rounded-full shadow-lg transition-colors ${
-                    isLiked ? 'bg-rose-500 text-white' : 'bg-white text-slate-700 hover:bg-rose-50 hover:text-rose-500'
-                  }`}
-                >
-                  <FaHeart size={18} />
-                </motion.button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* Like Button */}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              setIsLiked(!isLiked);
+            }}
+            className={`absolute bottom-1 right-1 p-1 rounded-full shadow-sm transition-colors ${
+              isLiked ? 'bg-rose-500 text-white' : 'bg-white/90 text-slate-400'
+            }`}
+          >
+            <FaHeart size={8} />
+          </button>
         </div>
 
-        {/* CONTENT */}
-        <div className="p-4">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full uppercase tracking-wider">
-              {product?.category}
-            </span>
-            
-            <div className="flex items-center gap-1">
-              <div className="flex">
-                {[...Array(4)].map((_, i) => (
-                  <FaStar key={i} className="text-amber-400 text-[10px]" />
-                ))}
-                <FaStarHalfAlt className="text-amber-400 text-[10px]" />
-              </div>
-              <span className="text-xs font-medium text-slate-600 ml-1">4.5</span>
-            </div>
-          </div>
+        {/* Content - Minimal */}
+        <div className="p-1.5">
+          {/* Category */}
+          <span className="text-[8px] font-medium text-indigo-600 bg-indigo-50 px-1 py-0.5 rounded block w-fit mb-1 truncate max-w-[90%]">
+            {product?.category}
+          </span>
           
-          <h3 className="font-bold text-slate-800 text-sm mb-1 line-clamp-1 group-hover:text-indigo-600 transition-colors">
+          {/* Name - 2 lines max */}
+          <h3 className="font-semibold text-slate-800 text-[10px] leading-tight mb-1 line-clamp-2 min-h-[28px]">
             {product?.productName}
           </h3>
           
-          <p className="text-xs text-slate-500 line-clamp-2 mb-3 leading-relaxed">
-            {product?.description}
-          </p>
+          {/* Rating */}
+          <div className="flex items-center gap-0.5 mb-1">
+            <FaStar className="text-amber-400 text-[7px]" />
+            <span className="text-[8px] text-slate-500">4.5</span>
+          </div>
           
-          <div className="flex items-end justify-between mb-3">
-            <div>
-              <p className="text-lg font-bold text-slate-800">
-                {displayKESCurrency(product?.selling)}
-              </p>
-              <p className="text-xs text-slate-400 line-through">
+          {/* Price */}
+          <div className="flex items-baseline gap-1 mb-1.5">
+            <span className="text-xs font-bold text-slate-900">
+              {displayKESCurrency(product?.selling)}
+            </span>
+            {product?.price > product?.selling && (
+              <span className="text-[8px] text-slate-400 line-through">
                 {displayKESCurrency(product?.price)}
-              </p>
-            </div>
-            
-            {product?.selling < product?.price && (
-              <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">
-                <FaStar className="inline text-[10px] mr-1 text-emerald-500" />
-                Save {displayKESCurrency(product?.price - product?.selling)}
               </span>
             )}
           </div>
           
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+          {/* Add Button - Icon only on tiny screens */}
+          <button
             onClick={(e) => {
               e.preventDefault();
-              e.stopPropagation();
               onAddToCart(e, product?._id);
             }}
-            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-semibold py-3 rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 transition-all duration-300 flex items-center justify-center gap-2 group/btn"
+            className="w-full bg-indigo-600 active:bg-indigo-700 text-white text-[9px] font-semibold py-1.5 rounded flex items-center justify-center gap-1"
           >
-            <FaShoppingCart className="group-hover/btn:animate-bounce" size={14} />
-            Add to Cart
-          </motion.button>
+            <FaShoppingCart size={9} />
+            <span className="hidden sm:inline">Add</span>
+          </button>
         </div>
       </Link>
     </motion.div>
   );
 };
 
-// Product Grid Component
+// 3-Column Grid
 const ProductGrid = ({ data, loading, onAddToCart }) => {
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="bg-white rounded-2xl border border-slate-100 overflow-hidden animate-pulse">
-            <div className="h-[200px] bg-slate-200" />
-            <div className="p-4 space-y-3">
-              <div className="h-4 bg-slate-200 rounded w-3/4" />
-              <div className="h-3 bg-slate-100 rounded w-1/2" />
-              <div className="h-8 bg-slate-200 rounded" />
+      <div className="grid grid-cols-3 gap-1.5">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="bg-white rounded-lg border border-slate-100 overflow-hidden animate-pulse">
+            <div className="aspect-square bg-slate-200" />
+            <div className="p-1.5 space-y-1">
+              <div className="h-1.5 bg-slate-200 rounded w-2/3" />
+              <div className="h-2.5 bg-slate-200 rounded w-3/4" />
+              <div className="h-4 bg-slate-200 rounded" />
             </div>
           </div>
         ))}
@@ -197,17 +133,17 @@ const ProductGrid = ({ data, loading, onAddToCart }) => {
 
   if (!data || data.length === 0) {
     return (
-      <div className="text-center py-16">
-        <div className="w-20 h-20 mx-auto mb-4 bg-slate-100 rounded-full flex items-center justify-center">
-          <FaShoppingCart className="text-slate-400 text-2xl" />
+      <div className="text-center py-10">
+        <div className="w-10 h-10 mx-auto mb-2 bg-slate-100 rounded-full flex items-center justify-center">
+          <FaShoppingCart className="text-slate-300 text-sm" />
         </div>
-        <p className="text-slate-500 font-medium">No products found.</p>
+        <p className="text-slate-400 text-xs">No products</p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-3 gap-1.5">
       {data.map((product, index) => (
         <ProductCard 
           key={product._id} 
@@ -220,76 +156,38 @@ const ProductGrid = ({ data, loading, onAddToCart }) => {
   );
 };
 
-// ===================== NEW: Category Item Component =====================
-const CategoryItem = ({ cat, isSelected, onChange, index }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  
-  return (
-    <motion.label 
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.03 }}
-      className={`flex items-center gap-3 cursor-pointer group p-3 rounded-xl transition-all duration-200 ${
-        isSelected ? 'bg-indigo-50 ring-1 ring-indigo-200' : 'hover:bg-slate-50'
-      }`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <div className="relative flex items-center">
-        <input 
-          type="checkbox" 
-          value={cat.category} 
-          checked={isSelected}
-          onChange={onChange}
-          className="peer sr-only"
-        />
-        <div className={`w-5 h-5 border-2 rounded transition-all ${
-          isSelected 
-            ? 'border-indigo-600 bg-indigo-600' 
-            : 'border-slate-300 group-hover:border-indigo-400'
-        }`}>
-          {isSelected && (
-            <svg className="w-5 h-5 text-white p-0.5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
-          )}
-        </div>
-      </div>
-      
-      {/* Category Image */}
-      <div className={`w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 transition-all duration-300 ${
-        isHovered || isSelected ? 'ring-2 ring-indigo-500 ring-offset-1' : ''
-      }`}>
-        <img 
-          src={cat.productImage} 
-          alt={cat.category}
-          className="w-full h-full object-contain p-1 bg-slate-100"
-          onError={(e) => {
-            e.target.style.display = 'none';
-          }}
-        />
-      </div>
-      
-      {/* Category Name */}
-      <span className={`text-sm font-medium transition-colors break-words leading-tight flex-1 ${
-        isSelected 
-          ? 'text-indigo-700 font-semibold' 
-          : 'text-slate-700 group-hover:text-indigo-600'
-      }`}>
-        {cat.category}
-      </span>
-      
-      {/* Selection indicator */}
-      {isSelected && (
-        <motion.div 
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="w-2 h-2 bg-indigo-500 rounded-full"
-        />
-      )}
-    </motion.label>
-  );
-};
+// Compact Category Item
+const CategoryItem = ({ cat, isSelected, onChange, index }) => (
+  <motion.label 
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ delay: index * 0.01 }}
+    className={`flex items-center gap-2 cursor-pointer p-2 rounded-lg transition-all ${
+      isSelected ? 'bg-indigo-50 ring-1 ring-indigo-200' : 'hover:bg-slate-50'
+    }`}
+  >
+    <input 
+      type="checkbox" 
+      value={cat.category} 
+      checked={isSelected}
+      onChange={onChange}
+      className="sr-only"
+    />
+    <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${
+      isSelected ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300'
+    }`}>
+      {isSelected && <FaTimes size={7} className="text-white rotate-45" />}
+    </div>
+    
+    <div className="w-6 h-6 rounded overflow-hidden bg-slate-100 flex-shrink-0">
+      <img src={cat.productImage} alt="" className="w-full h-full object-contain p-0.5" loading="lazy" />
+    </div>
+    
+    <span className={`text-[11px] flex-1 truncate ${isSelected ? 'text-indigo-700 font-medium' : 'text-slate-600'}`}>
+      {cat.category}
+    </span>
+  </motion.label>
+);
 
 const CategoryProduct = () => {
   const { backendUrl, addToCart, fetchCountCart } = useContext(Context);
@@ -300,337 +198,318 @@ const CategoryProduct = () => {
   const [loading, setLoading] = useState(false);
   const [sortBy, setSortBy] = useState("");
   const [selectedCategory, setSelectedCategory] = useState({});
-  
-  // ===================== NEW: Categories State =====================
+  const [showFilters, setShowFilters] = useState(false);
+  const [showSort, setShowSort] = useState(false);
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
 
-  // Handle add to cart
   const handleAddToCart = async (e, id) => {
     e.preventDefault();
-    e.stopPropagation();
-    
     if (addToCart) {
       await addToCart(e, id);
       fetchCountCart?.();
-    } else {
-      try {
-        const { default: addToCartHelper } = await import('@/helpers/addToCart.js');
-        await addToCartHelper(e, id);
-        fetchCountCart?.();
-      } catch (err) {
-        console.error('Failed to add to cart:', err);
-      }
     }
   };
 
-  // ===================== NEW: Fetch All Categories =====================
   const fetchCategories = async () => {
     try {
       setCategoriesLoading(true);
-      const response = await fetch(`${backendUrl}/product/get-product-category`, {
-        method: 'GET',
-        credentials: 'include',
-      });
-      const responseData = await response.json();
-
-      if (responseData.success) {
-        setCategories(responseData.data || []);
-      }
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    } finally {
-      setCategoriesLoading(false);
-    }
+      const response = await fetch(`${backendUrl}/product/get-product-category`, { credentials: 'include' });
+      const res = await response.json();
+      if (res.success) setCategories(res.data || []);
+    } catch (error) { console.error(error); }
+    finally { setCategoriesLoading(false); }
   };
 
-  // Fetch products
-  const fetchData = async (categories) => {
+  const fetchData = async (cats) => {
     try {
       setLoading(true);
       const res = await fetch(`${backendUrl}/product/filter-category`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ category: categories }),
+        body: JSON.stringify({ category: cats }),
       });
       const result = await res.json();
       setData(result?.data || []);
-      console.log("Fetched products:", result);
-    } catch (err) {
-      console.error("Fetch error:", err);
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { console.error(err); }
+    finally { setLoading(false); }
   };
 
-  // Initial fetch of categories
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  useEffect(() => { fetchCategories(); }, []);
 
-  // Update from URL
   useEffect(() => {
     if (!categoryName) return;
-    const categories = categoryName.split(",");
-    const categoryObj = {};
-    categories.forEach((cat) => (categoryObj[cat] = true));
-    setSelectedCategory(categoryObj);
-    fetchData(categories);
+    const cats = categoryName.split(",");
+    const obj = {};
+    cats.forEach((c) => obj[c] = true);
+    setSelectedCategory(obj);
+    fetchData(cats);
   }, [categoryName, backendUrl]);
 
-  // Handle category change
   const handleSelectCategory = (e) => {
     const { value, checked } = e.target;
     const updated = { ...selectedCategory, [value]: checked };
     setSelectedCategory(updated);
-
-    const activeCategories = Object.keys(updated).filter((key) => updated[key]);
-    if (activeCategories.length > 0) {
-      navigate(`/product-category/${activeCategories.join(",")}`);
-    } else {
-      setData([]);
-    }
+    const active = Object.keys(updated).filter((k) => updated[k]);
+    if (active.length) navigate(`/product-category/${active.join(",")}`);
+    else setData([]);
   };
 
-  // Handle sort
-  const handleSortChange = (e) => {
-    const value = e.target.value;
-    setSortBy(value);
-    if (value === "asc") {
-      setData((prev) => [...prev].sort((a, b) => a.selling - b.selling));
-    }
-    if (value === "dsc") {
-      setData((prev) => [...prev].sort((a, b) => b.selling - a.selling));
-    }
+  const handleSortChange = (val) => {
+    setSortBy(val);
+    setShowSort(false);
+    if (val === "asc") setData((p) => [...p].sort((a, b) => a.selling - b.selling));
+    else if (val === "dsc") setData((p) => [...p].sort((a, b) => b.selling - a.selling));
   };
+
+  const activeFiltersCount = Object.values(selectedCategory).filter(Boolean).length;
 
   return (
-    <div className="container mx-auto p-4">
-      {/* Desktop Layout - Wider sidebar */}
-      <div className="hidden lg:grid grid-cols-[320px,1fr] gap-6">
-        {/* Filters Sidebar - Wider and better text visibility */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm min-h-[calc(100vh-120px)] h-fit sticky top-24">
-          {/* Sort Section */}
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-100">
-              <FaSortAmountDown className="text-indigo-600" />
-              <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Sort By</h3>
-            </div>
-            
-            <div className="flex flex-col gap-2">
-              <label className="flex items-center gap-3 cursor-pointer group p-3 rounded-xl hover:bg-indigo-50 transition-all duration-200">
-                <div className="relative flex items-center">
-                  <input 
-                    type="radio" 
-                    name="sortBy" 
-                    value="asc" 
-                    checked={sortBy === "asc"} 
-                    onChange={handleSortChange}
-                    className="peer sr-only"
-                  />
-                  <div className="w-5 h-5 border-2 border-slate-300 rounded-full peer-checked:border-indigo-600 peer-checked:bg-indigo-600 transition-all" />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
-                    <div className="w-2 h-2 bg-white rounded-full" />
-                  </div>
-                </div>
-                <span className="text-sm font-medium text-slate-700 group-hover:text-indigo-700 transition-colors whitespace-nowrap">
-                  Price: Low to High
-                </span>
-              </label>
-              
-              <label className="flex items-center gap-3 cursor-pointer group p-3 rounded-xl hover:bg-indigo-50 transition-all duration-200">
-                <div className="relative flex items-center">
-                  <input 
-                    type="radio" 
-                    name="sortBy" 
-                    value="dsc" 
-                    checked={sortBy === "dsc"} 
-                    onChange={handleSortChange}
-                    className="peer sr-only"
-                  />
-                  <div className="w-5 h-5 border-2 border-slate-300 rounded-full peer-checked:border-indigo-600 peer-checked:bg-indigo-600 transition-all" />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
-                    <div className="w-2 h-2 bg-white rounded-full" />
-                  </div>
-                </div>
-                <span className="text-sm font-medium text-slate-700 group-hover:text-indigo-700 transition-colors whitespace-nowrap">
-                  Price: High to Low
-                </span>
-              </label>
-            </div>
-          </div>
-
-          {/* ===================== ALL CATEGORIES SECTION ===================== */}
-          <div>
-            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-100">
-              <FaLayerGroup className="text-indigo-600" />
-              <div className="flex items-center justify-between flex-1">
-                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide">All Categories</h3>
-                {categories.length > 0 && (
-                  <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
-                    {categories.length}
-                  </span>
-                )}
-              </div>
-            </div>
-            
-            {/* Loading State */}
-            {categoriesLoading && (
-              <div className="space-y-3">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 animate-pulse">
-                    <div className="w-10 h-10 bg-slate-200 rounded-lg" />
-                    <div className="h-4 bg-slate-200 rounded w-3/4" />
-                  </div>
-                ))}
-              </div>
-            )}
-            
-            {/* ALL Categories List - Scrollable */}
-            {!categoriesLoading && categories.length > 0 && (
-              <div className="flex flex-col gap-1 max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
-                {categories.map((cat, index) => (
-                  <CategoryItem 
-                    key={cat.category}
-                    cat={cat}
-                    isSelected={!!selectedCategory[cat.category]}
-                    onChange={handleSelectCategory}
-                    index={index}
-                  />
-                ))}
-              </div>
-            )}
-            
-            {/* View All Categories Link */}
-            {!categoriesLoading && categories.length > 0 && (
-              <Link 
-                to="/categories"
-                className="mt-4 flex items-center justify-center gap-2 py-3 text-sm font-semibold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors"
-              >
-                View All Categories <FaLayerGroup size={14} />
-              </Link>
-            )}
-          </div>
-
-          {/* Clear Filters Button */}
-          {Object.keys(selectedCategory).length > 0 && (
-            <button
-              onClick={() => {
-                setSelectedCategory({});
-                navigate('/product-category/');
-                setData([]);
-              }}
-              className="w-full mt-6 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-xl transition-colors"
-            >
-              Clear All Filters
-            </button>
-          )}
-        </div>
-
-        {/* Products Grid */}
-        <div>
-          <div className="flex items-center justify-between mb-6 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-            <div className="flex items-center gap-3">
-              <p className="font-bold text-slate-800 text-lg">
-                {data.length} <span className="text-slate-500 font-normal">Products</span>
-              </p>
-            </div>
-            {categoryName && (
-              <div className="flex flex-wrap gap-2">
-                {categoryName.split(',').map((cat, idx) => (
-                  <span 
-                    key={idx} 
-                    className="text-xs font-medium text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-full border border-indigo-100"
-                  >
-                    {cat}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="min-h-[calc(100vh-200px)]">
-            <ProductGrid 
-              data={data} 
-              loading={loading} 
-              onAddToCart={handleAddToCart}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile View */}
-      <div className="lg:hidden">
-        {/* Mobile Filter Toggle could go here */}
-        <div className="flex items-center justify-between mb-4 bg-white p-3 rounded-xl border border-slate-100">
-          <p className="font-bold text-slate-800">
-            {data.length} <span className="text-slate-500 font-normal text-sm">Products</span>
-          </p>
-          {categoryName && (
-            <span className="text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded-lg">
-              {categoryName.replace(/,/g, ', ')}
+    <div className="min-h-screen bg-slate-50 pb-16">
+      {/* Sticky Header - Compact */}
+      <div className="sticky top-0 z-30 bg-white border-b border-slate-200 px-2 py-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <h1 className="font-bold text-slate-800 text-sm">Products</h1>
+            <span className="text-[9px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">
+              {data.length}
             </span>
-          )}
+          </div>
+          
+          <div className="flex items-center gap-1">
+            {/* Sort Button */}
+            <button
+              onClick={() => setShowSort(true)}
+              className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-[10px] font-medium transition-colors ${
+                sortBy ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'
+              }`}
+            >
+              Sort
+              <FaChevronDown size={8} />
+            </button>
+            
+            {/* Filter Button */}
+            <button
+              onClick={() => setShowFilters(true)}
+              className="flex items-center gap-1 px-2 py-1.5 bg-indigo-600 text-white text-[10px] font-semibold rounded-md active:scale-95 transition-transform"
+            >
+              <FaFilter size={9} />
+              {activeFiltersCount > 0 && (
+                <span className="bg-white text-indigo-600 text-[8px] font-bold px-1 rounded">
+                  {activeFiltersCount}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
         
-        {/* Mobile Categories Horizontal Scroll */}
-        {!categoriesLoading && categories.length > 0 && (
-          <div className="mb-4">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">
-              Categories ({categories.length})
-            </p>
-            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-              {categories.map((cat) => (
-                <button
-                  key={cat.category}
+        {/* Active Filters - Horizontal scroll */}
+        {categoryName && (
+          <div className="flex gap-1 mt-1.5 overflow-x-auto pb-1 scrollbar-hide">
+            {categoryName.split(',').map((cat, idx) => (
+              <span 
+                key={idx} 
+                className="flex-shrink-0 inline-flex items-center gap-1 text-[9px] font-medium text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100"
+              >
+                {cat.length > 12 ? cat.slice(0, 12) + '...' : cat}
+                <button 
                   onClick={() => {
-                    const isSelected = selectedCategory[cat.category];
-                    const updated = { ...selectedCategory, [cat.category]: !isSelected };
+                    const updated = { ...selectedCategory };
+                    delete updated[cat];
                     setSelectedCategory(updated);
-                    const activeCategories = Object.keys(updated).filter((key) => updated[key]);
-                    if (activeCategories.length > 0) {
-                      navigate(`/product-category/${activeCategories.join(",")}`);
-                    }
+                    const active = Object.keys(updated).filter((k) => updated[k]);
+                    if (active.length) navigate(`/product-category/${active.join(",")}`);
+                    else { navigate('/product-category/'); setData([]); }
                   }}
-                  className={`flex-shrink-0 flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
-                    selectedCategory[cat.category] 
-                      ? 'bg-indigo-50 ring-2 ring-indigo-500' 
-                      : 'bg-white border border-slate-200'
-                  }`}
+                  className="hover:bg-indigo-200 rounded-full p-0.5"
                 >
-                  <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-50">
-                    <img 
-                      src={cat.productImage} 
-                      alt={cat.category}
-                      className="w-full h-full object-contain p-1"
-                    />
-                  </div>
-                  <span className={`text-[10px] font-medium text-center capitalize ${
-                    selectedCategory[cat.category] ? 'text-indigo-700' : 'text-slate-600'
-                  }`}>
-                    {cat.category.length > 8 ? cat.category.slice(0, 8) + '...' : cat.category}
-                  </span>
+                  <FaTimes size={6} />
                 </button>
-              ))}
-            </div>
+              </span>
+            ))}
           </div>
         )}
-        
-        <ProductGrid 
-          data={data} 
-          loading={loading} 
-          onAddToCart={handleAddToCart}
-        />
       </div>
 
+      {/* Quick Categories - Horizontal scroll */}
+      {!categoriesLoading && categories.length > 0 && (
+        <div className="bg-white border-b border-slate-200 px-2 py-1.5">
+          <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
+            {categories.map((cat) => (
+              <button
+                key={cat.category}
+                onClick={() => {
+                  const isSel = selectedCategory[cat.category];
+                  const updated = { ...selectedCategory, [cat.category]: !isSel };
+                  setSelectedCategory(updated);
+                  const active = Object.keys(updated).filter((k) => updated[k]);
+                  if (active.length) navigate(`/product-category/${active.join(",")}`);
+                }}
+                className={`flex-shrink-0 flex flex-col items-center gap-0.5 p-1 rounded-md min-w-[52px] transition-all ${
+                  selectedCategory[cat.category] 
+                    ? 'bg-indigo-50 ring-1 ring-indigo-500' 
+                    : 'bg-slate-50'
+                }`}
+              >
+                <div className="w-7 h-7 rounded overflow-hidden bg-white shadow-sm">
+                  <img src={cat.productImage} alt="" className="w-full h-full object-contain p-0.5" loading="lazy" />
+                </div>
+                <span className={`text-[8px] font-medium text-center truncate max-w-[48px] ${
+                  selectedCategory[cat.category] ? 'text-indigo-700' : 'text-slate-600'
+                }`}>
+                  {cat.category.length > 8 ? cat.category.slice(0, 8) + '..' : cat.category}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Products - 3 per row */}
+      <div className="p-1.5">
+        <ProductGrid data={data} loading={loading} onAddToCart={handleAddToCart} />
+      </div>
+
+      {/* Sort Bottom Sheet */}
+      <AnimatePresence>
+        {showSort && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowSort(false)}
+              className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-50 overflow-hidden"
+            >
+              <div className="flex justify-center pt-2 pb-1">
+                <div className="w-8 h-1 bg-slate-300 rounded-full" />
+              </div>
+              <div className="px-4 py-2 border-b border-slate-100 flex items-center justify-between">
+                <h3 className="font-bold text-slate-800 text-sm">Sort By</h3>
+                <button onClick={() => setShowSort(false)} className="p-1.5 hover:bg-slate-100 rounded-full">
+                  <FaTimes size={14} className="text-slate-500" />
+                </button>
+              </div>
+              <div className="p-2">
+                {[
+                  { val: '', label: 'Default' },
+                  { val: 'asc', label: 'Price: Low to High' },
+                  { val: 'dsc', label: 'Price: High to Low' }
+                ].map((opt) => (
+                  <button
+                    key={opt.val}
+                    onClick={() => handleSortChange(opt.val)}
+                    className={`w-full text-left px-3 py-3 rounded-lg text-sm font-medium mb-1 transition-all ${
+                      sortBy === opt.val
+                        ? 'bg-indigo-50 text-indigo-700'
+                        : 'text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    {opt.label}
+                    {sortBy === opt.val && <span className="float-right text-indigo-600">✓</span>}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Filter Bottom Sheet */}
+      <AnimatePresence>
+        {showFilters && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowFilters(false)}
+              className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="fixed bottom-0 left-0 right-0 max-h-[70vh] bg-white rounded-t-2xl z-50 overflow-hidden flex flex-col"
+            >
+              <div className="flex justify-center pt-2 pb-1">
+                <div className="w-8 h-1 bg-slate-300 rounded-full" />
+              </div>
+              <div className="px-4 py-2 border-b border-slate-100 flex items-center justify-between">
+                <h3 className="font-bold text-slate-800 text-sm">Filters</h3>
+                <button onClick={() => setShowFilters(false)} className="p-1.5 hover:bg-slate-100 rounded-full">
+                  <FaTimes size={14} className="text-slate-500" />
+                </button>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Categories</h4>
+                  <span className="text-[9px] text-slate-400">{categories.length}</span>
+                </div>
+                
+                {categoriesLoading ? (
+                  <div className="space-y-2">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <div key={i} className="flex items-center gap-2 p-2 animate-pulse">
+                        <div className="w-6 h-6 bg-slate-200 rounded" />
+                        <div className="h-2.5 bg-slate-200 rounded w-2/3" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-0.5">
+                    {categories.map((cat, idx) => (
+                      <CategoryItem
+                        key={cat.category}
+                        cat={cat}
+                        isSelected={!!selectedCategory[cat.category]}
+                        onChange={handleSelectCategory}
+                        index={idx}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              <div className="p-3 border-t border-slate-100 bg-white">
+                <div className="flex gap-2">
+                  {activeFiltersCount > 0 && (
+                    <button
+                      onClick={() => {
+                        setSelectedCategory({});
+                        navigate('/product-category/');
+                        setData([]);
+                      }}
+                      className="flex-1 py-2.5 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg"
+                    >
+                      Clear
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setShowFilters(false)}
+                    className="flex-[2] py-2.5 bg-indigo-600 text-white text-xs font-semibold rounded-lg"
+                  >
+                    Show {data.length}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .custom-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
     </div>
   );
