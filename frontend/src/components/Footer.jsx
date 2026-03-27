@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { 
   FaFacebookF, 
   FaTwitter, 
@@ -10,7 +10,7 @@ import {
   FaEnvelope
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
-import {Context} from "../context/ProductContext"
+import { Context } from "../context/ProductContext";
 
 const Footer = () => {
   const [email, setEmail] = useState("");
@@ -19,7 +19,7 @@ const Footer = () => {
   const [message, setMessage] = useState("");
   const [hoveredLink, setHoveredLink] = useState(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const {backendUrl} = useContext(Context)
+  const { backendUrl } = useContext(Context);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -36,7 +36,7 @@ const Footer = () => {
     setIsLoading(true);
     
     try {
-        const response = await fetch(`${backendUrl}/subscribe/subscribe-user`, {
+      const response = await fetch(`${backendUrl}/subscribe/subscribe-user`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -81,9 +81,9 @@ const Footer = () => {
 
   const supportLinks = [
     { name: "FAQs", href: "/faqs" },
-    { name: "Shipping & Returns", href: "/shipping-and-returns" },
-    { name: "Privacy Policy", href: "/privacy-policy" },
-    { name: "Terms & Conditions", href: "/terms-and-conditions" },
+    { name: "Shipping", href: "/shipping-and-returns" },
+    { name: "Privacy", href: "/privacy-policy" },
+    { name: "Terms", href: "/terms-and-conditions" },
     { name: "Careers", href: "/careers" },
   ];
 
@@ -92,19 +92,19 @@ const Footer = () => {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2,
+        staggerChildren: 0.05,
+        delayChildren: 0.1,
       },
     },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 10 },
     visible: {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.6,
+        duration: 0.4,
         ease: [0.23, 1, 0.32, 1],
       },
     },
@@ -112,117 +112,117 @@ const Footer = () => {
 
   return (
     <footer className="relative bg-[#0a0a0f] text-white overflow-hidden">
-      {/* Animated Background Grid */}
-      <div className="absolute inset-0 opacity-20">
+      {/* Animated Background Grid - Hidden on small devices */}
+      <div className="absolute inset-0 opacity-20 hidden sm:block">
         <div 
           className="absolute inset-0"
           style={{
             backgroundImage: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(239, 68, 68, 0.15) 0%, transparent 50%)`,
           }}
         />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:32px_32px] sm:bg-[size:64px_64px]" />
       </div>
 
-      {/* Glowing Orbs */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-red-600/20 rounded-full blur-[128px] animate-pulse" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-[128px] animate-pulse delay-1000" />
+      {/* Glowing Orbs - Smaller on mobile */}
+      <div className="absolute top-0 left-1/4 w-48 h-48 sm:w-96 sm:h-96 bg-red-600/20 rounded-full blur-[64px] sm:blur-[128px] animate-pulse" />
+      <div className="absolute bottom-0 right-1/4 w-48 h-48 sm:w-96 sm:h-96 bg-purple-600/20 rounded-full blur-[64px] sm:blur-[128px] animate-pulse delay-1000" />
 
-      {/* Main Content */}
+      {/* Main Content - Reduced padding on mobile */}
       <motion.div 
-        className="relative z-10 container mx-auto px-6 py-20"
+        className="relative z-10 container mx-auto px-4 sm:px-6 py-10 sm:py-16 lg:py-20"
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8">
+        {/* Mobile: 1 column, Tablet: 2 columns, Desktop: 12 columns */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-8 sm:gap-6 lg:gap-8">
           
-          {/* Brand Column - Takes 4 columns */}
-          <motion.div className="lg:col-span-4 space-y-6" variants={itemVariants}>
+          {/* Brand Column - Full width on mobile, 4 cols on desktop */}
+          <motion.div className="sm:col-span-2 lg:col-span-4 space-y-4 sm:space-y-6" variants={itemVariants}>
             <div className="relative group">
-              <h1 className="text-4xl font-black tracking-tighter mb-2">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tighter mb-1 sm:mb-2">
                 <span className="bg-gradient-to-r from-red-500 via-red-400 to-orange-400 bg-clip-text text-transparent">
                   Digital
                 </span>
                 <span className="text-white">Commerce</span>
               </h1>
-              <div className="h-1 w-20 bg-gradient-to-r from-red-500 to-transparent rounded-full group-hover:w-32 transition-all duration-500" />
+              <div className="h-0.5 sm:h-1 w-16 sm:w-20 bg-gradient-to-r from-red-500 to-transparent rounded-full group-hover:w-24 sm:group-hover:w-32 transition-all duration-500" />
             </div>
             
-            <p className="text-gray-400 text-lg leading-relaxed max-w-sm">
+            <p className="text-gray-400 text-sm sm:text-base leading-relaxed max-w-xs sm:max-w-sm">
               Elevating commerce through innovation. Premium electronics, 
               unmatched quality, and lightning-fast delivery worldwide.
             </p>
 
-            {/* Contact Info */}
-            <div className="space-y-3 pt-4">
-              <div className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors group cursor-pointer">
-                <div className="p-2 rounded-lg bg-white/5 group-hover:bg-red-500/20 transition-colors">
-                  <FaMapMarkerAlt className="w-4 h-4 text-red-500" />
+            {/* Contact Info - Compact on mobile */}
+            <div className="space-y-2 sm:space-y-3 pt-2 sm:pt-4">
+              <div className="flex items-center gap-2 sm:gap-3 text-gray-400 hover:text-white transition-colors group cursor-pointer">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-white/5 group-hover:bg-red-500/20 transition-colors">
+                  <FaMapMarkerAlt className="w-3 h-3 sm:w-4 sm:h-4 text-red-500" />
                 </div>
-                <span className="text-sm">Nairobi, Kenya 00100</span>
+                <span className="text-xs sm:text-sm">Nairobi, Kenya 00100</span>
               </div>
-              <div className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors group cursor-pointer">
-                <div className="p-2 rounded-lg bg-white/5 group-hover:bg-red-500/20 transition-colors">
-                  <FaPhone className="w-4 h-4 text-red-500" />
+              <div className="flex items-center gap-2 sm:gap-3 text-gray-400 hover:text-white transition-colors group cursor-pointer">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-white/5 group-hover:bg-red-500/20 transition-colors">
+                  <FaPhone className="w-3 h-3 sm:w-4 sm:h-4 text-red-500" />
                 </div>
-                <span className="text-sm">+254 759755575</span>
+                <span className="text-xs sm:text-sm">+254 759755575</span>
               </div>
-              <div className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors group cursor-pointer">
-                <div className="p-2 rounded-lg bg-white/5 group-hover:bg-red-500/20 transition-colors">
-                  <FaEnvelope className="w-4 h-4 text-red-500" />
+              <div className="flex items-center gap-2 sm:gap-3 text-gray-400 hover:text-white transition-colors group cursor-pointer">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-white/5 group-hover:bg-red-500/20 transition-colors">
+                  <FaEnvelope className="w-3 h-3 sm:w-4 sm:h-4 text-red-500" />
                 </div>
-                <span className="text-sm">hello@digitalcommerce.com</span>
-                <span className="text-sm">onesmuswambua747@gmail.com</span>
+                <span className="text-xs sm:text-sm break-all">hello@digitalcommerce.com</span>
               </div>
             </div>
 
-            {/* Social Icons */}
-            <div className="flex gap-3 pt-4">
+            {/* Social Icons - Smaller on mobile */}
+            <div className="flex gap-2 sm:gap-3 pt-2 sm:pt-4">
               {socialLinks.map((social, index) => (
                 <motion.a
                   key={social.label}
                   href={social.href}
                   className={`
-                    relative p-3 rounded-xl bg-white/5 border border-white/10 
+                    relative p-2 sm:p-3 rounded-lg sm:rounded-xl bg-white/5 border border-white/10 
                     text-gray-400 hover:text-white hover:border-white/30 
                     transition-all duration-300 group overflow-hidden
                     ${social.color}
                   `}
-                  whileHover={{ scale: 1.1, y: -2 }}
+                  whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
+                  transition={{ delay: index * 0.05 }}
                 >
                   <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-                  <social.icon className="w-5 h-5 relative z-10" />
+                  <social.icon className="w-4 h-4 sm:w-5 sm:h-5 relative z-10" />
                 </motion.a>
               ))}
             </div>
           </motion.div>
 
-          {/* Quick Links - Takes 2 columns */}
-          <motion.div className="lg:col-span-2" variants={itemVariants}>
-            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-6">
+          {/* Quick Links - Side by side on mobile */}
+          <motion.div className="sm:col-span-1 lg:col-span-2" variants={itemVariants}>
+            <h3 className="text-xs sm:text-sm font-bold text-gray-500 uppercase tracking-widest mb-3 sm:mb-6">
               Navigation
             </h3>
-            <ul className="space-y-4">
+            <ul className="space-y-2 sm:space-y-3">
               {quickLinks.map((link) => (
                 <li key={link.name}>
                   <a
                     href={link.href}
-                    className="group flex items-center gap-2 text-gray-400 hover:text-white transition-colors duration-300"
+                    className="group flex items-center gap-2 text-gray-400 hover:text-white transition-colors duration-300 text-xs sm:text-sm"
                     onMouseEnter={() => setHoveredLink(link.name)}
                     onMouseLeave={() => setHoveredLink(null)}
                   >
                     <span className={`
-                      w-0 h-px bg-red-500 transition-all duration-300
-                      ${hoveredLink === link.name ? "w-4" : "w-0"}
+                      h-px bg-red-500 transition-all duration-300
+                      ${hoveredLink === link.name ? "w-3 sm:w-4" : "w-0"}
                     `} />
                     <span className="relative">
                       {link.name}
-                      <span className="absolute -bottom-1 left-0 w-0 h-px bg-gradient-to-r from-red-500 to-transparent group-hover:w-full transition-all duration-300" />
+                      <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-gradient-to-r from-red-500 to-transparent group-hover:w-full transition-all duration-300" />
                     </span>
                   </a>
                 </li>
@@ -230,27 +230,27 @@ const Footer = () => {
             </ul>
           </motion.div>
 
-          {/* Support - Takes 2 columns */}
-          <motion.div className="lg:col-span-2" variants={itemVariants}>
-            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-6">
+          {/* Support - Side by side on mobile */}
+          <motion.div className="sm:col-span-1 lg:col-span-2" variants={itemVariants}>
+            <h3 className="text-xs sm:text-sm font-bold text-gray-500 uppercase tracking-widest mb-3 sm:mb-6">
               Support
             </h3>
-            <ul className="space-y-4">
+            <ul className="space-y-2 sm:space-y-3">
               {supportLinks.map((link) => (
                 <li key={link.name}>
                   <a
                     href={link.href}
-                    className="group flex items-center gap-2 text-gray-400 hover:text-white transition-colors duration-300"
+                    className="group flex items-center gap-2 text-gray-400 hover:text-white transition-colors duration-300 text-xs sm:text-sm"
                     onMouseEnter={() => setHoveredLink(link.name)}
                     onMouseLeave={() => setHoveredLink(null)}
                   >
                     <span className={`
-                      w-0 h-px bg-red-500 transition-all duration-300
-                      ${hoveredLink === link.name ? "w-4" : "w-0"}
+                      h-px bg-red-500 transition-all duration-300
+                      ${hoveredLink === link.name ? "w-3 sm:w-4" : "w-0"}
                     `} />
                     <span className="relative">
                       {link.name}
-                      <span className="absolute -bottom-1 left-0 w-0 h-px bg-gradient-to-r from-red-500 to-transparent group-hover:w-full transition-all duration-300" />
+                      <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-gradient-to-r from-red-500 to-transparent group-hover:w-full transition-all duration-300" />
                     </span>
                   </a>
                 </li>
@@ -258,12 +258,12 @@ const Footer = () => {
             </ul>
           </motion.div>
 
-          {/* Newsletter - Takes 4 columns */}
-          <motion.div className="lg:col-span-4" variants={itemVariants}>
-            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-6">
+          {/* Newsletter - Full width on mobile, 4 cols on desktop */}
+          <motion.div className="sm:col-span-2 lg:col-span-4" variants={itemVariants}>
+            <h3 className="text-xs sm:text-sm font-bold text-gray-500 uppercase tracking-widest mb-3 sm:mb-6">
               Stay Updated
             </h3>
-            <p className="text-gray-400 mb-6 leading-relaxed">
+            <p className="text-gray-400 mb-3 sm:mb-6 leading-relaxed text-xs sm:text-sm">
               Join 50,000+ subscribers receiving exclusive deals, 
               product launches, and insider news.
             </p>
@@ -275,14 +275,14 @@ const Footer = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
-                  className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-red-500/50 focus:bg-white/10 transition-all duration-300 pr-36"
+                  className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-red-500/50 focus:bg-white/10 transition-all duration-300 text-sm pr-28 sm:pr-36"
                   disabled={isSubscribed || isLoading}
                 />
                 <motion.button
                   type="submit"
                   className={`
-                    absolute right-2 top-2 bottom-2 px-6 rounded-xl font-semibold text-sm
-                    flex items-center gap-2 transition-all duration-300
+                    absolute right-1.5 sm:right-2 top-1.5 sm:top-2 bottom-1.5 sm:bottom-2 px-3 sm:px-6 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm
+                    flex items-center gap-1 sm:gap-2 transition-all duration-300
                     ${isSubscribed 
                       ? "bg-green-500 text-white" 
                       : "bg-gradient-to-r from-red-600 to-red-500 text-white hover:from-red-500 hover:to-red-400 shadow-lg shadow-red-500/25"
@@ -300,9 +300,9 @@ const Footer = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-1 sm:gap-2"
                       >
-                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                        <svg className="animate-spin h-3 w-3 sm:h-4 sm:w-4" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                         </svg>
@@ -313,19 +313,21 @@ const Footer = () => {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
+                        className="text-xs sm:text-sm"
                       >
-                        Subscribed!
+                        Done!
                       </motion.span>
                     ) : (
                       <motion.span
                         key="subscribe"
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-1 sm:gap-2"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                       >
-                        Subscribe
-                        <FaArrowRight className="w-4 h-4" />
+                        <span className="hidden sm:inline">Subscribe</span>
+                        <span className="sm:hidden">Join</span>
+                        <FaArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                       </motion.span>
                     )}
                   </AnimatePresence>
@@ -339,61 +341,64 @@ const Footer = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className={`absolute -bottom-8 left-0 text-sm flex items-center gap-2 ${isSubscribed ? "text-green-400" : "text-red-400"}`}
+                    className={`absolute -bottom-6 sm:-bottom-8 left-0 text-xs sm:text-sm flex items-center gap-2 ${isSubscribed ? "text-green-400" : "text-red-400"}`}
                   >
-                    <span className={`w-2 h-2 rounded-full animate-pulse ${isSubscribed ? "bg-green-400" : "bg-red-400"}`} />
-                    {isSubscribed ? "Welcome to the club! Check your inbox." : message}
+                    <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full animate-pulse ${isSubscribed ? "bg-green-400" : "bg-red-400"}`} />
+                    <span className="truncate max-w-[200px] sm:max-w-none">
+                      {isSubscribed ? "Welcome! Check your inbox." : message}
+                    </span>
                   </motion.p>
                 )}
               </AnimatePresence>
             </form>
 
-            {/* Trust Badges */}
-            <div className="flex items-center gap-4 mt-12 pt-8 border-t border-white/5">
-              <div className="flex -space-x-2">
+            {/* Trust Badges - Smaller on mobile */}
+            <div className="flex items-center gap-3 sm:gap-4 mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-white/5">
+              <div className="flex -space-x-1.5 sm:-space-x-2">
                 {[...Array(4)].map((_, i) => (
                   <div 
                     key={i}
-                    className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 border-2 border-[#0a0a0f] flex items-center justify-center text-xs font-bold text-gray-400"
+                    className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 border-2 border-[#0a0a0f] flex items-center justify-center text-[10px] sm:text-xs font-bold text-gray-400"
                   >
                     {String.fromCharCode(65 + i)}
                   </div>
                 ))}
               </div>
-              <div className="text-sm text-gray-500">
+              <div className="text-xs sm:text-sm text-gray-500">
                 <span className="text-white font-semibold">50k+</span> happy customers
               </div>
             </div>
           </motion.div>
         </div>
 
-        {/* Bottom Bar */}
+        {/* Bottom Bar - Stacked on mobile, row on tablet+ */}
         <motion.div 
-          className="mt-20 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4"
+          className="mt-10 sm:mt-16 lg:mt-20 pt-6 sm:pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4"
           variants={itemVariants}
         >
-          <p className="text-gray-500 text-sm">
+          <p className="text-gray-500 text-xs sm:text-sm order-3 sm:order-1">
             © 2025 DigitalCommerce. All rights reserved.
           </p>
           
-          <div className="flex items-center gap-6 text-sm text-gray-500">
+          <div className="flex items-center gap-4 sm:gap-6 text-xs sm:text-sm text-gray-500 order-1 sm:order-2">
             <a href="#" className="hover:text-white transition-colors">Privacy</a>
             <span className="w-1 h-1 bg-gray-700 rounded-full" />
             <a href="#" className="hover:text-white transition-colors">Terms</a>
-            <span className="w-1 h-1 bg-gray-700 rounded-full" />
-            <a href="#" className="hover:text-white transition-colors">Cookies</a>
+            <span className="w-1 h-1 bg-gray-700 rounded-full hidden sm:inline" />
+            <a href="#" className="hover:text-white transition-colors hidden sm:inline">Cookies</a>
           </div>
 
           {/* Back to Top */}
           <motion.button
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="group flex items-center gap-2 text-gray-500 hover:text-white transition-colors text-sm"
+            className="group flex items-center gap-2 text-gray-500 hover:text-white transition-colors text-xs sm:text-sm order-2 sm:order-3"
             whileHover={{ y: -2 }}
           >
-            Back to top
-            <div className="p-2 rounded-lg bg-white/5 group-hover:bg-red-500/20 transition-colors">
+            <span className="sm:hidden">Top</span>
+            <span className="hidden sm:inline">Back to top</span>
+            <div className="p-1.5 sm:p-2 rounded-lg bg-white/5 group-hover:bg-red-500/20 transition-colors">
               <svg 
-                className="w-4 h-4 rotate-180" 
+                className="w-3 h-3 sm:w-4 sm:h-4 rotate-180" 
                 fill="none" 
                 viewBox="0 0 24 24" 
                 stroke="currentColor"
@@ -412,379 +417,3 @@ const Footer = () => {
 };
 
 export default Footer;
-
-
-
-
-
-// import React, { useState, useEffect } from "react";
-// import { 
-//   FaFacebookF, 
-//   FaTwitter, 
-//   FaInstagram, 
-//   FaLinkedinIn,
-//   FaArrowRight,
-//   FaMapMarkerAlt,
-//   FaPhone,
-//   FaEnvelope
-// } from "react-icons/fa";
-// import { motion, AnimatePresence } from "framer-motion";
-
-// const Footer = () => {
-//   const [email, setEmail] = useState("");
-//   const [isSubscribed, setIsSubscribed] = useState(false);
-//   const [hoveredLink, setHoveredLink] = useState(null);
-//   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-
-//   useEffect(() => {
-//     const handleMouseMove = (e) => {
-//       setMousePosition({ x: e.clientX, y: e.clientY });
-//     };
-//     window.addEventListener("mousemove", handleMouseMove);
-//     return () => window.removeEventListener("mousemove", handleMouseMove);
-//   }, []);
-
-//   const handleSubscribe = (e) => {
-//     e.preventDefault();
-//     if (email) {
-//       setIsSubscribed(true);
-//       setTimeout(() => {
-//         setIsSubscribed(false);
-//         setEmail("");
-//       }, 3000);
-//     }
-//   };
-
-//   const socialLinks = [
-//     { icon: FaFacebookF, href: "#", label: "Facebook", color: "hover:bg-blue-600 hover:text-white" },
-//     { icon: FaTwitter, href: "#", label: "Twitter", color: "hover:bg-sky-500 hover:text-white" },
-//     { icon: FaInstagram, href: "#", label: "Instagram", color: "hover:bg-pink-600 hover:text-white" },
-//     { icon: FaLinkedinIn, href: "#", label: "LinkedIn", color: "hover:bg-blue-700 hover:text-white" },
-//   ];
-
-//   const quickLinks = [
-//     { name: "Home", href: "#" },
-//     { name: "Products", href: "#" },
-//     { name: "Categories", href: "#" },
-//     { name: "About Us", href: "#" },
-//     { name: "Contact", href: "#" },
-//   ];
-
-//   const supportLinks = [
-//     { name: "FAQs", href: "#" },
-//     { name: "Shipping & Returns", href: "#" },
-//     { name: "Privacy Policy", href: "#" },
-//     { name: "Terms & Conditions", href: "#" },
-//     { name: "Careers", href: "#" },
-//   ];
-
-//   const containerVariants = {
-//     hidden: { opacity: 0 },
-//     visible: {
-//       opacity: 1,
-//       transition: {
-//         staggerChildren: 0.1,
-//         delayChildren: 0.2,
-//       },
-//     },
-//   };
-
-//   const itemVariants = {
-//     hidden: { opacity: 0, y: 20 },
-//     visible: {
-//       opacity: 1,
-//       y: 0,
-//       transition: {
-//         duration: 0.6,
-//         ease: [0.23, 1, 0.32, 1],
-//       },
-//     },
-//   };
-
-//   return (
-//     <footer className="relative bg-slate-50 text-slate-800 overflow-hidden">
-//       {/* Subtle Background Pattern */}
-//       <div className="absolute inset-0 opacity-30">
-//         <div 
-//           className="absolute inset-0"
-//           style={{
-//             backgroundImage: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(239, 68, 68, 0.08) 0%, transparent 40%)`,
-//           }}
-//         />
-//         <div className="absolute inset-0 bg-[linear-gradient(rgba(148,163,184,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.1)_1px,transparent_1px)] bg-[size:64px_64px]" />
-//       </div>
-
-//       {/* Soft Gradient Orbs */}
-//       <div className="absolute top-0 left-1/4 w-96 h-96 bg-red-200/30 rounded-full blur-[128px]" />
-//       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-orange-200/30 rounded-full blur-[128px]" />
-
-//       {/* Main Content */}
-//       <motion.div 
-//         className="relative z-10 container mx-auto px-6 py-16"
-//         variants={containerVariants}
-//         initial="hidden"
-//         whileInView="visible"
-//         viewport={{ once: true }}
-//       >
-//         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8">
-          
-//           {/* Brand Column */}
-//           <motion.div className="lg:col-span-4 space-y-6" variants={itemVariants}>
-//             <div className="relative group">
-//               <h1 className="text-4xl font-black tracking-tighter mb-2">
-//                 <span className="bg-gradient-to-r from-red-600 via-red-500 to-orange-500 bg-clip-text text-transparent">
-//                   Digital
-//                 </span>
-//                 <span className="text-slate-800">Commerce</span>
-//               </h1>
-//               <div className="h-1 w-20 bg-gradient-to-r from-red-500 to-orange-400 rounded-full group-hover:w-32 transition-all duration-500" />
-//             </div>
-            
-//             <p className="text-slate-600 text-lg leading-relaxed max-w-sm">
-//               Elevating commerce through innovation. Premium electronics, 
-//               unmatched quality, and lightning-fast delivery worldwide.
-//             </p>
-
-//             {/* Contact Info */}
-//             <div className="space-y-3 pt-4">
-//               <div className="flex items-center gap-3 text-slate-600 hover:text-red-600 transition-colors group cursor-pointer">
-//                 <div className="p-2 rounded-lg bg-white shadow-sm border border-slate-200 group-hover:border-red-200 group-hover:shadow-md transition-all">
-//                   <FaMapMarkerAlt className="w-4 h-4 text-red-500" />
-//                 </div>
-//                 <span className="text-sm font-medium">San Francisco, CA 94102</span>
-//               </div>
-//               <div className="flex items-center gap-3 text-slate-600 hover:text-red-600 transition-colors group cursor-pointer">
-//                 <div className="p-2 rounded-lg bg-white shadow-sm border border-slate-200 group-hover:border-red-200 group-hover:shadow-md transition-all">
-//                   <FaPhone className="w-4 h-4 text-red-500" />
-//                 </div>
-//                 <span className="text-sm font-medium">+1 (555) 123-4567</span>
-//               </div>
-//               <div className="flex items-center gap-3 text-slate-600 hover:text-red-600 transition-colors group cursor-pointer">
-//                 <div className="p-2 rounded-lg bg-white shadow-sm border border-slate-200 group-hover:border-red-200 group-hover:shadow-md transition-all">
-//                   <FaEnvelope className="w-4 h-4 text-red-500" />
-//                 </div>
-//                 <span className="text-sm font-medium">hello@digitalcommerce.com</span>
-//               </div>
-//             </div>
-
-//             {/* Social Icons */}
-//             <div className="flex gap-3 pt-4">
-//               {socialLinks.map((social, index) => (
-//                 <motion.a
-//                   key={social.label}
-//                   href={social.href}
-//                   className={`
-//                     relative p-3 rounded-xl bg-white border border-slate-200 
-//                     text-slate-600 shadow-sm
-//                     hover:shadow-lg hover:border-transparent
-//                     transition-all duration-300 group overflow-hidden
-//                     ${social.color}
-//                   `}
-//                   whileHover={{ scale: 1.1, y: -2 }}
-//                   whileTap={{ scale: 0.95 }}
-//                   initial={{ opacity: 0, y: 20 }}
-//                   animate={{ opacity: 1, y: 0 }}
-//                   transition={{ delay: index * 0.1 }}
-//                 >
-//                   <social.icon className="w-5 h-5 relative z-10" />
-//                 </motion.a>
-//               ))}
-//             </div>
-//           </motion.div>
-
-//           {/* Quick Links */}
-//           <motion.div className="lg:col-span-2" variants={itemVariants}>
-//             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">
-//               Navigation
-//             </h3>
-//             <ul className="space-y-4">
-//               {quickLinks.map((link) => (
-//                 <li key={link.name}>
-//                   <a
-//                     href={link.href}
-//                     className="group flex items-center gap-2 text-slate-600 hover:text-red-600 transition-colors duration-300 font-medium"
-//                     onMouseEnter={() => setHoveredLink(link.name)}
-//                     onMouseLeave={() => setHoveredLink(null)}
-//                   >
-//                     <span className={`
-//                       w-0 h-0.5 bg-red-500 transition-all duration-300 rounded-full
-//                       ${hoveredLink === link.name ? "w-4" : "w-0"}
-//                     `} />
-//                     <span className="relative">
-//                       {link.name}
-//                       <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-red-500 to-orange-400 group-hover:w-full transition-all duration-300 rounded-full" />
-//                     </span>
-//                   </a>
-//                 </li>
-//               ))}
-//             </ul>
-//           </motion.div>
-
-//           {/* Support */}
-//           <motion.div className="lg:col-span-2" variants={itemVariants}>
-//             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">
-//               Support
-//             </h3>
-//             <ul className="space-y-4">
-//               {supportLinks.map((link) => (
-//                 <li key={link.name}>
-//                   <a
-//                     href={link.href}
-//                     className="group flex items-center gap-2 text-slate-600 hover:text-red-600 transition-colors duration-300 font-medium"
-//                     onMouseEnter={() => setHoveredLink(link.name)}
-//                     onMouseLeave={() => setHoveredLink(null)}
-//                   >
-//                     <span className={`
-//                       w-0 h-0.5 bg-red-500 transition-all duration-300 rounded-full
-//                       ${hoveredLink === link.name ? "w-4" : "w-0"}
-//                     `} />
-//                     <span className="relative">
-//                       {link.name}
-//                       <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-red-500 to-orange-400 group-hover:w-full transition-all duration-300 rounded-full" />
-//                     </span>
-//                   </a>
-//                 </li>
-//               ))}
-//             </ul>
-//           </motion.div>
-
-//           {/* Newsletter */}
-//           <motion.div className="lg:col-span-4" variants={itemVariants}>
-//             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">
-//               Stay Updated
-//             </h3>
-//             <p className="text-slate-600 mb-6 leading-relaxed">
-//               Join 50,000+ subscribers receiving exclusive deals, 
-//               product launches, and insider news.
-//             </p>
-
-//             <form onSubmit={handleSubscribe} className="relative">
-//               <div className="relative group">
-//                 <input
-//                   type="email"
-//                   value={email}
-//                   onChange={(e) => setEmail(e.target.value)}
-//                   placeholder="Enter your email"
-//                   className="w-full px-6 py-4 bg-white border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-400 focus:ring-4 focus:ring-red-100 transition-all duration-300 pr-36 shadow-sm"
-//                   disabled={isSubscribed}
-//                 />
-//                 <motion.button
-//                   type="submit"
-//                   className={`
-//                     absolute right-2 top-2 bottom-2 px-6 rounded-xl font-semibold text-sm
-//                     flex items-center gap-2 transition-all duration-300 shadow-md
-//                     ${isSubscribed 
-//                       ? "bg-green-500 text-white" 
-//                       : "bg-gradient-to-r from-red-600 to-red-500 text-white hover:from-red-500 hover:to-red-400 hover:shadow-lg hover:shadow-red-500/25"
-//                     }
-//                   `}
-//                   whileHover={{ scale: 1.02 }}
-//                   whileTap={{ scale: 0.98 }}
-//                   disabled={isSubscribed}
-//                 >
-//                   <AnimatePresence mode="wait">
-//                     {isSubscribed ? (
-//                       <motion.span
-//                         key="success"
-//                         initial={{ opacity: 0, y: 10 }}
-//                         animate={{ opacity: 1, y: 0 }}
-//                         exit={{ opacity: 0, y: -10 }}
-//                       >
-//                         Subscribed!
-//                       </motion.span>
-//                     ) : (
-//                       <motion.span
-//                         key="subscribe"
-//                         className="flex items-center gap-2"
-//                         initial={{ opacity: 0, y: 10 }}
-//                         animate={{ opacity: 1, y: 0 }}
-//                         exit={{ opacity: 0, y: -10 }}
-//                       >
-//                         Subscribe
-//                         <FaArrowRight className="w-4 h-4" />
-//                       </motion.span>
-//                     )}
-//                   </AnimatePresence>
-//                 </motion.button>
-//               </div>
-              
-//               {/* Success Message */}
-//               <AnimatePresence>
-//                 {isSubscribed && (
-//                   <motion.p
-//                     initial={{ opacity: 0, y: 10 }}
-//                     animate={{ opacity: 1, y: 0 }}
-//                     exit={{ opacity: 0, y: -10 }}
-//                     className="absolute -bottom-8 left-0 text-green-600 text-sm flex items-center gap-2 font-medium"
-//                   >
-//                     <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-//                     Welcome to the club! Check your inbox.
-//                   </motion.p>
-//                 )}
-//               </AnimatePresence>
-//             </form>
-
-//             {/* Trust Badges */}
-//             <div className="flex items-center gap-4 mt-12 pt-8 border-t border-slate-200">
-//               <div className="flex -space-x-2">
-//                 {[...Array(4)].map((_, i) => (
-//                   <div 
-//                     key={i}
-//                     className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 border-2 border-white flex items-center justify-center text-xs font-bold text-slate-600"
-//                   >
-//                     {String.fromCharCode(65 + i)}
-//                   </div>
-//                 ))}
-//               </div>
-//               <div className="text-sm text-slate-500">
-//                 <span className="text-slate-800 font-bold">50k+</span> happy customers
-//               </div>
-//             </div>
-//           </motion.div>
-//         </div>
-
-//         {/* Bottom Bar */}
-//         <motion.div 
-//           className="mt-16 pt-8 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4"
-//           variants={itemVariants}
-//         >
-//           <p className="text-slate-500 text-sm">
-//             © 2025 DigitalCommerce. All rights reserved.
-//           </p>
-          
-//           <div className="flex items-center gap-6 text-sm text-slate-500">
-//             <a href="#" className="hover:text-red-600 transition-colors font-medium">Privacy</a>
-//             <span className="w-1 h-1 bg-slate-300 rounded-full" />
-//             <a href="#" className="hover:text-red-600 transition-colors font-medium">Terms</a>
-//             <span className="w-1 h-1 bg-slate-300 rounded-full" />
-//             <a href="#" className="hover:text-red-600 transition-colors font-medium">Cookies</a>
-//           </div>
-
-//           {/* Back to Top */}
-//           <motion.button
-//             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-//             className="group flex items-center gap-2 text-slate-500 hover:text-red-600 transition-colors text-sm font-medium"
-//             whileHover={{ y: -2 }}
-//           >
-//             Back to top
-//             <div className="p-2 rounded-lg bg-white border border-slate-200 group-hover:border-red-200 group-hover:shadow-md transition-all">
-//               <svg 
-//                 className="w-4 h-4 rotate-180" 
-//                 fill="none" 
-//                 viewBox="0 0 24 24" 
-//                 stroke="currentColor"
-//               >
-//                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-//               </svg>
-//             </div>
-//           </motion.button>
-//         </motion.div>
-//       </motion.div>
-
-//       {/* Decorative Bottom Line */}
-//       <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 via-orange-400 to-red-500" />
-//     </footer>
-//   );
-// };
-
-// export default Footer;
