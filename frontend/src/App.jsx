@@ -31,6 +31,7 @@ import WishlistPage from "@/pages/WishlistPage.jsx";
 import TrendingProducts from "@/pages/TrendingProducts.jsx";
 import PromotionBanner from "@/components/PromotionBanner.jsx";
 import PromotionToast from "@/components/PromotionToast.jsx";
+import ScrollToTop from "@/components/ScrollToTop.jsx";
 
 // Admin pages
 import AdminPanel from "@/pages/Adminpanel.jsx";
@@ -209,6 +210,7 @@ useEffect(() => {
       }}
     >
       <div className="flex flex-col min-h-screen">
+        <ScrollToTop />
         <Toaster position="top-center" />
         
         {/* 🔥 BANNER - Relative positioning, pushes header down */}
@@ -225,6 +227,7 @@ useEffect(() => {
 
         {/* 🔥 MAIN - Adjusted padding based on banner */}
         <main className={`flex-1 ${!hideHeaderAndFooter ? '' : ''}`}>
+            
           <Routes>
             {/* ---------------- Public Routes ---------------- */}
             <Route path="/" element={<Home />} />
