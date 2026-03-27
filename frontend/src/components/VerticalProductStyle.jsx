@@ -7,7 +7,7 @@ import Context from "@/context/index.js";
 
 import { Link } from 'react-router-dom'
 
-const VerticalCardProduct = ({ category, heading }) => {
+const VerticalCardProductStyle = ({ category, heading }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   
@@ -136,4 +136,4 @@ const VerticalCardProduct = ({ category, heading }) => {
   );
 };
 
-export default VerticalCardProduct;
+export default VerticalCardProductStyle;
