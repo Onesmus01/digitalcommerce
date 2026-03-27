@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast, Toaster } from "react-hot-toast";
 import { setUserDetails } from "../store/userSlice.js";
 import { io } from "socket.io-client";
+import { AnimatePresence } from "framer-motion";
 
 import Context from "@/context/index.js";
 import Header from "@/components/Header.jsx";
@@ -32,6 +33,9 @@ import TrendingProducts from "@/pages/TrendingProducts.jsx";
 import PromotionBanner from "@/components/PromotionBanner.jsx";
 import PromotionToast from "@/components/PromotionToast.jsx";
 import ScrollToTop from "@/components/ScrollToTop.jsx";
+import PageTransitionWrapper from "@/components/PageTransitionWrapper.jsx";
+import PageLoader from "@/components/PageLoader.jsx";
+import usePageLoader from "@/hooks/usePageLoader.jsx";
 
 // Admin pages
 import AdminPanel from "@/pages/Adminpanel.jsx";
@@ -43,8 +47,7 @@ import PromotionDashboard from "@/pages/PromotionDashboard.jsx";
 import HotDealsAdmin from "@/pages/HotDealsAdmin.jsx";
 import AdminRevenue from '@/pages/AdminRevenue.jsx';
 import AdminReportPage from "@/pages/AdminReportPage.jsx";
-import AdminSettingsPage from "@/pages/AdminSettingsPage.jsx"
-
+import AdminSettingsPage from "@/pages/AdminSettingsPage.jsx";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080/api";
 
@@ -62,12 +65,11 @@ const PrivateAdminRoute = ({ user, children }) => {
 
 // ------------------- App Component -------------------
 const App = () => {
+  
   const user = useSelector((state) => state?.user?.user);
   const dispatch = useDispatch();
-
   const location = useLocation();
 
-  // ✅ Hide header/footer on admin pages
   const hideHeaderAndFooter =
     location.pathname.startsWith("/admin") || location.pathname === "/admin-panel";
 
@@ -75,129 +77,99 @@ const App = () => {
   const [loading, setLoading] = useState(false);
   const [socket, setSocket] = useState(null);
   const [onlineAdmins, setOnlineAdmins] = useState(0);
-  // 🔥 Track banner visibility for layout adjustments
   const [showBanner, setShowBanner] = useState(false);
 
   console.log("admin user role", user?.role);
 
   // ---------------- FETCH CART COUNT ----------------
   const fetchCountCart = async () => {
-  if (!user?._id) return;
-  
-  const token = localStorage.getItem("token");
-  if (!token) {
-    setCartProductCount(0);
-    return;
-  }
-  
-  try {
-    setLoading(true);
-    const response = await fetch(`${backendUrl}/user/count-cart-products`, {
-      method: "GET",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,  // 🔥 ADD THIS LINE
-      },
-    });
-    
-    const responseData = await response.json();
-    
-    if (response.ok) {
-      setCartProductCount(responseData.data || 0);
-      console.log("✅ Cart count fetched:", responseData.data);
-    } else {
+    if (!user?._id) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) {
       setCartProductCount(0);
+      return;
     }
-  } catch (error) {
-    setCartProductCount(0);
-  } finally {
-    setLoading(false);
-  }
-};
+
+    try {
+      setLoading(true);
+      const response = await fetch(`${backendUrl}/user/count-cart-products`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const responseData = await response.json();
+      setCartProductCount(response.ok ? responseData.data || 0 : 0);
+      console.log("✅ Cart count fetched:", responseData.data);
+    } catch {
+      setCartProductCount(0);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchCountCart();
   }, [user]);
 
   // ---------------- FETCH USER DETAILS ----------------
-  // 
-const fetchUserDetails = async () => {
-  try {
-    const token = localStorage.getItem("token") || ""; // always a string
-
-    console.log("Fetching from:", `${backendUrl}/user/user-details`);
-    console.log("Sending token:", token);
-
-    const res = await fetch(`${backendUrl}/user/user-details`, {
-      method: "GET",
-      credentials: "include", // send cookies
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // always present
-      },
-    });
-
-    console.log("Response status:", res.status);
-
-    if (!res.ok) {
-      const errText = await res.text();
-      console.error("Response not OK:", errText);
-      return;
+  const fetchUserDetails = async () => {
+    try {
+      const token = localStorage.getItem("token") || "";
+      const res = await fetch(`${backendUrl}/user/user-details`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (data.data) dispatch(setUserDetails(data.data));
+      console.log("User details fetched:", data.data);
+    } catch (err) {
+      console.error("Network error:", err.message);
     }
+  };
 
-    const data = await res.json();
-    if (data.data) dispatch(setUserDetails(data.data));
-    console.log("User details fetched:", data.data);
+  useEffect(() => {
+    fetchUserDetails();
+  }, []);
 
-  } catch (err) {
-    console.error("Network error:", err.message);
-  }
-};
-useEffect(() => {
-  fetchUserDetails();
-}, []);
   // ---------------- SOCKET.IO CONNECTION ----------------
   useEffect(() => {
     if (!user?._id) {
-      console.log("⏸️ No user logged in, socket not connected");
       setSocket(null);
       return;
     }
 
-    console.log("🔌 Connecting socket for user:", user._id);
-    
-    const socketClient = io(backendUrl, { 
+    const socketClient = io(backendUrl, {
       withCredentials: true,
       transports: ['websocket', 'polling'],
       reconnection: true,
-      reconnectionAttempts: 5
+      reconnectionAttempts: 5,
     });
-    
+
     setSocket(socketClient);
 
-    socketClient.on("connect", () => {
-      console.log("🟢 Socket connected:", socketClient.id);
-    });
+    socketClient.on("connect", () => console.log("🟢 Socket connected:", socketClient.id));
+    socketClient.on("admins-online", (count) => setOnlineAdmins(count));
+    socketClient.on("disconnect", (reason) => console.log("🔴 Socket disconnected:", reason));
+    socketClient.on("error", (err) => console.error("⚠️ Socket error:", err));
 
-    socketClient.on("admins-online", (count) => {
-      setOnlineAdmins(count);
-      console.log("👨‍💻 Online admins:", count);
-    });
-
-    socketClient.on("disconnect", (reason) => {
-      console.log("🔴 Socket disconnected:", reason);
-    });
-
-    socketClient.on("error", (err) => {
-      console.error("⚠️ Socket error:", err);
-    });
-
-    return () => {
-      socketClient.disconnect();
-    };
+    return () => socketClient.disconnect();
   }, [user]);
 
+
+  // triggers PageLoader on route change
+  usePageLoader();
+
+
+  // ------------------- RENDER -------------------
   return (
     <Context.Provider
       value={{
@@ -211,109 +183,71 @@ useEffect(() => {
     >
       <div className="flex flex-col min-h-screen">
         <ScrollToTop />
-        <Toaster position="top-center" />
-        
-        {/* 🔥 BANNER - Relative positioning, pushes header down */}
-        {!hideHeaderAndFooter && (
-          <PromotionBanner onVisibilityChange={setShowBanner} />
-        )}
-        
-        {/* 🔥 HEADER - Sticky below banner */}
+        <Toaster
+            position="top-center"
+            toastOptions={{
+              style: {
+                maxWidth: "90%", // smaller on mobile
+                width: "auto",    // let it fit content
+                padding: "0.5rem 1rem", // smaller padding
+                fontSize: "0.875rem",   // slightly smaller text
+              },
+            }}
+          />
+          <PageLoader loading={loading} /> {/* <-- PROGRESS BAR */}
+
+
+        {!hideHeaderAndFooter && <PromotionBanner onVisibilityChange={setShowBanner} />}
         {!hideHeaderAndFooter && (
           <div className="sticky top-0 z-50">
             <Header />
           </div>
         )}
 
-        {/* 🔥 MAIN - Adjusted padding based on banner */}
-        <main className={`flex-1 ${!hideHeaderAndFooter ? '' : ''}`}>
-            
-          <Routes>
-            {/* ---------------- Public Routes ---------------- */}
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/sign-up" element={<SignUp />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route
-              path="/product-category/:categoryName?"
-              element={<CategoryProduct />}
-            />
-            <Route path="/product/:id" element={<ProductDetails />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/search" element={<SearchProduct />} />
-            <Route path="/new-arrivals" element={<NewArrivalsPage />} />
-            <Route path="/hot-deals" element={<HotDealsPage />} />
-            <Route path="/all-products" element={<ProductsPage />} />
-            <Route path="/wishlist" element={<WishlistPage />} />
+        <main className="flex-1">
+          {/* ---------------- ANIMATEPRESENCE WRAP ---------------- */}
+          <AnimatePresence mode="wait">
+            <Routes location={location} key={location.pathname}>
+              {/* ---------------- Public Routes ---------------- */}
+              <Route path="/" element={<PageTransitionWrapper><Home /></PageTransitionWrapper>} />
+              <Route path="/login" element={<PageTransitionWrapper><Login /></PageTransitionWrapper>} />
+              <Route path="/sign-up" element={<PageTransitionWrapper><SignUp /></PageTransitionWrapper>} />
+              <Route path="/forgot-password" element={<PageTransitionWrapper><ForgotPassword /></PageTransitionWrapper>} />
+              <Route path="/product-category/:categoryName?" element={<CategoryProduct />} />
+              <Route path="/product/:id" element={<PageTransitionWrapper><ProductDetails /></PageTransitionWrapper>} />
+              <Route path="/cart" element={<PageTransitionWrapper><Cart /></PageTransitionWrapper>} />
+              <Route path="/search" element={<PageTransitionWrapper><SearchProduct /></PageTransitionWrapper>} />
+              <Route path="/new-arrivals" element={<PageTransitionWrapper><NewArrivalsPage /></PageTransitionWrapper>} />
+              <Route path="/hot-deals" element={<PageTransitionWrapper><HotDealsPage /></PageTransitionWrapper>} />
+              <Route path="/all-products" element={<PageTransitionWrapper><ProductsPage /></PageTransitionWrapper>} />
+              <Route path="/wishlist" element={<PageTransitionWrapper><WishlistPage /></PageTransitionWrapper>} />
 
-            {/* ---------------- Protected User Routes ---------------- */}
-            <Route
-              path="/orders"
-              element={
-                <PrivateRoute user={user}>
-                  <Orders />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/checkout"
-              element={
-                <PrivateRoute user={user}>
-                  <CheckoutPage />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/payment"
-              element={
-                <PrivateRoute user={user}>
-                  <Payment />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/thank-you"
-              element={
-                <PrivateRoute user={user}>
-                  <ThankYouPage />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/my-orders"
-              element={
-                <PrivateRoute user={user}>
-                  <MyOrdersPage />
-                </PrivateRoute>
-              }
-            />
+              {/* ---------------- Protected User Routes ---------------- */}
+              <Route path="/orders" element={<PrivateRoute user={user}><Orders /></PrivateRoute>} />
+              <Route path="/checkout" element={<PrivateRoute user={user}><CheckoutPage /></PrivateRoute>} />
+              <Route path="/payment" element={<PrivateRoute user={user}><Payment /></PrivateRoute>} />
+              <Route path="/thank-you" element={<PrivateRoute user={user}><ThankYouPage /></PrivateRoute>} />
+              <Route path="/my-orders" element={<PrivateRoute user={user}><MyOrdersPage /></PrivateRoute>} />
 
-            {/* ---------------- Admin Routes ---------------- */}
-            <Route
-              path="/admin-panel"
-              element={
-                <PrivateAdminRoute user={user}>
-                  <AdminPanel />
-                </PrivateAdminRoute>
-              }
-            >
-              <Route index element={<AdminDashboard />} />
-              <Route path="all-users" element={<AllUsers />} />
-              <Route path="all-products" element={<AllProducts />} />
-              <Route path="product" element={<Products />} />
-              <Route path="orders" element={<Orders />} />
-              <Route path="trending-products" element={<TrendingProducts />} />
-              <Route path={"promotions"} element={<PromotionDashboard />} />
-              <Route path={"hot-admin"} element={<HotDealsAdmin />} />
-              <Route path={"admin-revenue"} element={<AdminRevenue />} />
-              <Route path={"admin-reports"} element={<AdminReportPage />} />
-              <Route path={"admin-settings"} element={<AdminSettingsPage />} />
+              {/* ---------------- Admin Routes ---------------- */}
+              <Route path="/admin-panel" element={<PrivateAdminRoute user={user}><AdminPanel /></PrivateAdminRoute>}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="all-users" element={<AllUsers />} />
+                <Route path="all-products" element={<AllProducts />} />
+                <Route path="product" element={<Products />} />
+                <Route path="orders" element={<Orders />} />
+                <Route path="trending-products" element={<TrendingProducts />} />
+                <Route path="promotions" element={<PromotionDashboard />} />
+                <Route path="hot-admin" element={<HotDealsAdmin />} />
+                <Route path="admin-revenue" element={<AdminRevenue />} />
+                <Route path="admin-reports" element={<AdminReportPage />} />
+                <Route path="admin-settings" element={<AdminSettingsPage />} />
+              </Route>
 
-            </Route>
-
-            {/* ---------------- Fallback ---------------- */}
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
+              {/* ---------------- Fallback ---------------- */}
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          </AnimatePresence>
         </main>
 
         {!hideHeaderAndFooter && <Footer />}

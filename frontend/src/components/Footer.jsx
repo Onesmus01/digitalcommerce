@@ -73,18 +73,18 @@ const Footer = () => {
 
   const quickLinks = [
     { name: "Home", href: "#" },
-    { name: "Products", href: "#" },
-    { name: "Categories", href: "#" },
-    { name: "About Us", href: "#" },
-    { name: "Contact", href: "#" },
+    { name: "Products", href: "/products" },
+    { name: "Categories", href: "/product-category/all" },
+    { name: "About Us", href: "/about" },
+    { name: "Contact", href: "/contact" },
   ];
 
   const supportLinks = [
-    { name: "FAQs", href: "#" },
-    { name: "Shipping & Returns", href: "#" },
-    { name: "Privacy Policy", href: "#" },
-    { name: "Terms & Conditions", href: "#" },
-    { name: "Careers", href: "#" },
+    { name: "FAQs", href: "/faqs" },
+    { name: "Shipping & Returns", href: "/shipping-and-returns" },
+    { name: "Privacy Policy", href: "/privacy-policy" },
+    { name: "Terms & Conditions", href: "/terms-and-conditions" },
+    { name: "Careers", href: "/careers" },
   ];
 
   const containerVariants = {
