@@ -10,6 +10,7 @@ import NewArrivals from "@/components/NewArrivals";
 import { Helmet } from 'react-helmet-async';
 import ColumnProducts from '@/components/ColumnProducts.jsx'
 import BrandProducts from '@/components/BrandProducts.jsx'
+import TermsPopup from '@/components/TermsPopup.jsx'
 const categories = ["televisions", "refrigerators", "watches"];
 
 const Home = () => {
@@ -40,6 +41,10 @@ const Home = () => {
 
       {/* UI Components */}
       {/* <Header /> */}
+       <TermsPopup 
+        onAccept={() => console.log('Accepted')} 
+        onDecline={() => console.log('Declined')} 
+      />
       <CategoryList />
       <BannerProduct />
       <BrandProducts />
