@@ -23,7 +23,7 @@ const Cart = () => {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const navigate = useNavigate();
 
-  const { backendUrl, fetchUserAddToCart, getAuthHeaders } = useContext(Context);
+  const { backendUrl, fetchUserAddToCart,fetchCountCart, getAuthHeaders } = useContext(Context);
 
   /* ================= FETCH CART ================= */
   const fetchData = async () => {
@@ -106,6 +106,7 @@ const Cart = () => {
         // Remove from local state quietly - NO loading, NO fetchData()
         setData(prev => prev.filter(item => item._id !== _id));
         fetchUserAddToCart(); // Just update cart count
+        fetchCountCart()
       }
     } catch (error) {
       console.error("Delete error:", error);
@@ -127,6 +128,7 @@ const Cart = () => {
     if (result.success) {
       setData([]);
       fetchUserAddToCart();
+      fetchCountCart()
       setShowClearConfirm(false);
     }
   } catch (error) {

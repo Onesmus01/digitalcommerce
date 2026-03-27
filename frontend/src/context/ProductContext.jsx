@@ -84,35 +84,45 @@ const ProductContext = ({ children }) => {
   };
 
   // 🔥 FIXED: fetchCountCart - removed loading check, wrapped in useCallback
-  const fetchCountCart = useCallback(async () => {
-    const token = localStorage.getItem("token");
+  
+  const fetchCountCart = async () => {
+    if (!user?._id) return;
     
+    const token = localStorage.getItem("token");
     if (!token) {
       setCartProductCount(0);
       return;
     }
-
+    
     try {
+      setLoading(true);
       const response = await fetch(`${backendUrl}/user/count-cart-products`, {
         method: "GET",
         credentials: "include",
-        headers: getAuthHeaders(),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,  // 🔥 ADD THIS LINE
+        },
       });
-
+      
       const responseData = await response.json();
-
+      
       if (response.ok) {
-        setCartProductCount(Number(responseData.data) || 0);
+        setCartProductCount(responseData.data || 0);
         console.log("✅ Cart count fetched:", responseData.data);
       } else {
-        console.log("❌ Cart count failed:", response.status);
         setCartProductCount(0);
       }
     } catch (error) {
-      console.error("❌ fetchCountCart error:", error);
       setCartProductCount(0);
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  };
+  
+    useEffect(() => {
+      fetchCountCart();
+    }, [user]);
 
   // 🔥 NEW: fetchUserAddToCart - fetches cart and updates count
   const fetchUserAddToCart = useCallback(async () => {
