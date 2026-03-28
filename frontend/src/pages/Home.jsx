@@ -13,6 +13,7 @@ import BrandProducts from '@/components/BrandProducts.jsx'
 import TermsPopup from '@/components/TermsPopup.jsx'
 const categories = ["televisions", "refrigerators", "watches"];
 import PromoBanners from '@/components/PromoBanners.jsx'
+import FeatureGrid from '@/components/FeatureGrid.jsx'
 
 const Home = () => {
   return (
@@ -49,6 +50,7 @@ const Home = () => {
       <CategoryList />
       <BannerProduct />
       <BrandProducts />
+      <FeatureGrid />
       <PromoBanners />
       <ColumnProducts category={"earphones"} heading={"Decorated Seasonal Offers"} />
 
