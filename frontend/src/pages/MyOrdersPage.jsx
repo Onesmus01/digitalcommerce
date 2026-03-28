@@ -328,7 +328,7 @@ export default function MyOrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const { backendUrl } = useContext(Context);
+  const { backendUrl, getAuthHeaders } = useContext(Context);
 
   useEffect(() => {
     fetchOrders();
@@ -369,7 +369,7 @@ export default function MyOrdersPage() {
       const res = await fetch(`${backendUrl}/order/${id}/cancel`, {
         method: "PUT",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
       });
 
       if (!res.ok) throw new Error("Cancel failed");

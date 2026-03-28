@@ -12,6 +12,7 @@ import ColumnProducts from '@/components/ColumnProducts.jsx'
 import BrandProducts from '@/components/BrandProducts.jsx'
 import TermsPopup from '@/components/TermsPopup.jsx'
 const categories = ["televisions", "refrigerators", "watches"];
+import PromoBanners from '@/components/PromoBanners.jsx'
 
 const Home = () => {
   return (
@@ -48,6 +49,7 @@ const Home = () => {
       <CategoryList />
       <BannerProduct />
       <BrandProducts />
+      <PromoBanners />
       <ColumnProducts category={"earphones"} heading={"Decorated Seasonal Offers"} />
 
       <MultiCategoryConveyor categories={categories} />

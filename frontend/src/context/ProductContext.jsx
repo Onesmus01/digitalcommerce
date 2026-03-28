@@ -8,6 +8,9 @@ export const Context = createContext(null);
 let backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080/api"
 
 // 🔥 HELPER: Get auth headers with token
+
+// Listen for changes in localStorage (login/logout in other tabs)
+  
 const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
   return {
@@ -17,6 +20,15 @@ const getAuthHeaders = () => {
 };
 
 const ProductContext = ({ children }) => {
+  const [token, setToken] = useState(localStorage.getItem("token") || null);
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setToken(localStorage.getItem("token"));
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   const navigate = useNavigate()
   const user = useSelector(state => state?.user?.user)
 
@@ -359,6 +371,7 @@ const ProductContext = ({ children }) => {
     ClearWishlist,
     BulkRemoveWishlist,
     getAuthHeaders,
+    token,
     fetchUserAddToCart, // 🔥 NOW INCLUDED!
   }
 
