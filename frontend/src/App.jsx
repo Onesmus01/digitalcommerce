@@ -37,6 +37,11 @@ import PageTransitionWrapper from "@/components/PageTransitionWrapper.jsx";
 import PageLoader from "@/components/PageLoader.jsx";
 import usePageLoader from "@/hooks/usePageLoader.jsx";
 import BackButton from "@/components/BackButton.jsx"
+import AboutPage from "@/pages/AboutPage.jsx";
+import FAQsPage from "@/pages/FAQsPage.jsx";
+import PrivacyPage from "@/pages/PrivacyPage.jsx";
+import TermsPage from "@/pages/TermsPage.jsx";
+import CareersPage from "@/pages/CareersPage.jsx";
 
 // Admin pages
 import AdminPanel from "@/pages/Adminpanel.jsx";
@@ -182,7 +187,7 @@ const App = () => {
         backendUrl,
       }}
     >
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col min-h-screen ">
         <ScrollToTop />
         <Toaster
             position="top-center"
@@ -222,6 +227,11 @@ const App = () => {
               <Route path="/hot-deals" element={<PageTransitionWrapper><HotDealsPage /></PageTransitionWrapper>} />
               <Route path="/all-products" element={<PageTransitionWrapper><ProductsPage /></PageTransitionWrapper>} />
               <Route path="/wishlist" element={<PageTransitionWrapper><WishlistPage /></PageTransitionWrapper>} />
+              <Route path="/about" element={<PageTransitionWrapper><AboutPage /></PageTransitionWrapper>} />
+              <Route path="/faqs" element={<PageTransitionWrapper><FAQsPage /></PageTransitionWrapper>} />
+              <Route path="/privacy-policy" element={<PageTransitionWrapper><PrivacyPage /></PageTransitionWrapper>} />
+              <Route path="/terms-and-conditions" element={<PageTransitionWrapper><TermsPage /></PageTransitionWrapper>} />
+              <Route path="/careers" element={<PageTransitionWrapper><CareersPage /></PageTransitionWrapper>} />
 
               {/* ---------------- Protected User Routes ---------------- */}
               <Route path="/orders" element={<PrivateRoute user={user}><Orders /></PrivateRoute>} />
