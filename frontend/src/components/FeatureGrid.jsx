@@ -7,7 +7,8 @@ const features = [
     title: "Call / Sound", 
     icon: FaVolumeUp, 
     color: "text-blue-500", 
-    bg: "bg-blue-50" 
+    bg: "bg-blue-50",
+    phone: "0759755575"  // Phone number added here
   },
   { 
     id: "alerts", 
@@ -33,6 +34,15 @@ const features = [
 ];
 
 const FeatureGrid = ({ onFeatureClick }) => {
+  const handleClick = (feature) => {
+    if (feature.phone) {
+      // Initiates phone call
+      window.location.href = `tel:${feature.phone}`;
+    } else if (onFeatureClick) {
+      onFeatureClick(feature.id);
+    }
+  };
+
   return (
     <div className="container mx-auto px-2 sm:px-4 py-4">
       <div className="grid grid-cols-4 gap-2">
@@ -41,7 +51,7 @@ const FeatureGrid = ({ onFeatureClick }) => {
           return (
             <button
               key={feature.id}
-              onClick={() => onFeatureClick?.(feature.id)}
+              onClick={() => handleClick(feature)}
               className="group bg-white rounded-lg shadow-sm hover:shadow-md active:scale-95 transition-all duration-200 flex flex-col items-center justify-center p-2 sm:p-3 border border-gray-100"
             >
               <div className={`${feature.bg} p-2 rounded-full mb-1 group-hover:scale-105 transition-transform`}>
