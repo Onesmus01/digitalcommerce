@@ -132,10 +132,9 @@ const ProgressStep = ({ number, title, active, completed, isMobile }) => (
 const PaymentPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
-
   const { backendUrl, getAuthHeaders } = useContext(Context);
-  console.log("[CONTEXT] backendUrl:", backendUrl);
+  
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
 
   const {
     orderId,
@@ -158,38 +157,35 @@ const PaymentPage = () => {
   const lastRequestTime = useRef(0);
   const isMounted = useRef(true);
   const txIdRef = useRef(null);
-  const countRef = useRef(0); // Use ref instead of let to avoid closure issues
+  const countRef = useRef(0);
+  const stopPollingRef = useRef(null);
 
-  const REQUEST_DELAY = 60000; // 60 seconds between payment attempts
-  const POLL_INTERVAL = 3000;  // 3 seconds between status checks
-  const MAX_POLLS = 40;        // Maximum 40 attempts (2 minutes total)
+  const REQUEST_DELAY = 60000;
+  const POLL_INTERVAL = 3000;
+  const MAX_POLLS = 40;
 
   /* ---------------- RESPONSIVE CHECK ---------------- */
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 640);
-    };
+    const handleResize = () => setIsMobile(window.innerWidth < 640);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   /* ---------------- SAFETY CLEANUP ---------------- */
   useEffect(() => {
-    if (!orderId) navigate("/cart");
+    if (!orderId) {
+      navigate("/cart");
+      return;
+    }
 
     return () => {
       isMounted.current = false;
-      stopPolling();
+      if (stopPollingRef.current) stopPollingRef.current();
     };
   }, [orderId, navigate]);
 
-  /* ---------------- DEBUG ---------------- */
-  useEffect(() => {
-    console.log("[STATE] paymentStatus changed to:", paymentStatus);
-  }, [paymentStatus]);
-
   /* ---------------- HELPER: STOP POLLING ---------------- */
-  const stopPolling = useCallback(() => {
+  stopPollingRef.current = useCallback(() => {
     if (pollRef.current) {
       clearInterval(pollRef.current);
       pollRef.current = null;
@@ -198,45 +194,41 @@ const PaymentPage = () => {
     countRef.current = 0;
   }, []);
 
-  /* ---------------- FORMAT PHONE - ALL KENYAN FORMATS ---------------- */
-  const formatPhone = (phone) => {
+  const stopPolling = () => {
+    if (stopPollingRef.current) stopPollingRef.current();
+  };
+
+  /* ---------------- FORMAT PHONE ---------------- */
+  const formatPhone = useCallback((phone) => {
     let cleaned = phone.replace(/[\s\-\+\(\)]/g, "");
     
-    console.log("[PHONE FORMAT] Input:", phone, "Cleaned:", cleaned);
-
     if (cleaned.startsWith("0")) {
       cleaned = "254" + cleaned.slice(1);
     } else if (cleaned.startsWith("7") || cleaned.startsWith("1")) {
       cleaned = "254" + cleaned;
     } else if (!cleaned.startsWith("254")) {
-      console.log("[PHONE FORMAT] Invalid format");
       return null;
     }
 
-    console.log("[PHONE FORMAT] Output:", cleaned);
-
     if (!/^(2547|2541)\d{8}$/.test(cleaned)) {
-      console.log("[PHONE FORMAT] Regex failed");
       return null;
     }
 
     return cleaned;
-  };
+  }, []);
 
-  /* Validate phone for UI feedback */
-  const isValidPhone = (phone) => {
+  const isValidPhone = useCallback((phone) => {
     if (!phone) return false;
     const cleaned = phone.replace(/[\s\-\+\(\)]/g, "");
-    
     return (
       /^(07|01)\d{8}$/.test(cleaned) ||
       /^(2547|2541)\d{8}$/.test(cleaned) ||
       /^(7|1)\d{8}$/.test(cleaned) ||
       /^\+254(7|1)\d{8}$/.test(phone.replace(/\s/g, ''))
     );
-  };
+  }, []);
 
-  /* ---------------- CHECK STATUS FUNCTION ---------------- */
+  /* ---------------- CHECK STATUS ---------------- */
   const checkStatus = useCallback(async (txId) => {
     if (!isMounted.current || !txId) return { shouldStop: true, status: null };
 
@@ -244,21 +236,16 @@ const PaymentPage = () => {
     console.log(`[POLLING] Attempt ${countRef.current}/${MAX_POLLS} for tx: ${txId}`);
 
     try {
+      // 🔥 NO cache headers to avoid CORS issues
       const res = await fetch(
         `${backendUrl}/payment/mpesa/status/${txId}?_cb=${Date.now()}`,
         { 
-          credentials: "include",
-          headers: {
-            ...getAuthHeaders(),
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          }
+          headers: getAuthHeaders()
         }
       );
 
-      // Handle auth errors - stop polling immediately
       if (res.status === 401 || res.status === 403) {
-        console.error("[POLLING] Auth error (401/403), stopping poll");
+        console.error("[POLLING] Auth error (401/403)");
         toast.error("Session expired. Please refresh and try again.");
         stopPolling();
         setProcessing(false);
@@ -277,10 +264,8 @@ const PaymentPage = () => {
         throw new Error(data.message || "Unknown error");
       }
 
-      // Final status reached
       if (["success", "failed", "cancelled"].includes(data.status)) {
-        console.log("[POLLING] ✅ Final status detected:", data.status);
-        
+        console.log("[POLLING] ✅ Final status:", data.status);
         stopPolling();
         setProcessing(false);
         toast.dismiss("mpesa");
@@ -298,9 +283,8 @@ const PaymentPage = () => {
         return { shouldStop: true, status: data.status };
       }
 
-      // Max polls reached
       if (countRef.current >= MAX_POLLS) {
-        console.log("[POLLING] ⏰ Max polls reached, timeout");
+        console.log("[POLLING] ⏰ Max polls reached");
         stopPolling();
         setProcessing(false);
         setPaymentStatus("failed");
@@ -309,13 +293,11 @@ const PaymentPage = () => {
         return { shouldStop: true, status: "timeout" };
       }
 
-      // Continue polling
       return { shouldStop: false, status: data.status };
 
     } catch (err) {
       console.error("[POLLING ERROR]", err.message);
       
-      // On max polls reached with error, stop
       if (countRef.current >= MAX_POLLS) {
         stopPolling();
         setProcessing(false);
@@ -325,14 +307,12 @@ const PaymentPage = () => {
         return { shouldStop: true, status: "error" };
       }
       
-      // Continue polling on transient errors
       return { shouldStop: false, status: null };
     }
-  }, [backendUrl, getAuthHeaders, navigate, stopPolling]);
+  }, [backendUrl, getAuthHeaders, navigate]);
 
   /* ---------------- START POLLING ---------------- */
   const startPolling = useCallback((txId) => {
-    // Clear any existing poll first
     stopPolling();
     
     txIdRef.current = txId;
@@ -341,13 +321,11 @@ const PaymentPage = () => {
 
     console.log("[POLLING] Starting for tx:", txId);
 
-    // Delay first check by 3 seconds to allow backend processing
     const initialTimeout = setTimeout(() => {
       if (!isMounted.current) return;
 
       checkStatus(txId).then(({ shouldStop }) => {
         if (!shouldStop && isMounted.current) {
-          // Start interval polling
           pollRef.current = setInterval(() => {
             if (!isMounted.current) {
               stopPolling();
@@ -355,21 +333,18 @@ const PaymentPage = () => {
             }
             
             checkStatus(txIdRef.current).then(({ shouldStop: stop }) => {
-              if (stop) {
-                stopPolling();
-              }
+              if (stop) stopPolling();
             });
           }, POLL_INTERVAL);
         }
       });
     }, 3000);
 
-    // Cleanup timeout on unmount
     return () => {
       clearTimeout(initialTimeout);
       stopPolling();
     };
-  }, [checkStatus, stopPolling]);
+  }, [checkStatus]);
 
   /* ---------------- VISIBILITY CHECK ---------------- */
   useEffect(() => {
@@ -377,19 +352,16 @@ const PaymentPage = () => {
       if (document.visibilityState !== 'visible') return;
       
       const currentTxId = txIdRef.current;
-      
-      // Only proceed if we have an active transaction AND are still processing
-      // AND polling is not already running
       if (!currentTxId || !processing || pollRef.current) {
-        console.log("[VISIBILITY] Skipping check - no tx, not processing, or already polling");
+        console.log("[VISIBILITY] Skipping check");
         return;
       }
       
-      console.log("[VISIBILITY] Tab visible, checking status for:", currentTxId);
+      console.log("[VISIBILITY] Tab visible, checking:", currentTxId);
       
+      // 🔥 NO cache headers here either
       fetch(`${backendUrl}/payment/mpesa/status/${currentTxId}?_cb=${Date.now()}`, {
-        credentials: "include",
-        headers: {...getAuthHeaders(), 'Cache-Control': 'no-cache' }
+        headers: getAuthHeaders()
       })
       .then(res => {
         if (res.status === 401 || res.status === 403) throw new Error('Auth error');
@@ -397,7 +369,6 @@ const PaymentPage = () => {
         return res.json();
       })
       .then(data => {
-        console.log("[VISIBILITY] Check result:", data);
         if (data.success && ["success", "failed", "cancelled"].includes(data.status)) {
           stopPolling();
           setPaymentStatus(data.status);
@@ -407,22 +378,18 @@ const PaymentPage = () => {
           if (data.status === "success") {
             toast.success("Payment successful! 🎉");
             setTimeout(() => navigate("/thank-you"), 1500);
-          } else if (data.status === "failed") {
-            toast.error(data.message || "Payment failed");
           } else {
-            toast.error(data.message || "Payment cancelled");
+            toast.error(data.message || "Payment failed/cancelled");
           }
-        }
-        // If still pending, restart polling if it was stopped
-        else if (data.status === 'pending' && !pollRef.current) {
-          console.log("[VISIBILITY] Still pending, restarting polling");
+        } else if (data.status === 'pending' && !pollRef.current) {
+          console.log("[VISIBILITY] Restarting polling");
           startPolling(currentTxId);
         }
       })
       .catch(err => {
         console.error("[VISIBILITY] Check failed:", err.message);
         if (err.message === 'Auth error') {
-          toast.error("Session expired. Please refresh.");
+          toast.error("Session expired.");
           stopPolling();
           setProcessing(false);
         }
@@ -431,7 +398,7 @@ const PaymentPage = () => {
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [processing, backendUrl, getAuthHeaders, navigate, startPolling, stopPolling]);
+  }, [processing, backendUrl, getAuthHeaders, navigate, startPolling]);
 
   /* ---------------- PAYMENT HANDLER ---------------- */
   const handleMpesaPayment = async () => {
@@ -462,7 +429,6 @@ const PaymentPage = () => {
     try {
       const res = await fetch(`${backendUrl}/payment/mpesa/pay`, {
         method: "POST",
-        credentials: "include",
         headers: getAuthHeaders(),
         body: JSON.stringify({
           phone,
@@ -538,7 +504,7 @@ const PaymentPage = () => {
 
       <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-8">
-          {/* LEFT SIDE - Main Content */}
+          {/* LEFT SIDE */}
           <div className="lg:col-span-7 space-y-4 sm:space-y-6">
             
             {/* Customer Details Card */}
@@ -628,7 +594,7 @@ const PaymentPage = () => {
                         </div>
                       </div>
 
-                      {/* M-Pesa Input Field */}
+                      {/* M-Pesa Input */}
                       {method.id === "mpesa" && selectedMethod === "mpesa" && (
                         <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200/50 animate-in slide-in-from-top-2">
                           <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
@@ -657,7 +623,6 @@ const PaymentPage = () => {
                             </div>
                           </div>
                           
-                          {/* Validation feedback */}
                           {mpesaPhone && !isValidPhone(mpesaPhone) && (
                             <p className="mt-2 text-[10px] sm:text-xs text-red-500 flex items-center gap-1">
                               <FaExclamationCircle size={10} />
@@ -679,7 +644,6 @@ const PaymentPage = () => {
                         </div>
                       )}
 
-                      {/* Coming Soon Badge */}
                       {method.id !== "mpesa" && selectedMethod === method.id && (
                         <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200/50">
                           <div className="bg-amber-50 border border-amber-200 rounded-lg p-2 sm:p-3 flex items-center gap-2 text-amber-800 text-xs">
@@ -725,7 +689,7 @@ const PaymentPage = () => {
               </div>
             </div>
 
-            {/* Security Note - Desktop */}
+            {/* Security Note */}
             <div className="hidden sm:flex items-center justify-center gap-6 text-sm text-gray-500">
               <div className="flex items-center gap-2">
                 <FaLock className="text-green-600" />
@@ -740,7 +704,6 @@ const PaymentPage = () => {
 
           {/* RIGHT SIDE - Order Summary */}
           <div className="lg:col-span-5">
-            {/* Mobile Order Summary Toggle */}
             <div className="lg:hidden mb-4">
               <button
                 onClick={() => setShowOrderSummary(!showOrderSummary)}
@@ -760,11 +723,9 @@ const PaymentPage = () => {
               </button>
             </div>
 
-            {/* Order Summary Card */}
-            <div className={`
-              bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 lg:sticky lg:top-24 overflow-hidden
-              ${showOrderSummary ? 'block' : 'hidden lg:block'}
-            `}>
+            <div className={`bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 lg:sticky lg:top-24 overflow-hidden ${
+              showOrderSummary ? 'block' : 'hidden lg:block'
+            }`}>
               <div className="bg-gray-900 text-white px-4 sm:px-6 py-3 sm:py-4">
                 <div className="flex items-center gap-2 sm:gap-3">
                   <Package className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -773,7 +734,6 @@ const PaymentPage = () => {
               </div>
 
               <div className="p-3 sm:p-6">
-                {/* Items */}
                 <div className="space-y-3 mb-4 sm:mb-6 max-h-48 sm:max-h-64 overflow-y-auto">
                   {cartItems.map((item, i) => (
                     <div key={i} className="flex gap-3 p-2 sm:p-3 bg-gray-50 rounded-lg sm:rounded-xl">
@@ -802,7 +762,6 @@ const PaymentPage = () => {
                   ))}
                 </div>
 
-                {/* Calculations */}
                 <div className="space-y-2 py-3 sm:py-4 border-t border-gray-100 text-sm">
                   <div className="flex justify-between text-xs sm:text-sm">
                     <span className="text-gray-600">Subtotal</span>
@@ -818,7 +777,6 @@ const PaymentPage = () => {
                   </div>
                 </div>
 
-                {/* Total */}
                 <div className="pt-3 sm:pt-4 border-t border-gray-200">
                   <div className="flex justify-between items-end">
                     <div>
@@ -832,7 +790,6 @@ const PaymentPage = () => {
                   </div>
                 </div>
 
-                {/* Trust Badges */}
                 <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-100 grid grid-cols-3 gap-2 sm:gap-4 text-center">
                   <div className="text-center">
                     <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-1 sm:mb-2">

@@ -1005,9 +1005,6 @@ paymentRouter.post('/mpesa/pay', authToken, async (req, res) => {
   }
 });
 
-
-
-
 paymentRouter.post('/mpesa/cancel/:transactionId', authToken, async (req, res) => {
   try {
     const { transactionId } = req.params;
