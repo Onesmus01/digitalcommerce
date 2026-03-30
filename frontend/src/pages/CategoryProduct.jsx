@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Context } from "@/context/ProductContext.jsx";
+import Context from "@/context/index.js";
 import { 
   FaStar, 
   FaStarHalfAlt, 

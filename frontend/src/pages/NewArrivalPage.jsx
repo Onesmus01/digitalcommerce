@@ -21,8 +21,7 @@ import { Link } from 'react-router-dom';
 import fetchCategoryWiseProducts from "@/helpers/fetchCategoryWiseProducts.js";
 import displayKESCurrency from "@/helpers/displayCurrency.js";
 import addToCart from '@/helpers/addToCart.js';
-import { Context } from '@/context/ProductContext.jsx';
-
+import Context from "@/context/index.js";
 // Countdown Timer
 const CountdownTimer = () => {
   const [timeLeft, setTimeLeft] = useState({ hours: 23, minutes: 59, seconds: 59 });

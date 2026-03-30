@@ -20,7 +20,7 @@ import { Link } from 'react-router-dom';
 import fetchCategoryWiseProducts from "@/helpers/fetchCategoryWiseProducts.js";
 import displayKESCurrency from "@/helpers/displayCurrency.js";
 import addToCart from '@/helpers/addToCart.js';
-import { Context } from '@/context/ProductContext.jsx';
+import Context from "@/context/index.js";
 import SEO from "@/components/Seo.jsx";
 
 // Countdown Timer
