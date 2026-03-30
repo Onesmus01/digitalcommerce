@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Context } from "@/context/ProductContext.jsx";
+import Context from "@/context/index.js";
 import displayKESCurrency from "@/helpers/displayCurrency.js";
 import { 
   Trash2, 
@@ -23,7 +23,7 @@ const Cart = () => {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const navigate = useNavigate();
 
-  const { backendUrl, fetchUserAddToCart,fetchCountCart, getAuthHeaders } = useContext(Context);
+  const { backendUrl,fetchCountCart, getAuthHeaders } = useContext(Context);
 
   /* ================= FETCH CART ================= */
   const fetchData = async () => {
@@ -105,7 +105,7 @@ const Cart = () => {
       if (result.success) {
         // Remove from local state quietly - NO loading, NO fetchData()
         setData(prev => prev.filter(item => item._id !== _id));
-        await fetchUserAddToCart(); // Just update cart count
+        await fetchCountCart(); // Just update cart count
       }
     } catch (error) {
       console.error("Delete error:", error);
@@ -126,7 +126,7 @@ const Cart = () => {
     const result = await res.json();
     if (result.success) {
       setData([]);
-       await fetchUserAddToCart();
+       await fetchCountCart();
       setShowClearConfirm(false);
     }
   } catch (error) {

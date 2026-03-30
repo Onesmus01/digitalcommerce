@@ -6,7 +6,7 @@ import displayKESCurrency from '@/helpers/displayCurrency';
 import VerticalCardProduct from '@/components/VerticalCardProduct.jsx';
 import CategroyWiseProductDisplay from '../components/CategoryWiseProductDisplay';
 import addToCart from '../helpers/addToCart';
-import { Context } from '@/context/ProductContext.jsx';
+import Context from "@/context/index.js";
 import SEO from '@/components/Seo.jsx';
 
 const ProductDetails = () => {
@@ -17,8 +17,7 @@ const ProductDetails = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [isWishlisted, setIsWishlisted] = useState(false)
 
-  const { toast, backendUrl, getAuthHeaders } = useContext(Context)
-  const { fetchUserAddToCart } = useContext(Context)
+  const { toast, backendUrl, fetchCountCart } = useContext(Context)
   const navigate = useNavigate()
 
   const [zoomImageCoordinate, setZoomImageCoordinate] = useState({ x: 0, y: 0 })
@@ -68,13 +67,13 @@ const ProductDetails = () => {
 
   const handleAddToCart = async (e, id) => {
     await addToCart(e, id)
-    fetchUserAddToCart()
+    fetchCountCart()
     toast.success("Added to cart!")
   }
 
   const handleBuyProduct = async (e, id) => {
     await addToCart(e, id)
-    fetchUserAddToCart()
+    fetchCountCart()
     navigate("/cart")
   }
 

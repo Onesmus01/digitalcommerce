@@ -95,38 +95,38 @@ const ProductContext = ({ children }) => {
     }
   };
 
-  // 🔥 FIXED: fetchCountCart - uses /count-cart-products endpoint
-  const fetchCountCart = useCallback(async () => {
-    if (!user?._id) return;
+  // // 🔥 FIXED: fetchCountCart - uses /count-cart-products endpoint
+  // const fetchCountCart = useCallback(async () => {
+  //   if (!user?._id) return;
     
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setCartProductCount(0);
-      return;
-    }
+  //   const token = localStorage.getItem("token");
+  //   if (!token) {
+  //     setCartProductCount(0);
+  //     return;
+  //   }
     
-    try {
-      setLoading(true);
-      const response = await fetch(`${backendUrl}/user/count-cart-products`, {
-        method: "GET",
-        credentials: "include",
-        headers: getAuthHeaders(),
-      });
+  //   try {
+  //     setLoading(true);
+  //     const response = await fetch(`${backendUrl}/user/count-cart-products`, {
+  //       method: "GET",
+  //       credentials: "include",
+  //       headers: getAuthHeaders(),
+  //     });
       
-      const responseData = await response.json();
+  //     const responseData = await response.json();
       
-      if (response.ok) {
-        setCartProductCount(responseData.data || 0);
-        console.log("✅ Cart count fetched:", responseData.data);
-      } else {
-        setCartProductCount(0);
-      }
-    } catch (error) {
-      setCartProductCount(0);
-    } finally {
-      setLoading(false);
-    }
-  }, [user?._id]); // 🔥 Added dependency
+  //     if (response.ok) {
+  //       setCartProductCount(responseData.data || 0);
+  //       console.log("✅ Cart count fetched:", responseData.data);
+  //     } else {
+  //       setCartProductCount(0);
+  //     }
+  //   } catch (error) {
+  //     setCartProductCount(0);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }, [user?._id]); // 🔥 Added dependency
 
   // 🔥 FIXED: fetchUserAddToCart - fetches full cart and calculates count
   const fetchUserAddToCart = useCallback(async () => {
@@ -159,30 +159,65 @@ const ProductContext = ({ children }) => {
     }
   }, [backendUrl]);
 
-  // 🔥 FIXED: Initial cart load when user changes
-  useEffect(() => {
+  const fetchCountCart = async () => {
+    if (!user?._id) return;
+
     const token = localStorage.getItem("token");
-    if (token && user?._id) {
-      fetchCountCart();
-    } else {
+    if (!token) {
       setCartProductCount(0);
+      return;
     }
-  }, [user?._id, fetchCountCart]);
+
+    try {
+      setLoading(true);
+      const response = await fetch(`${backendUrl}/user/count-cart-products`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const responseData = await response.json();
+      setCartProductCount(response.ok ? responseData.data || 0 : 0);
+      console.log("✅ Cart count fetched:", responseData.data);
+    } catch {
+      setCartProductCount(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCountCart();
+  }, [user]);
+
+
+  // 🔥 FIXED: Initial cart load when user changes
+  // useEffect(() => {
+  //   const token = localStorage.getItem("token");
+  //   if (token && user?._id) {
+  //     fetchCountCart();
+  //   } else {
+  //     setCartProductCount(0);
+  //   }
+  // }, [user?._id, fetchCountCart]);
 
   // 🔥 Listen for storage changes (login from other tabs)
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const token = localStorage.getItem("token");
-      if (token && user?._id) {
-        fetchCountCart();
-      } else {
-        setCartProductCount(0);
-      }
-    };
+  // useEffect(() => {
+  //   const handleStorageChange = () => {
+  //     const token = localStorage.getItem("token");
+  //     if (token && user?._id) {
+  //       fetchCountCart();
+  //     } else {
+  //       setCartProductCount(0);
+  //     }
+  //   };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [user?._id, fetchCountCart]);
+  //   window.addEventListener('storage', handleStorageChange);
+  //   return () => window.removeEventListener('storage', handleStorageChange);
+  // }, [user?._id, fetchCountCart]);
 
   // Wishlist functions remain the same...
   const AddWishlist = useCallback(async (productId) => {

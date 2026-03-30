@@ -124,7 +124,7 @@ const ProductCard = ({ product, index, onAddToCart }) => {
               </p>
               {product?.price > product?.selling && (
                 <p className="text-[7px] sm:text-xs text-slate-400 line-through hidden sm:block">
-                  {displayKESCurrency(product?.price)}
+                  {/* {displayKESCurrency(product?.price)} */}
                 </p>
               )}
             </div>

@@ -57,6 +57,14 @@ import AdminSettingsPage from "@/pages/AdminSettingsPage.jsx";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080/api";
 
+const getAuthHeaders = () => {
+  const token = localStorage.getItem("token");
+  return {
+    "Content-Type": "application/json",
+    ...(token && { Authorization: `Bearer ${token}` }),
+  };
+};
+
 // ------------------- Protected Routes -------------------
 const PrivateRoute = ({ user, children }) => {
   if (!user?._id) return <Navigate to="/login" />;
@@ -185,6 +193,7 @@ const App = () => {
         fetchCountCart,
         socket,
         backendUrl,
+        getAuthHeaders,
       }}
     >
       <div className="flex flex-col min-h-screen ">

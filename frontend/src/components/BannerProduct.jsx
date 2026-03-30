@@ -122,7 +122,7 @@ const BannerProduct = () => {
 
         <button
           onClick={nextImage}
-          className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-2 sm:p-3 text-white/70 transition-all duration-300 hover:text-white opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0"
+          className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-2 sm:p-3 text-blue-500 transition-all duration-300 hover:text-white opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0"
         >
           <FaAngleRight className="text-xl sm:text-2xl lg:text-3xl drop-shadow-lg" />
         </button>
@@ -130,7 +130,7 @@ const BannerProduct = () => {
         {/* Progress Line - Thinner on mobile */}
         <div className="absolute bottom-0 left-0 h-0.5 sm:h-1 w-full bg-black/10">
           <div
-            className="h-full bg-white/90 transition-none"
+            className="h-full bg-blue-900 transition-none"
             style={{ width: `${progress}%` }}
           />
         </div>
