@@ -31,6 +31,7 @@ const server = http.createServer(app);
 
 // ---------------- CORS ----------------
 const allowedOrigins = [
+  "https://digitalcommerce-whua.onrender.com",
   "http://localhost:5173",
   "http://localhost:3000",
 
