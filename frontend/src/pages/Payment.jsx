@@ -15,7 +15,10 @@ import {
   FaPhone,
   FaUser,
   FaEnvelope,
-  FaMapMarkerAlt
+  FaMapMarkerAlt,
+  FaMobileAlt,
+  FaCheck,
+  FaTimes
 } from "react-icons/fa";
 import { 
   Smartphone, 
@@ -26,7 +29,11 @@ import {
   ArrowLeft,
   Package,
   Menu,
-  X
+  X,
+  Loader2,
+  RefreshCw,
+  ShieldCheck,
+  Clock
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -129,6 +136,118 @@ const ProgressStep = ({ number, title, active, completed, isMobile }) => (
   </div>
 );
 
+/* 🔥 NEW: Verification Overlay Component */
+const VerificationOverlay = ({ status, message, onRetry, onGoHome }) => {
+  const getStatusConfig = () => {
+    switch (status) {
+      case 'pending':
+        return {
+          icon: <Loader2 className="w-16 h-16 sm:w-24 sm:h-24 text-green-500 animate-spin" />,
+          title: "Verifying Payment",
+          subtitle: "Please wait while we confirm your transaction...",
+          bgColor: "bg-green-50",
+          showButtons: false
+        };
+      case 'success':
+        return {
+          icon: <div className="w-16 h-16 sm:w-24 sm:h-24 bg-green-500 rounded-full flex items-center justify-center"><FaCheck className="w-8 h-8 sm:w-12 sm:h-12 text-white" /></div>,
+          title: "Payment Successful!",
+          subtitle: message || "Your order has been confirmed. Redirecting...",
+          bgColor: "bg-green-50",
+          showButtons: false
+        };
+      case 'failed':
+        return {
+          icon: <div className="w-16 h-16 sm:w-24 sm:h-24 bg-red-500 rounded-full flex items-center justify-center"><FaTimes className="w-8 h-8 sm:w-12 sm:h-12 text-white" /></div>,
+          title: "Payment Failed",
+          subtitle: message || "Something went wrong. Please try again.",
+          bgColor: "bg-red-50",
+          showButtons: true
+        };
+      case 'cancelled':
+        return {
+          icon: <div className="w-16 h-16 sm:w-24 sm:h-24 bg-gray-500 rounded-full flex items-center justify-center"><FaTimes className="w-8 h-8 sm:w-12 sm:h-12 text-white" /></div>,
+          title: "Payment Cancelled",
+          subtitle: message || "You cancelled the payment.",
+          bgColor: "bg-gray-50",
+          showButtons: true
+        };
+      default:
+        return {
+          icon: <Loader2 className="w-16 h-16 sm:w-24 sm:h-24 text-green-500 animate-spin" />,
+          title: "Processing",
+          subtitle: "Please wait...",
+          bgColor: "bg-green-50",
+          showButtons: false
+        };
+    }
+  };
+
+  const config = getStatusConfig();
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/95 backdrop-blur-sm">
+      <div className={`${config.bgColor} w-full max-w-md mx-4 p-8 sm:p-12 rounded-3xl shadow-2xl text-center`}>
+        <div className="flex justify-center mb-6">
+          {config.icon}
+        </div>
+        
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
+          {config.title}
+        </h2>
+        
+        <p className="text-gray-600 mb-8 text-base sm:text-lg">
+          {config.subtitle}
+        </p>
+
+        {/* Progress dots for pending */}
+        {status === 'pending' && (
+          <div className="flex justify-center gap-2 mb-8">
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+          </div>
+        )}
+
+        {/* Security badges */}
+        <div className="flex justify-center gap-6 mb-8 text-gray-400">
+          <div className="flex flex-col items-center gap-1">
+            <ShieldCheck className="w-6 h-6" />
+            <span className="text-xs">Secure</span>
+          </div>
+          <div className="flex flex-col items-center gap-1">
+            <Clock className="w-6 h-6" />
+            <span className="text-xs">Fast</span>
+          </div>
+          <div className="flex flex-col items-center gap-1">
+            <FaLock className="w-6 h-6" />
+            <span className="text-xs">Encrypted</span>
+          </div>
+        </div>
+
+        {/* Action buttons for failed/cancelled */}
+        {config.showButtons && (
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={onRetry}
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all"
+            >
+              <RefreshCw className="w-5 h-5" />
+              Try Again
+            </button>
+            <button
+              onClick={onGoHome}
+              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-xl transition-all"
+            >
+              Go Home
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const PaymentPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -151,6 +270,7 @@ const PaymentPage = () => {
   const [paymentStatus, setPaymentStatus] = useState("idle");
   const [transactionId, setTransactionId] = useState(null);
   const [showOrderSummary, setShowOrderSummary] = useState(false);
+  const [verificationMessage, setVerificationMessage] = useState("");
 
   /* ---------------- REFS ---------------- */
   const pollRef = useRef(null);
@@ -236,7 +356,6 @@ const PaymentPage = () => {
     console.log(`[POLLING] Attempt ${countRef.current}/${MAX_POLLS} for tx: ${txId}`);
 
     try {
-      // 🔥 NO cache headers to avoid CORS issues
       const res = await fetch(
         `${backendUrl}/payment/mpesa/status/${txId}?_cb=${Date.now()}`,
         { 
@@ -246,10 +365,12 @@ const PaymentPage = () => {
 
       if (res.status === 401 || res.status === 403) {
         console.error("[POLLING] Auth error (401/403)");
-        toast.error("Session expired. Please refresh and try again.");
+        // 🔥 Persistent error toast
+        toast.error("Session expired. Please refresh and try again.", { duration: Infinity });
         stopPolling();
         setProcessing(false);
         setPaymentStatus("failed");
+        setVerificationMessage("Session expired");
         return { shouldStop: true, status: "failed" };
       }
 
@@ -268,16 +389,36 @@ const PaymentPage = () => {
         console.log("[POLLING] ✅ Final status:", data.status);
         stopPolling();
         setProcessing(false);
+        
+        // 🔥 Clear loading toast
         toast.dismiss("mpesa");
+        
         setPaymentStatus(data.status);
+        setVerificationMessage(data.message);
 
         if (data.status === "success") {
-          toast.success(data.message || "Payment successful! 🎉", { duration: 4000 });
-          setTimeout(() => navigate("/thank-you"), 2000);
+          // 🔥 Persistent success toast
+          toast.success(data.message || "Payment successful! 🎉", { 
+            duration: Infinity,
+            icon: '✅'
+          });
+          setTimeout(() => navigate("/thank-you"), 3000);
         } else if (data.status === "failed") {
-          toast.error(data.message || "Payment failed. Please try again.");
+          // 🔥 Persistent error toast
+          toast.error(data.message || "Payment failed. Please try again.", { 
+            duration: Infinity,
+            icon: '❌'
+          });
         } else if (data.status === "cancelled") {
-          toast.error(data.message || "Payment was cancelled.");
+          // 🔥 Persistent warning toast
+          toast(data.message || "Payment was cancelled.", { 
+            duration: Infinity,
+            icon: '⚠️',
+            style: {
+              background: '#FEF3C7',
+              color: '#92400E',
+            }
+          });
         }
         
         return { shouldStop: true, status: data.status };
@@ -288,8 +429,12 @@ const PaymentPage = () => {
         stopPolling();
         setProcessing(false);
         setPaymentStatus("failed");
+        setVerificationMessage("Payment timeout");
         toast.dismiss("mpesa");
-        toast.error("Payment timeout. Please check your M-Pesa messages.");
+        // 🔥 Persistent timeout toast
+        toast.error("Payment timeout. Please check your M-Pesa messages.", { 
+          duration: Infinity 
+        });
         return { shouldStop: true, status: "timeout" };
       }
 
@@ -302,8 +447,12 @@ const PaymentPage = () => {
         stopPolling();
         setProcessing(false);
         setPaymentStatus("failed");
+        setVerificationMessage("Connection lost");
         toast.dismiss("mpesa");
-        toast.error("Connection lost. Please check your M-Pesa messages.");
+        // 🔥 Persistent error toast
+        toast.error("Connection lost. Please check your M-Pesa messages.", { 
+          duration: Infinity 
+        });
         return { shouldStop: true, status: "error" };
       }
       
@@ -359,7 +508,6 @@ const PaymentPage = () => {
       
       console.log("[VISIBILITY] Tab visible, checking:", currentTxId);
       
-      // 🔥 NO cache headers here either
       fetch(`${backendUrl}/payment/mpesa/status/${currentTxId}?_cb=${Date.now()}`, {
         headers: getAuthHeaders()
       })
@@ -373,13 +521,14 @@ const PaymentPage = () => {
           stopPolling();
           setPaymentStatus(data.status);
           setProcessing(false);
+          setVerificationMessage(data.message);
           toast.dismiss("mpesa");
           
           if (data.status === "success") {
-            toast.success("Payment successful! 🎉");
-            setTimeout(() => navigate("/thank-you"), 1500);
+            toast.success(data.message || "Payment successful! 🎉", { duration: Infinity });
+            setTimeout(() => navigate("/thank-you"), 3000);
           } else {
-            toast.error(data.message || "Payment failed/cancelled");
+            toast.error(data.message || "Payment failed/cancelled", { duration: Infinity });
           }
         } else if (data.status === 'pending' && !pollRef.current) {
           console.log("[VISIBILITY] Restarting polling");
@@ -389,7 +538,7 @@ const PaymentPage = () => {
       .catch(err => {
         console.error("[VISIBILITY] Check failed:", err.message);
         if (err.message === 'Auth error') {
-          toast.error("Session expired.");
+          toast.error("Session expired.", { duration: Infinity });
           stopPolling();
           setProcessing(false);
         }
@@ -420,6 +569,7 @@ const PaymentPage = () => {
     lastRequestTime.current = now;
     setProcessing(true);
     setPaymentStatus("pending");
+    setVerificationMessage("Waiting for M-Pesa confirmation...");
 
     toast.loading("Sending STK push...", { 
       id: "mpesa",
@@ -441,22 +591,42 @@ const PaymentPage = () => {
 
       if (!data.success) {
         toast.dismiss("mpesa");
-        toast.error(data.message || "Failed to initiate payment");
+        // 🔥 Persistent error toast
+        toast.error(data.message || "Failed to initiate payment", { duration: Infinity });
         setProcessing(false);
         setPaymentStatus("failed");
+        setVerificationMessage(data.message || "Failed to initiate");
         return;
       }
 
       toast.dismiss("mpesa");
-      toast.success("Check your phone! Enter M-Pesa PIN", { duration: 8000 });
+      toast.success("Check your phone! Enter M-Pesa PIN", { duration: 5000 });
       startPolling(data.transaction_id);
     } catch (err) {
       console.error(err);
       toast.dismiss("mpesa");
-      toast.error("Network error. Please try again.");
+      // 🔥 Persistent error toast
+      toast.error("Network error. Please try again.", { duration: Infinity });
       setProcessing(false);
       setPaymentStatus("failed");
+      setVerificationMessage("Network error");
     }
+  };
+
+  /* ---------------- RETRY HANDLER ---------------- */
+  const handleRetry = () => {
+    // Clear persistent toasts
+    toast.dismiss();
+    setPaymentStatus("idle");
+    setVerificationMessage("");
+    setProcessing(false);
+    stopPolling();
+  };
+
+  /* ---------------- GO HOME HANDLER ---------------- */
+  const handleGoHome = () => {
+    toast.dismiss();
+    navigate("/");
   };
 
   /* ---------------- UI ---------------- */
@@ -467,15 +637,27 @@ const PaymentPage = () => {
         toastOptions={{
           style: {
             borderRadius: '12px',
-            padding: '12px 16px',
+            padding: '16px 24px',
             fontSize: '14px',
             maxWidth: '90vw',
+            fontWeight: '500',
           },
+          duration: Infinity, // 🔥 Default to persistent
         }}
       />
 
+      {/* 🔥 VERIFICATION OVERLAY - Shows during processing and final states */}
+      {(processing || ["success", "failed", "cancelled"].includes(paymentStatus)) && (
+        <VerificationOverlay 
+          status={paymentStatus === "idle" ? "pending" : paymentStatus}
+          message={verificationMessage}
+          onRetry={handleRetry}
+          onGoHome={handleGoHome}
+        />
+      )}
+
       {/* Header */}
-      <div className="bg-white shadow-sm border-b sticky top-0 z-50">
+      <div className="bg-white shadow-sm border-b sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <button 
