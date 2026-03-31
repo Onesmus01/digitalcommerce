@@ -243,14 +243,14 @@ const App = () => {
               <Route path="/careers" element={<PageTransitionWrapper><CareersPage /></PageTransitionWrapper>} />
 
               {/* ---------------- Protected User Routes ---------------- */}
-              <Route path="/orders" element={<PrivateRoute user={user}><Orders /></PrivateRoute>} />
-              <Route path="/checkout" element={<PrivateRoute user={user}><CheckoutPage /></PrivateRoute>} />
-              <Route path="/payment" element={<PrivateRoute user={user}><Payment /></PrivateRoute>} />
-              <Route path="/thank-you" element={<PrivateRoute user={user}><ThankYouPage /></PrivateRoute>} />
-              <Route path="/my-orders" element={<PrivateRoute user={user}><MyOrdersPage /></PrivateRoute>} />
+              <Route path="/orders" element={<PageTransitionWrapper><PrivateRoute user={user}><Orders /></PrivateRoute></PageTransitionWrapper>} />
+              <Route path="/checkout" element={<PageTransitionWrapper><PrivateRoute user={user}><CheckoutPage /></PrivateRoute></PageTransitionWrapper>} />
+              <Route path="/payment" element={<PageTransitionWrapper><PrivateRoute user={user}><Payment /></PrivateRoute></PageTransitionWrapper>} />
+              <Route path="/thank-you" element={<PageTransitionWrapper><PrivateRoute user={user}><ThankYouPage /></PrivateRoute></PageTransitionWrapper>} />
+              <Route path="/my-orders" element={<PageTransitionWrapper><PrivateRoute user={user}><MyOrdersPage /></PrivateRoute></PageTransitionWrapper>} />
 
               {/* ---------------- Admin Routes ---------------- */}
-              <Route path="/admin-panel" element={<PrivateAdminRoute user={user}><AdminPanel /></PrivateAdminRoute>}>
+              <Route path="/admin-panel" element={<PageTransitionWrapper><PrivateAdminRoute user={user}><AdminPanel /></PrivateAdminRoute></PageTransitionWrapper>}>
                 <Route index element={<AdminDashboard />} />
                 <Route path="all-users" element={<AllUsers />} />
                 <Route path="all-products" element={<AllProducts />} />

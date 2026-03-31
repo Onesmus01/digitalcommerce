@@ -319,27 +319,29 @@ const WishlistPage = () => {
       <SEO title="Wishlist" description="Your saved items" url="/wishlist" />
       <div className="min-h-screen bg-slate-50 pb-20">
         
-        {/* Compact Header */}
-        <div className="sticky top-0 z-30 bg-white border-b border-slate-200 px-3 py-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <button onClick={() => navigate(-1)} className="p-1.5 hover:bg-slate-100 rounded-lg">
-                <FaArrowLeft size={16} className="text-slate-600" />
-              </button>
-              <div>
-                <h1 className="font-bold text-slate-800 text-sm">Wishlist</h1>
-                <p className="text-[10px] text-slate-500">{wishlistItems.length} items</p>
+        {/* 🔥 FIXED HEADER - Now uses same container as content below */}
+        <div className="sticky top-0 z-30 bg-white border-b border-slate-200">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <button onClick={() => navigate(-1)} className="p-1.5 hover:bg-slate-100 rounded-lg">
+                  <FaArrowLeft size={16} className="text-slate-600" />
+                </button>
+                <div>
+                  <h1 className="font-bold text-slate-800 text-sm sm:text-base">Wishlist</h1>
+                  <p className="text-[10px] sm:text-xs text-slate-500">{wishlistItems.length} items</p>
+                </div>
               </div>
-            </div>
 
-            <div className="flex items-center gap-1">
-              <button 
-                onClick={() => navigate('/cart')}
-                className="flex items-center gap-1 px-2 py-1.5 bg-slate-900 text-white text-xs font-semibold rounded-lg"
-              >
-                <FaShoppingCart size={12} />
-                {cartProductCount || 0}
-              </button>
+              <div className="flex items-center gap-1">
+                <button 
+                  onClick={() => navigate('/cart')}
+                  className="flex items-center gap-1 px-2 sm:px-3 py-1.5 sm:py-2 bg-slate-900 text-white text-xs sm:text-sm font-semibold rounded-lg"
+                >
+                  <FaShoppingCart size={12} className="sm:w-4 sm:h-4" />
+                  {cartProductCount || 0}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -369,130 +371,184 @@ const WishlistPage = () => {
           type="danger"
         />
 
-        {/* Compact Stats */}
-        <div className="grid grid-cols-2 gap-2 p-2">
-          <div className="bg-white rounded-xl p-2.5 border border-slate-100">
-            <p className="text-lg font-bold text-slate-900">{wishlistItems.length}</p>
-            <p className="text-[10px] text-slate-500">Items</p>
-          </div>
-          <div className="bg-white rounded-xl p-2.5 border border-slate-100">
-            <p className="text-lg font-bold text-indigo-600">{displayKESCurrency(totalValue)}</p>
-            <p className="text-[10px] text-slate-500">Total</p>
-          </div>
-        </div>
-
-        {/* Compact Controls */}
-        <div className="px-2 pb-2 flex gap-2">
-          <div className="flex-1 relative">
-            <FaSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-indigo-500"
-            />
-          </div>
+        {/* 🔥 CONTAINER WRAPPER - Same as MyOrdersPage: max-w-7xl mx-auto px-3 sm:px-6 */}
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
           
-          <button
-            onClick={() => setShowFilters(true)}
-            className="flex items-center gap-1 px-3 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-lg"
-          >
-            <FaFilter size={10} />
-            Filter
-          </button>
-        </div>
-
-        {/* 3-Column Grid - Compact Cards */}
-        {filteredItems.length === 0 ? (
-          <EmptyState onExplore={() => navigate('/products')} />
-        ) : (
-          <div className="grid grid-cols-3 gap-1.5 px-1.5">
-            {filteredItems.map((item) => {
-              const isSelected = selectedItems.includes(item.id);
-              
-              return (
-                <motion.div
-                  key={item.id}
-                  layout
-                  className={`bg-white rounded-lg border ${isSelected ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-slate-100'} overflow-hidden shadow-sm`}
-                >
-                  {/* Image */}
-                  <div className="relative aspect-square bg-slate-50 overflow-hidden">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-full h-full object-contain p-1.5"
-                      loading="lazy"
-                    />
-                    
-                    {/* Badges */}
-                    {item.discount > 0 && (
-                      <div className="absolute top-1 left-1 bg-rose-500 text-white text-[7px] font-bold px-1 py-0.5 rounded">
-                        -{item.discount}%
-                      </div>
-                    )}
-                    
-                    {!item.inStock && (
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                        <span className="text-white text-[8px] font-bold bg-black/60 px-1.5 py-0.5 rounded">Out</span>
-                      </div>
-                    )}
-
-                    {/* Selection */}
-                    <button
-                      onClick={() => toggleSelectItem(item.id)}
-                      className={`absolute top-1 right-1 w-5 h-5 rounded flex items-center justify-center ${isSelected ? 'bg-indigo-600 text-white' : 'bg-white/90 text-slate-400 border border-slate-200'}`}
-                    >
-                      {isSelected && <FaCheck size={10} />}
-                    </button>
-
-                    {/* Quick Actions */}
-                    <div className="absolute bottom-1 left-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => removeFromWishlist(item.id)}
-                        className="flex-1 py-1 bg-rose-500 text-white rounded text-[8px] font-medium"
-                      >
-                        <FaTrash size={8} className="mx-auto" />
-                      </button>
-                      <button
-                        onClick={() => moveToCart(item)}
-                        disabled={!item.inStock}
-                        className={`flex-1 py-1 rounded text-[8px] font-medium ${item.inStock ? 'bg-indigo-600 text-white' : 'bg-slate-300 text-slate-500'}`}
-                      >
-                        <FaShoppingCart size={8} className="mx-auto" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="p-1.5">
-                    <p className="text-[8px] text-indigo-600 font-medium truncate mb-0.5">{item.category}</p>
-                    <h3 className="font-semibold text-slate-800 text-[9px] leading-tight line-clamp-2 min-h-[18px] mb-1">
-                      {item.name}
-                    </h3>
-                    
-                    <div className="flex items-center gap-0.5 mb-1">
-                      <FaStar className="text-amber-400 text-[7px]" />
-                      <span className="text-[8px] text-slate-500">{item.rating}</span>
-                    </div>
-
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-xs font-bold text-slate-900">
-                        {displayKESCurrency(item.price)}
-                      </span>
-                      {item.originalPrice > item.price && (
-                        <span className="text-[7px] text-slate-400 line-through">
-                          {displayKESCurrency(item.originalPrice)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
+          {/* Compact Stats */}
+          <div className="grid grid-cols-2 gap-2 mb-2">
+            <div className="bg-white rounded-xl p-2.5 border border-slate-100">
+              <p className="text-lg font-bold text-slate-900">{wishlistItems.length}</p>
+              <p className="text-[10px] text-slate-500">Items</p>
+            </div>
+            <div className="bg-white rounded-xl p-2.5 border border-slate-100">
+              <p className="text-lg font-bold text-indigo-600">{displayKESCurrency(totalValue)}</p>
+              <p className="text-[10px] text-slate-500">Total</p>
+            </div>
           </div>
-        )}
+
+          {/* Compact Controls */}
+          <div className="flex gap-2 mb-2">
+            <div className="flex-1 relative">
+              <FaSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-8 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+            
+            <button
+              onClick={() => setShowFilters(true)}
+              className="flex items-center gap-1 px-3 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-lg"
+            >
+              <FaFilter size={10} />
+              Filter
+            </button>
+          </div>
+
+          {/* 🔥 Same grid as ColumnProducts - 3 columns with responsive gaps, now inside container */}
+          {filteredItems.length === 0 ? (
+            <EmptyState onExplore={() => navigate('/products')} />
+          ) : (
+            <div className="grid grid-cols-3 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1.5 sm:gap-4">
+              {filteredItems.map((item, index) => {
+                const isSelected = selectedItems.includes(item.id);
+                
+                return (
+                  <motion.div
+                    key={item.id}
+                    layout
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05, duration: 0.4 }}
+                    className={`group bg-white rounded-lg sm:rounded-xl border ${isSelected ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-slate-100'} overflow-hidden shadow-sm hover:shadow-md sm:hover:shadow-lg transition-all duration-300`}
+                  >
+                    {/* Image - Same as ColumnProducts: aspect-square with p-1 sm:p-3 md:p-4 */}
+                    <div className="relative aspect-square bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden">
+                      <motion.img
+                        src={item.image}
+                        alt={item.name}
+                        className="h-full w-full object-contain p-1 sm:p-3 md:p-4"
+                        whileHover={{ scale: 1.05 }}
+                        transition={{ duration: 0.3 }}
+                        loading="lazy"
+                      />
+                      
+                      {/* Discount Badge - Same as ColumnProducts */}
+                      {item.discount > 0 && (
+                        <div className="absolute top-1 left-1 sm:top-2 sm:left-2 z-20">
+                          <div className="bg-gradient-to-r from-rose-500 to-red-600 text-white text-[7px] sm:text-[10px] font-bold px-1 sm:px-2 py-0.5 rounded-full shadow-sm flex items-center gap-0.5">
+                            <span className="hidden xs:inline">{item.discount}%</span>
+                            <span className="xs:hidden">{item.discount}</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Out of Stock Overlay */}
+                      {!item.inStock && (
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                          <span className="text-white text-[8px] sm:text-xs font-bold bg-black/60 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">Out of Stock</span>
+                        </div>
+                      )}
+
+                      {/* Selection checkbox - Hidden on mobile, visible on sm+ */}
+                      <button
+                        onClick={() => toggleSelectItem(item.id)}
+                        className={`absolute top-1 right-1 sm:top-2 sm:right-2 z-20 w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center transition-colors ${
+                          isSelected ? 'bg-indigo-600 text-white' : 'bg-white/80 text-slate-400 hover:bg-rose-50 hover:text-rose-500 border border-slate-200'
+                        } hidden sm:flex`}
+                      >
+                        {isSelected && <FaCheck size={10} className="sm:w-3 sm:h-3" />}
+                      </button>
+
+                      {/* Quick Actions - Same hover behavior as ColumnProducts */}
+                      <div className="absolute bottom-1 left-1 right-1 sm:bottom-2 sm:left-2 sm:right-2 flex gap-1 sm:gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            removeFromWishlist(item.id);
+                          }}
+                          className="flex-1 py-1 sm:py-2 bg-rose-500 text-white rounded-md sm:rounded-xl text-[8px] sm:text-xs font-medium flex items-center justify-center gap-0.5 sm:gap-1"
+                        >
+                          <FaTrash size={8} className="sm:w-3 sm:h-3" />
+                          <span className="hidden sm:inline">Remove</span>
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            moveToCart(item);
+                          }}
+                          disabled={!item.inStock}
+                          className={`flex-1 py-1 sm:py-2 rounded-md sm:rounded-xl text-[8px] sm:text-xs font-medium flex items-center justify-center gap-0.5 sm:gap-1 ${
+                            item.inStock ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-slate-300 text-slate-500'
+                          }`}
+                        >
+                          <FaShoppingCart size={8} className="sm:w-3 sm:h-3" />
+                          <span className="hidden sm:inline">Add</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Content - Same text sizes as ColumnProducts */}
+                    <div className="p-1.5 sm:p-3">
+                      {/* Category - Same pill style */}
+                      <span className="text-[6px] sm:text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-1 sm:px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        {item.category}
+                      </span>
+                      
+                      {/* Product Name - Same: text-[9px] sm:text-sm */}
+                      <h3 className="font-semibold text-slate-800 text-[9px] sm:text-sm mt-1 sm:mt-1.5 mb-0.5 sm:mb-1 line-clamp-1 group-hover:text-indigo-600 transition-colors leading-tight">
+                        {item.name}
+                      </h3>
+                      
+                      {/* Rating - Same: text-[5px] sm:text-[9px] */}
+                      <div className="flex items-center gap-0.5 sm:gap-1 mb-1 sm:mb-1.5">
+                        <div className="flex">
+                          {[...Array(4)].map((_, i) => (
+                            <FaStar key={i} className="text-amber-400 text-[5px] sm:text-[9px]" />
+                          ))}
+                          <FaStar className="text-amber-200 text-[5px] sm:text-[9px]" />
+                        </div>
+                        <span className="text-[6px] sm:text-[10px] text-slate-500">({item.rating})</span>
+                      </div>
+                      
+                      {/* Price Section - Same: text-[10px] sm:text-base */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-baseline gap-0.5 sm:gap-2">
+                          <p className="text-[10px] sm:text-base font-bold text-slate-900">
+                            {displayKESCurrency(item.price)}
+                          </p>
+                          {item.originalPrice > item.price && (
+                            <p className="text-[7px] sm:text-xs text-slate-400 line-through">
+                              {displayKESCurrency(item.originalPrice)}
+                            </p>
+                          )}
+                        </div>
+                        
+                        {/* Mobile-only add button (since hover actions don't work well on touch) */}
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            moveToCart(item);
+                          }}
+                          disabled={!item.inStock}
+                          className={`sm:hidden p-1 rounded ${item.inStock ? 'bg-indigo-600 text-white' : 'bg-slate-300 text-slate-500'}`}
+                        >
+                          <FaShoppingCart size={10} />
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
         {/* Filter Bottom Sheet */}
         <AnimatePresence>
