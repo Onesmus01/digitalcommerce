@@ -893,9 +893,8 @@ paymentRouter.post('/mpesa/pay', authToken, async (req, res) => {
     let { phone, amount, orderId } = req.body;
 
     /* =======================
-       SANITIZE & VALIDATE
+       VALIDATE INPUTS
     ======================= */
-    phone = sanitizeInput(phone);
     amount = Number(amount);
 
     if (!phone || !orderId || isNaN(amount) || amount <= 0) {
@@ -908,12 +907,18 @@ paymentRouter.post('/mpesa/pay', authToken, async (req, res) => {
     /* =======================
        NORMALIZE PHONE
     ======================= */
-    if (phone.startsWith('0')) phone = '254' + phone.slice(1);
+    phone = String(phone).trim().replace(/\D/g, '');
+
+    if (phone.startsWith('0')) {
+      phone = '254' + phone.slice(1);
+    } else if (phone.startsWith('7') || phone.startsWith('1')) {
+      phone = '254' + phone;
+    }
 
     if (!/^(2547|2541)\d{8}$/.test(phone)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid Kenyan phone number',
+        message: 'Invalid Kenyan phone number. Use format 07XX XXX XXX or 2547XX XXX XXX',
       });
     }
 
@@ -938,8 +943,6 @@ paymentRouter.post('/mpesa/pay', authToken, async (req, res) => {
           message: 'Pending payment exists. Complete or cancel it before retrying.',
         });
       }
-
-      // Retry allowed for failed/cancelled payments
       if (['failed', 'cancelled'].includes(existingPayment.status)) {
         await existingPayment.deleteOne();
       }
@@ -948,24 +951,59 @@ paymentRouter.post('/mpesa/pay', authToken, async (req, res) => {
     /* =======================
        GENERATE MPESA TOKEN
     ======================= */
-    const token = await getMpesaToken();
-
-    const timestamp = new Date().toISOString().replace(/[-T:]/g, '').slice(0, 14);
-    const password = Buffer.from(`${MPESA_SHORTCODE}${MPESA_PASSKEY}${timestamp}`).toString('base64');
+    let token;
+    try {
+      token = await getMpesaToken();
+    } catch (err) {
+      console.error('[MPESA] Token generation failed:', err.message);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'M-Pesa service unavailable. Please try again.' 
+      });
+    }
 
     /* =======================
-       INITIATE STK PUSH
+       BUILD STK PUSH REQUEST
     ======================= */
+    // CRITICAL: Use Store Number for BusinessShortCode and password
+    // Use Till Number for PartyB
+    const storeNumber = process.env.MPESA_STORE_NUMBER;  // 8840106
+    const tillNumber = MPESA_SHORTCODE;                  // 4579383
+
+    if (!storeNumber) {
+      return res.status(500).json({
+        success: false,
+        message: 'Server configuration error: MPESA_STORE_NUMBER not set',
+      });
+    }
+
+    const timestamp = new Date().toISOString().replace(/[-T:]/g, '').slice(0, 14);
+    // CRITICAL: Password uses STORE NUMBER + passkey (what Daraja registered)
+    const password = Buffer.from(`${storeNumber}${MPESA_PASSKEY}${timestamp}`).toString('base64');
+
+    // DEBUG: Log exactly what we're sending
+    console.log('[MPESA DEBUG] ==================================');
+    console.log('[MPESA DEBUG] BASE_URL:', BASE_URL);
+    console.log('[MPESA DEBUG] Store Number (BusinessShortCode):', storeNumber);
+    console.log('[MPESA DEBUG] Till Number (PartyB):', tillNumber);
+    console.log('[MPESA DEBUG] PhoneNumber:', phone);
+    console.log('[MPESA DEBUG] PartyA:', phone);
+    console.log('[MPESA DEBUG] Amount:', amount);
+    console.log('[MPESA DEBUG] Timestamp:', timestamp);
+    console.log('[MPESA DEBUG] Password prefix:', password.slice(0, 20) + '...');
+    console.log('[MPESA DEBUG] Callback URL:', CALLBACK_URL);
+    console.log('[MPESA DEBUG] ==================================');
+
     const { data } = await axios.post(
       `${BASE_URL}/mpesa/stkpush/v1/processrequest`,
       {
-        BusinessShortCode: MPESA_SHORTCODE,
+        BusinessShortCode: storeNumber,     // 8840106 (what Daraja knows)
         Password: password,
         Timestamp: timestamp,
-        TransactionType: 'CustomerPayBillOnline',
+        TransactionType: 'CustomerBuyGoodsOnline',
         Amount: amount,
         PartyA: phone,
-        PartyB: MPESA_SHORTCODE,
+        PartyB: tillNumber,                 // 4579383 (where money lands)
         PhoneNumber: phone,
         CallBackURL: CALLBACK_URL,
         AccountReference: `Order-${orderId}`,
@@ -973,6 +1011,8 @@ paymentRouter.post('/mpesa/pay', authToken, async (req, res) => {
       },
       { headers: { Authorization: `Bearer ${token}` } }
     );
+
+    console.log('[MPESA DEBUG] STK Response:', data);
 
     const checkoutRequestId = data.CheckoutRequestID;
 
@@ -1000,11 +1040,12 @@ paymentRouter.post('/mpesa/pay', authToken, async (req, res) => {
     let message = 'STK Push failed. Try again.';
     if (errData?.errorCode === '400.002.02') message = 'Invalid phone number';
     if (errData?.errorCode === '500.003.02') message = 'System busy. Try again later';
+    if (errData?.errorCode === '404.001.03') message = 'M-Pesa service error. Please try again.';
+    if (errData?.errorCode === '500.001.1001') message = 'Merchant configuration error. Contact support.';
 
     return res.status(500).json({ success: false, message });
   }
 });
-
 paymentRouter.post('/mpesa/cancel/:transactionId', authToken, async (req, res) => {
   try {
     const { transactionId } = req.params;
